@@ -42,20 +42,20 @@ jobs:
           - { PHP_VERSION: 7.3, MAGENTO_VERSION: 2.4.1, COMPOSER_VERSION: v1 }
           - { PHP_VERSION: 7.3, MAGENTO_VERSION: 2.4.0-p1, COMPOSER_VERSION: v1 }
           - { PHP_VERSION: 7.3, MAGENTO_VERSION: 2.4.0, COMPOSER_VERSION: v1 }
-#          - { PHP_VERSION: 7.4, MAGENTO_VERSION: 2.3.7-p4, COMPOSER_VERSION: v2 }
-#          - { PHP_VERSION: 7.4, MAGENTO_VERSION: 2.3.7-p3, COMPOSER_VERSION: v2 }
-#          - { PHP_VERSION: 7.4, MAGENTO_VERSION: 2.3.7-p2, COMPOSER_VERSION: v2 }
-#          - { PHP_VERSION: 7.4, MAGENTO_VERSION: 2.3.7-p1, COMPOSER_VERSION: v2 }
-#          - { PHP_VERSION: 7.4, MAGENTO_VERSION: 2.3.7, COMPOSER_VERSION: v2 }
-#          - { PHP_VERSION: 7.3, MAGENTO_VERSION: 2.3.6-p1, COMPOSER_VERSION: v2 }
-#          - { PHP_VERSION: 7.3, MAGENTO_VERSION: 2.3.6, COMPOSER_VERSION: v2 }
-#          - { PHP_VERSION: 7.3, MAGENTO_VERSION: 2.3.5-p2, COMPOSER_VERSION: v2 }
-#          - { PHP_VERSION: 7.3, MAGENTO_VERSION: 2.3.5-p1, COMPOSER_VERSION: v2 }
-#          - { PHP_VERSION: 7.3, MAGENTO_VERSION: 2.3.4, COMPOSER_VERSION: v2 }
-#          - { PHP_VERSION: 7.3, MAGENTO_VERSION: 2.3.3, COMPOSER_VERSION: v2 }
-#          - { PHP_VERSION: 7.2, MAGENTO_VERSION: 2.3.2, COMPOSER_VERSION: v2 }
-#          - { PHP_VERSION: 7.2, MAGENTO_VERSION: 2.3.1, COMPOSER_VERSION: v2 }
-#          - { PHP_VERSION: 7.2, MAGENTO_VERSION: 2.3.0, COMPOSER_VERSION: v2 }
+          - { PHP_VERSION: 7.4, MAGENTO_VERSION: 2.3.7-p4, COMPOSER_VERSION: v2 }
+          - { PHP_VERSION: 7.4, MAGENTO_VERSION: 2.3.7-p3, COMPOSER_VERSION: v2 }
+          - { PHP_VERSION: 7.4, MAGENTO_VERSION: 2.3.7-p2, COMPOSER_VERSION: v2 }
+          - { PHP_VERSION: 7.4, MAGENTO_VERSION: 2.3.7-p1, COMPOSER_VERSION: v2 }
+          - { PHP_VERSION: 7.4, MAGENTO_VERSION: 2.3.7, COMPOSER_VERSION: v2 }
+          - { PHP_VERSION: 7.3, MAGENTO_VERSION: 2.3.6-p1, COMPOSER_VERSION: v1 }
+          - { PHP_VERSION: 7.3, MAGENTO_VERSION: 2.3.6, COMPOSER_VERSION: v1 }
+          - { PHP_VERSION: 7.3, MAGENTO_VERSION: 2.3.5-p2, COMPOSER_VERSION: v1 }
+          - { PHP_VERSION: 7.3, MAGENTO_VERSION: 2.3.5-p1, COMPOSER_VERSION: v1 }
+          - { PHP_VERSION: 7.3, MAGENTO_VERSION: 2.3.4, COMPOSER_VERSION: v1 }
+          - { PHP_VERSION: 7.3, MAGENTO_VERSION: 2.3.3, COMPOSER_VERSION: v1 }
+          - { PHP_VERSION: 7.2, MAGENTO_VERSION: 2.3.2, COMPOSER_VERSION: v1 }
+          - { PHP_VERSION: 7.2, MAGENTO_VERSION: 2.3.1, COMPOSER_VERSION: v1 }
+          - { PHP_VERSION: 7.2, MAGENTO_VERSION: 2.3.0, COMPOSER_VERSION: v1 }
 
     steps:
       - uses: actions/checkout@v4
@@ -109,6 +109,8 @@ jobs:
           mv magento/.git latest/.git
           cd latest
           git add -A
+          git reset HEAD vendor/composer/autoload_files.php
+          git reset HEAD vendor/composer/autoload_static.php
           git diff
           git config --global user.email "action@github.com"
           git config --global user.name "GitHub Action"
