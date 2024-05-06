@@ -16,18 +16,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         continue-on-error: true
+        id: checkout-branch
         with:
           ref: 'magento-${{ matrix.MAGENTO_VERSION }}'
           path: 'magento'
 
       - uses: actions/checkout@v4
         name: Checkout main if the version branch does not exists
-        if: ${{ hashFiles('magento') == '' }}
+        if: steps.checkout-branch.outcome != 'succes'
         with:
           path: 'magento'
 
       - name: Create empty branch if branch does not exists
-        if: ${{ hashFiles('magento') == '' }}
+        if: steps.checkout-branch.outcome != 'succes'
         run: |
           mkdir magento
           cd magento
