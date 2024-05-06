@@ -21,10 +21,15 @@ jobs:
           ref: 'magento-${{ matrix.MAGENTO_VERSION }}'
           path: 'magento'
 
+      - uses: actions/checkout@v4
+        name: Checkout main if the version branch does not exists
+        if: steps.checkout-branch.outcome != 'success'
+        with:
+          path: 'magento'
+
       - name: Create empty branch if branch does not exists
-        if: steps.checkout-branch.outcome != 'succes'
+        if: steps.checkout-branch.outcome != 'success'
         run: |
-          mkdir magento
           cd magento
           git switch --orphan magento-${{ matrix.MAGENTO_VERSION }}
 
