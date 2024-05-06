@@ -90,14 +90,16 @@ jobs:
       - name: Run "composer create-project"
         run: |
           composer create-project --no-install --repository-url=https://repo.magento.com/ magento/project-community-edition=${{ matrix.MAGENTO_VERSION }} latest
-          cd latest
 
-          # Allow plugins
+      - name: Allow plugins
+        if: matrix.COMPOSER_VERSION == 'v2'
+        run: |
           composer config --no-plugins --no-interaction allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
           composer config --no-plugins --no-interaction allow-plugins.laminas/laminas-dependency-plugin true
           composer config --no-plugins --no-interaction allow-plugins.magento/* true
 
-          composer install
+      - name: Run composer install
+        run: composer install
 
       - name: Move git and commit changes
         run: |
