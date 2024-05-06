@@ -114,12 +114,14 @@ jobs:
         # Only reset these files if the branch already exists.
         if: steps.checkout-branch.outcome == 'success'
         run: |
+          cd latest
           git reset HEAD vendor/composer/autoload_files.php
           git reset HEAD vendor/composer/autoload_static.php
 
       - name: Check for changes
         id: git_check
         run: |
+          cd latest
           if [ -z "$(git status --porcelain)" ]; then
             echo "No changes to commit."
             echo "{changes}={false}" >> $GITHUB_OUTPUT
@@ -137,5 +139,6 @@ jobs:
       - name: Commit and Push changes
         if: steps.git_check.outputs.changes == 'true'
         run: |
+          cd latest
           git commit -m "Daily update: $(date +'%Y-%m-%d')"
           git push origin magento-${{ matrix.MAGENTO_VERSION }}
