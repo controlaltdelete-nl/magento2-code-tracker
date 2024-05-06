@@ -43,7 +43,12 @@ jobs:
           echo '${{ secrets.COMPOSER_AUTH_JSON }}' > "$(composer config --global home)/auth.json"
 
       - name: Run "composer create-project"
-        run: composer create-project --repository-url=https://repo.magento.com/ magento/project-community-edition=${{ matrix.MAGENTO_VERSION }} latest
+        run: |
+          composer config --global --no-interaction allow-plugins.dealerdirect/phpcodesniffer-composer-installer
+          composer config --global --no-interaction allow-plugins.laminas/laminas-dependency-plugin
+          composer config --global --no-interaction allow-plugins.magento/*
+
+          composer create-project --repository-url=https://repo.magento.com/ magento/project-community-edition=${{ matrix.MAGENTO_VERSION }} latest
 
       - name: Move git and commit changes
         run: |
