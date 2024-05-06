@@ -15,9 +15,23 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        continue-on-error: true
         with:
           ref: 'magento-${{ matrix.MAGENTO_VERSION }}'
           path: 'magento'
+
+      - uses: actions/checkout@v4
+        name: Checkout main if the version branch does not exists
+        if: ${{ hashFiles('magento') == '' }}
+        with:
+          path: 'magento'
+
+      - name: Create empty branch if branch does not exists
+        if: ${{ hashFiles('magento') == '' }}
+        run: |
+          mkdir magento
+          cd magento
+          git switch --orphan magento-${{ matrix.MAGENTO_VERSION }}
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
