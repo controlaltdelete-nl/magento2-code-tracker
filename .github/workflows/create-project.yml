@@ -1,0 +1,43 @@
+name: Composer Create Project
+on: push
+
+jobs:
+  create-project:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        include:
+          - PHP_VERSION: php74-fpm
+            MAGENTO_VERSION: 2.3.7-p4
+          - PHP_VERSION: php82-fpm
+            MAGENTO_VERSION: 2.4.7
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 'magento-${{ matrix.MAGENTO_VERSION }}'
+          path: 'magento'
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '${{ matrix.PHP_VERSION }}'
+
+      - name: Set Composer auth
+        run: |
+          composer install --no-interaction --no-progress --working-dir=$WORKING_DIR
+          echo '${{ secrets.COMPOSER_AUTH_JSON }}' > $GITHUB_WORKSPACE/auth.json
+
+      - name: Run "composer create-project"
+        run: composer create-project --repository-url=https://repo.magento.com/ magento/project-community-edition=${{ matrix.MAGENTO_VERSION }} latest
+
+      - name: Move git and commit changes
+        run: |
+          mv magento/.git latest/.git
+          cd latest
+          git diff
+          git config --global user.email "action@github.com"
+          git config --global user.name "GitHub Action"
+          git commit -Am "Daily update: $(date +'%Y-%m-%d')"
+          git push origin magento-${{ matrix.MAGENTO_VERSION }}
