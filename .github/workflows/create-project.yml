@@ -94,12 +94,15 @@ jobs:
       - name: Allow plugins
         if: matrix.COMPOSER_VERSION == 'v2'
         run: |
+          cd latest
           composer config --no-plugins --no-interaction allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
           composer config --no-plugins --no-interaction allow-plugins.laminas/laminas-dependency-plugin true
           composer config --no-plugins --no-interaction allow-plugins.magento/* true
 
       - name: Run composer install
-        run: composer install
+        run: |
+          cd latest
+          composer install
 
       - name: Move git and commit changes
         run: |
