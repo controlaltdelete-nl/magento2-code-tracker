@@ -40,7 +40,6 @@ jobs:
 
       - name: Set Composer auth
         run: |
-          composer install --no-interaction --no-progress --working-dir=$WORKING_DIR
           echo '${{ secrets.COMPOSER_AUTH_JSON }}' > $GITHUB_WORKSPACE/auth.json
 
       - name: Run "composer create-project"
