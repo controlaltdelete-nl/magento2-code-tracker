@@ -108,7 +108,7 @@ jobs:
         run: |
           mv magento/.git latest/.git
           cd latest
-          git add -A
+          git add -Af
 
       - name: Reset autoload files
         # Only reset these files if the branch already exists.
