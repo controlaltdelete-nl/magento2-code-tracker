@@ -113,7 +113,7 @@ jobs:
           mv magento/.git latest/.git
           cd latest
           git add -Af
-          git reset HEAD vendor
+          git rm --cached vendor
           git add -Af vendor/magento
 
       - name: Check for changes
