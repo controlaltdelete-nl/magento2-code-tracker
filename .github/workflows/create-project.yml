@@ -3,6 +3,7 @@ on:
 #  push:
   schedule:
     - cron: "1 1 * * *"
+  workflow_dispatch:
 
 jobs:
   create-project:
@@ -112,14 +113,8 @@ jobs:
           mv magento/.git latest/.git
           cd latest
           git add -Af
-
-      - name: Reset autoload files
-        # Only reset these files if the branch already exists.
-        if: steps.checkout-branch.outcome == 'success'
-        run: |
-          cd latest
-          git reset HEAD vendor/composer/autoload_files.php
-          git reset HEAD vendor/composer/autoload_static.php
+          git reset HEAD vendor
+          git add -Af vendor/magento
 
       - name: Check for changes
         id: git_check
