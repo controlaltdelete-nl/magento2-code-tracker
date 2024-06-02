@@ -116,7 +116,7 @@ jobs:
           git rm --cached composer.lock
           git rm --cached -r vendor
           git add -Af vendor/magento
-          rm -rf composer.lock vendor
+          rm -rf composer.lock vendor/.htaccess
 
       - name: Check for changes
         id: git_check
