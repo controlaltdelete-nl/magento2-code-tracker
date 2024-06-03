@@ -91,6 +91,10 @@ jobs:
         run: |
           echo '${{ secrets.COMPOSER_AUTH_JSON }}' > "$(composer config --global home)/auth.json"
 
+      - name: Install hirak/prestissimo for V1
+        if: matrix.COMPOSER_VERSION == 'v1'
+        run: composer global require hirak/prestissimo
+
       - name: Run "composer create-project"
         run: |
           composer create-project --no-install --repository-url=https://repo.magento.com/ magento/project-community-edition=${{ matrix.MAGENTO_VERSION }} latest
