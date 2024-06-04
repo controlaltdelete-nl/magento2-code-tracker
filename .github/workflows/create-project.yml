@@ -116,7 +116,7 @@ jobs:
         run: |
           mv magento/.git latest/.git
           cd latest
-          rm -r var/vendor/autoload.php var/vendor/composer
+          rm -fr var/vendor/autoload.php var/vendor/composer
           git add -Af
           git rm --cached composer.lock
           git rm --cached -r vendor
