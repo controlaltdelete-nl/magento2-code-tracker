@@ -36,7 +36,6 @@ class SubmitFeed
     /**
      * Config paths
      */
-    private const ROUTE_CONFIG_PATH = 'commerce_data_export/routes/';
     private const ENVIRONMENT_CONFIG_PATH = 'magento_saas/environment';
 
     /**
@@ -79,20 +78,32 @@ class SubmitFeed
      */
     private $headers;
 
-    /**
-     * @var DataFilter
-     */
-    private $dataFilter;
-
     private ResponseParser $responseParser;
 
+    /**
+     * @var FeedExportStatusBuilder
+     */
     private FeedExportStatusBuilder $feedExportStatusBuilder;
 
+    /**
+     * @var RequestMetadataHeaderProvider
+     */
     private RequestMetadataHeaderProvider $requestMetadataHeaderProvider;
 
+    /**
+     * @var IndexerConfig
+     */
     private IndexerConfig $indexerConfig;
 
+    /**
+     * @var ProgressBarManager
+     */
     private ProgressBarManager $progressBarManager;
+
+    /**
+     * @var FeedRouteResolverInterface
+     */
+    private FeedRouteResolverInterface $feedRouteResolver;
 
     /**
      * @param ClientResolverInterface $clientResolver
@@ -104,11 +115,13 @@ class SubmitFeed
      * @param ResponseParser $responseParser
      * @param FeedExportStatusBuilder $feedExportStatusBuilder
      * @param RequestMetadataHeaderProvider $requestMetadataHeaderProvider
-     * @param IndexerConfig $indexerConfig
-     * @param ProgressBarManager $progressBarManager
+     * @param ?IndexerConfig $indexerConfig
+     * @param ?ProgressBarManager $progressBarManager
+     * @param ?FeedRouteResolverInterface $feedRouteResolver
      * @param bool $extendedLog
      * @param string[] $headers
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function __construct(
         ClientResolverInterface $clientResolver,
@@ -122,6 +135,7 @@ class SubmitFeed
         RequestMetadataHeaderProvider $requestMetadataHeaderProvider,
         ?IndexerConfig $indexerConfig = null,
         ?ProgressBarManager $progressBarManager = null,
+        ?FeedRouteResolverInterface $feedRouteResolver = null,
         bool $extendedLog = false,
         array $headers = []
     ) {
@@ -132,7 +146,6 @@ class SubmitFeed
         $this->logger = $logger;
         $this->extendedLog = $extendedLog;
         $this->headers = $headers;
-        $this->dataFilter = $dataFilter;
         $this->responseParser = $responseParser;
         $this->feedExportStatusBuilder = $feedExportStatusBuilder;
         $this->requestMetadataHeaderProvider = $requestMetadataHeaderProvider;
@@ -140,25 +153,8 @@ class SubmitFeed
             ?? ObjectManager::getInstance()->get(IndexerConfig::class);
         $this->progressBarManager = $progressBarManager
             ?? ObjectManager::getInstance()->get(ProgressBarManager::class);
-    }
-
-    /**
-     * Build URL to SaaS Service
-     *
-     * @param string $feedName
-     * @param ?string $environmentId
-     * @return string
-     * @throws UnableSendData
-     */
-    private function getUrl(string $feedName, ?string $environmentId) : string
-    {
-        $route =  $this->getRoute($feedName);
-
-        if (empty($route) || empty($environmentId)) {
-            throw new UnableSendData('Cannot build feed url');
-        }
-
-        return '/' . $route . '/' . $environmentId;
+        $this->feedRouteResolver = $feedRouteResolver
+            ?? ObjectManager::getInstance()->get(FeedRouteResolverInterface::class);
     }
 
     /**
@@ -190,7 +186,6 @@ class SubmitFeed
             );
 
             $headers = $this->getHeaders();
-            $data = $this->dataFilter->filter($feedName, $data);
             $this->logFeedData($feedName, $data);
             $body = $this->converter->toBody($data);
             $options = [
@@ -201,8 +196,13 @@ class SubmitFeed
             if (null !== $timeout) {
                 $options['timeout'] = $timeout;
             }
+
             if ($this->servicesConfig->isApiKeySet()) {
-                $response = $client->request(Request::METHOD_POST, $this->getUrl($feedName, $environmentId), $options);
+                $response = $client->request(
+                    Request::METHOD_POST,
+                    $this->feedRouteResolver->getRoute($feedName),
+                    $options
+                );
                 $failedItems = $this->responseParser->parse($response);
                 $exportStatus = $this->feedExportStatusBuilder->build(
                     $response->getStatusCode(),
@@ -224,6 +224,18 @@ class SubmitFeed
             } else {
                 throw new UnableSendData('API Keys Validation Failed');
             }
+        } catch (UnableSendData $exception) {
+            $exportStatus = $this->feedExportStatusBuilder->build(
+                ExportStatusCodeProvider::APPLICATION_ERROR,
+                $exception->getMessage()
+            );
+            $this->logger->error(
+                $exception->getMessage(),
+                [
+                    'exception' => $exception,
+                    'feed' => $feedName
+                ]
+            );
         } catch (\Throwable $exception) {
             $exportStatus = $this->feedExportStatusBuilder->build(
                 ExportStatusCodeProvider::APPLICATION_ERROR,
@@ -234,7 +246,7 @@ class SubmitFeed
                 [
                     'exception' => $exception,
                     'environment_id' => $environmentId,
-                    'route' => $this->getRoute($feedName),
+                    'route' => $this->feedRouteResolver->getRoute($feedName),
                     'feed' => $feedName
                 ]
             );
@@ -268,7 +280,7 @@ class SubmitFeed
             'status_code' => $feedExportStatus->getStatus()->getValue(),
             'feed' => $feedName,
             'reason' => $feedExportStatus->getReasonPhrase(),
-            'route' => $this->getRoute($feedName),
+            'route' => $this->feedRouteResolver->getRoute($feedName),
             'base_uri' => $clientConfig['base_uri']
                 ? $clientConfig['base_uri']->__toString() : 'base uri wasn\'t set',
             'failedItems' => $feedExportStatus->getFailedItems()
@@ -308,17 +320,6 @@ class SubmitFeed
         }
 
         return $headers;
-    }
-
-    /**
-     * Get route from config for given feed name
-     *
-     * @param string $feedName
-     * @return ?string
-     */
-    private function getRoute(string $feedName): ?string
-    {
-        return $this->config->getValue(self::ROUTE_CONFIG_PATH . $feedName);
     }
 
     /**

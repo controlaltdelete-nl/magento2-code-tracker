@@ -9,8 +9,10 @@ namespace Magento\SaaSCommon\Cron;
 
 use Magento\DataExporter\Lock\FeedLockManager;
 use Magento\DataExporter\Model\Batch\BatchGeneratorInterface;
+use Magento\DataExporter\Model\ExportFeedInterface;
 use Magento\DataExporter\Model\Logging\CommerceDataExportLoggerInterface;
 use Magento\DataExporter\Model\Indexer\FeedIndexMetadata;
+use Magento\Framework\App\ObjectManager;
 use Magento\Indexer\Model\ProcessManagerFactory;
 use Magento\SaaSCommon\Model\Exception\UnableSendData;
 use Magento\DataExporter\Model\FeedPool;
@@ -21,8 +23,8 @@ use Magento\SaaSCommon\Model\FeedRegistry;
 use Magento\SaaSCommon\Model\Http\Command\SubmitFeed as HttpCommandSubmitFeed;
 use Magento\SaaSCommon\Model\ResyncManagerPool;
 use Magento\ServicesConnector\Exception\PrivateKeySignException;
-use Magento\ServicesConnector\Model\Environment;
 use Magento\SaaSCommon\Model\Logging\SaaSExportLoggerInterface as LoggerInterface;
+use Magento\ServicesId\Model\ServicesConfigInterface;
 
 /**
  * Class to execute submitting data feed
@@ -32,16 +34,6 @@ use Magento\SaaSCommon\Model\Logging\SaaSExportLoggerInterface as LoggerInterfac
 class SubmitFeed implements SubmitFeedInterface
 {
     public const ENVIRONMENT_CONFIG_PATH = 'magento_saas/environment';
-
-    /**
-     * @var HttpCommandSubmitFeed
-     */
-    private HttpCommandSubmitFeed $submitFeed;
-
-    /**
-     * @var ModuleList
-     */
-    private ModuleList $moduleList;
 
     /**
      * @var FeedPool
@@ -62,11 +54,6 @@ class SubmitFeed implements SubmitFeedInterface
      * @var CommerceDataExportLoggerInterface
      */
     private CommerceDataExportLoggerInterface $logger;
-
-    /**
-     * @var ScopeConfigInterface
-     */
-    private ScopeConfigInterface $config;
 
     /**
      * @var string
@@ -99,6 +86,16 @@ class SubmitFeed implements SubmitFeedInterface
     private FeedLockManager $feedLockManager;
 
     /**
+     * @var ExportFeedInterface
+     */
+    private ExportFeedInterface $exportFeed;
+
+    /**
+     * @var ServicesConfigInterface|mixed
+     */
+    private ServicesConfigInterface $servicesConfig;
+
+    /**
      * @param FeedPool $feedPool
      * @param HttpCommandSubmitFeed $submitFeed
      * @param ModuleList $moduleList
@@ -112,6 +109,8 @@ class SubmitFeed implements SubmitFeedInterface
      * @param ProcessManagerFactory $processManagerFactory
      * @param FeedLockManager $feedLockManager
      * @param CommerceDataExportLoggerInterface $exporterLogger
+     * @param ?ExportFeedInterface $exportFeed
+     * @param ?ServicesConfigInterface $servicesConfig
      * @param ?string $feedName
      * @param ?FeedIndexMetadata $feedMetadata
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
@@ -131,22 +130,23 @@ class SubmitFeed implements SubmitFeedInterface
         ProcessManagerFactory $processManagerFactory,
         FeedLockManager $feedLockManager,
         CommerceDataExportLoggerInterface $exporterLogger,
+        ?ExportFeedInterface $exportFeed = null,
+        ?ServicesConfigInterface $servicesConfig = null,
         ?string $feedName = null,
         ?FeedIndexMetadata $feedMetadata = null
     ) {
         $this->feedPool = $feedPool;
-        $this->submitFeed = $submitFeed;
-        $this->moduleList = $moduleList;
         $this->flagManager = $flagManager;
         $this->feedRegistry = $feedRegistry;
         $this->logger = $exporterLogger;
-        $this->config = $config;
         $this->feedName = $feedMetadata ? $feedMetadata->getFeedName() : $feedName;
         $this->feedSyncFlag = $feedSyncFlag;
         $this->resyncManagerPool = $resyncManagerPool;
         $this->batchGenerator = $batchGenerator;
         $this->processManagerFactory = $processManagerFactory;
         $this->feedLockManager = $feedLockManager;
+        $this->exportFeed = $exportFeed ?? ObjectManager::getInstance()->get(ExportFeedInterface::class);
+        $this->servicesConfig = $servicesConfig ?? ObjectManager::getInstance()->get(ServicesConfigInterface::class);
     }
 
     /**
@@ -164,10 +164,7 @@ class SubmitFeed implements SubmitFeedInterface
             $filteredData = $this->feedRegistry->filter($chunk);
             $this->logger->logProgress(count($chunk), count($filteredData));
             if (!empty($filteredData)) {
-                $result = $this->submitFeed->execute(
-                    $this->feedName,
-                    $filteredData
-                );
+                $result = $this->exportFeed->export($filteredData, $feed->getFeedMetadata());
                 if (!$result->getStatus()->isSuccess()) {
                     return false;
                 } else {
@@ -185,9 +182,7 @@ class SubmitFeed implements SubmitFeedInterface
      */
     public function execute()
     {
-        $environment = $this->config->getValue(self::ENVIRONMENT_CONFIG_PATH);
-        $key = $this->config->getValue(str_replace('{env}', $environment, Environment::API_KEY_PATH));
-        if (!$key) {
+        if (!$this->servicesConfig->isApiKeySet()) {
             return;
         }
 

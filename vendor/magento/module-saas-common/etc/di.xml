@@ -6,6 +6,7 @@
  */
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <preference for="Magento\SaaSCommon\Model\Http\Command\FeedRouteResolverInterface" type="Magento\SaaSCommon\Model\Http\Command\FeedRouteResolver" />
     <preference for="Magento\SaaSCommon\Cron\SubmitFeedInterface" type="Magento\SaaSCommon\Cron\SubmitFeed" />
     <preference for="Magento\DataExporter\Model\ExportFeedInterface" type="Magento\SaaSCommon\Model\ExportFeed" />
 
