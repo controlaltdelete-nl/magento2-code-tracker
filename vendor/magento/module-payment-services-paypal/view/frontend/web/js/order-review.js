@@ -30,8 +30,8 @@ define([
          * @inheritdoc
          */
         initialize: function (config, element) {
-            this.element = element;
             this._super();
+            this.element = element;
 
             $(this.placeOrderButtonSelector).on('click', this.submitOrder.bind(this));
             $(this.editShoppingCartSelector).on('click', this.invalidateCustomerData.bind(this));
@@ -75,11 +75,7 @@ define([
          * Validate form
          */
         validateForm: function () {
-            if ($(this.element).data('mageValidation')) {
-                return $(this.element).validation().valid();
-            }
-
-            return true;
+            return $(this.element).validation().valid();
         },
 
         /**

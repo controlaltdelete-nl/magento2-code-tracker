@@ -32,7 +32,7 @@ interface PaymentSdkRequestInterface
      *
      * @param string $location
      *
-     * @return Magento\PaymentServicesPaypal\Api\Data\PaymentSdkParamsInterface[]
+     * @return \Magento\PaymentServicesPaypal\Api\Data\PaymentSdkParamsInterface[]
      */
     public function getByLocation(string $location);
 
@@ -42,7 +42,7 @@ interface PaymentSdkRequestInterface
      * @param string $location
      * @param string $methodCode
      *
-     * @return Magento\PaymentServicesPaypal\Api\Data\PaymentSdkParamsInterface
+     * @return \Magento\PaymentServicesPaypal\Api\Data\PaymentSdkParamsInterface
      */
     public function getByLocationAndMethodCode(string $location, string $methodCode);
 }

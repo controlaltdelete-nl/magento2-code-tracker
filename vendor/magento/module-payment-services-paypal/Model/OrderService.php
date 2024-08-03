@@ -18,6 +18,9 @@ use Psr\Log\LoggerInterface;
 
 class OrderService
 {
+    private const PAYPAL_ORDER = 'paypal-order';
+    private const PAYPAL_ORDER_UPDATE = 'paypal-order-update';
+
     /**
      * @var CartRepositoryInterface
      */
@@ -75,7 +78,7 @@ class OrderService
     public function create(array $data) : array
     {
         $order = [
-            'paypal-order' => [
+            self::PAYPAL_ORDER => [
                 'amount' => [
                     'currency_code' => $data['currency_code'],
                     'value' => $data['amount'] ?? 0.00
@@ -86,19 +89,25 @@ class OrderService
                 'vault' => $data['vault'] ?? false,
             ]
         ];
-        $order['paypal-order']['shipping-address'] = $data['shipping_address'] ?? null;
-        $order['paypal-order']['billing-address'] = $data['billing_address'] ?? null;
-        $order['paypal-order']['payer'] = $data['payer'] ?? null;
+        $order[self::PAYPAL_ORDER]['shipping-address'] = $data['shipping_address'] ?? null;
+        $order[self::PAYPAL_ORDER]['billing-address'] = $data['billing_address'] ?? null;
+        $order[self::PAYPAL_ORDER]['payer'] = $data['payer'] ?? null;
         if ($data['quote_id'] !== null) {
-            $order['paypal-order']['intent'] = $this->getPaymentIntent($data['quote_id']);
+            $order[self::PAYPAL_ORDER]['intent'] = $this->getPaymentIntent($data['quote_id']);
         }
         if (!empty($data['order_increment_id'])) {
-            $order['paypal-order']['order_increment_id'] = $data['order_increment_id'];
+            $order[self::PAYPAL_ORDER]['order_increment_id'] = $data['order_increment_id'];
         }
         $softDescriptor = $this->config->getSoftDescriptor($data['store_code'] ?? null);
         if ($softDescriptor) {
-            $order['paypal-order']['soft_descriptor'] = $softDescriptor;
+            $order[self::PAYPAL_ORDER]['soft_descriptor'] = $softDescriptor;
         }
+
+        $order = $this->applyL2Data($order, $data);
+        $order = $this->applyL3Data($order, $data);
+        $order = $this->applyLineItems($order, $data);
+        $order = $this->applyAmountBreakdown($order, $data, self::PAYPAL_ORDER);
+
         $headers = [
             'Content-Type' => 'application/json',
             'x-scope-id' => $data['website_id']
@@ -110,9 +119,7 @@ class OrderService
             $headers['x-commerce-quote-id'] = $data['quote_id'];
         }
 
-        $order = $this->applyL2Data($order, $data);
-        $order = $this->applyL3Data($order, $data);
-        $path = '/payments/' . $this->config->getMerchantId() . '/payment/paypal/order';
+        $path = '/' . $this->config->getMerchantId() . '/payment/paypal/order';
         $body = json_encode($order);
 
         $response = $this->httpClient->request(
@@ -152,7 +159,7 @@ class OrderService
     public function update(string $id, array $data) : void
     {
         $order = [
-            'paypal-order-update' => [
+            self::PAYPAL_ORDER_UPDATE => [
                 'reference_id' => 'default',
                 'amount' => [
                     'operation' => 'REPLACE',
@@ -164,7 +171,10 @@ class OrderService
             ]
         ];
 
-        $path = '/payments/' . $this->config->getMerchantId() . '/payment/paypal/order/' . $id;
+        $order = $this->applyLineItemsOperation($order, $data);
+        $order = $this->applyAmountBreakdown($order, $data, self::PAYPAL_ORDER_UPDATE);
+
+        $path = '/' . $this->config->getMerchantId() . '/payment/paypal/order/' . $id;
         $headers = ['Content-Type' => 'application/json'];
         $body = json_encode($order);
         $response = $this->httpClient->request(
@@ -205,7 +215,7 @@ class OrderService
     {
         $response = $this->httpClient->request(
             ['Content-Type' => 'application/json'],
-            '/payments/' . $this->config->getMerchantId() . '/payment/paypal/order/' . $id,
+            '/' . $this->config->getMerchantId() . '/payment/paypal/order/' . $id,
             Http::METHOD_GET,
         );
         if (!$response['is_successful']) {
@@ -309,7 +319,7 @@ class OrderService
             return $order;
         }
 
-        $order['paypal-order']['l2_data'] = $data['l2_data'];
+        $order[self::PAYPAL_ORDER]['l2_data'] = $data['l2_data'];
         return $order;
     }
 
@@ -326,7 +336,63 @@ class OrderService
             return $order;
         }
 
-        $order['paypal-order']['l3_data'] = $data['l3_data'];
+        $order[self::PAYPAL_ORDER]['l3_data'] = $data['l3_data'];
+        return $order;
+    }
+
+    /**
+     * Apply Line items data to the order
+     *
+     * @param array $order
+     * @param array $data
+     * @return array
+     */
+    private function applyLineItems(array $order, array $data) : array
+    {
+        if (empty($data['line_items'])) {
+            return $order;
+        }
+
+        $order[self::PAYPAL_ORDER]['line_items'] = $data['line_items'];
+        return $order;
+    }
+
+    /**
+     * Apply Line items operation data to the order
+     *
+     * @param array $order
+     * @param array $data
+     * @return array
+     */
+    private function applyLineItemsOperation(array $order, array $data) : array
+    {
+        if (empty($data['line_items'])) {
+            return $order;
+        }
+
+        $order[self::PAYPAL_ORDER_UPDATE]['line_items'] = [
+            'operation' => 'ADD',
+            'value' => $data['line_items']
+        ];
+
+        return $order;
+    }
+
+    /**
+     * Apply Amount Breakdown data to the order
+     *
+     * @param array $order
+     * @param array $data
+     * @param string $key
+     * @return array
+     */
+    private function applyAmountBreakdown(array $order, array $data, string $key) : array
+    {
+        if (empty($data['amount_breakdown'])) {
+            return $order;
+        }
+
+        $order[$key]['amount_breakdown'] = $data['amount_breakdown'];
         return $order;
     }
 }

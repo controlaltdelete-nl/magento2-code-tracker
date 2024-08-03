@@ -17,6 +17,17 @@ define([
 ], function (_, $, utils, Component, loadSdkScript, SmartButtons, $t, customerData, ResponseError) {
     'use strict';
 
+    var refreshCustomerData = function (url) {
+        // Trigger ajaxComplete event to update customer data
+        customerData.onAjaxComplete(
+            {},
+            {
+                type: 'POST',
+                url: url,
+            }
+        );
+    }
+
     return Component.extend({
         defaults: {
             sdkNamespace: 'paypalCart',
@@ -145,6 +156,8 @@ define([
          */
         afterCreateOrder: function (res) {
             if (res.response['is_successful']) {
+                refreshCustomerData(this.createOrderUrl);
+
                 return res.response['paypal-order'].id;
             }
 

@@ -69,7 +69,7 @@ class ValidationMessages extends \Magento\Framework\View\Element\Messages
     /**
      * Add quote messages
      */
-    protected function addQuoteMessages() : void
+    private function addQuoteMessages() : void
     {
         $messages = [];
         /** @var MessageInterface $message */
@@ -80,6 +80,7 @@ class ValidationMessages extends \Magento\Framework\View\Element\Messages
                         ->createMessage($message->getType())
                         ->setText($message->getText());
                 } catch (\InvalidArgumentException $e) {
+                    $messages[] = $e->getMessage();
                 }
             } else {
                 $messages[] = $message;

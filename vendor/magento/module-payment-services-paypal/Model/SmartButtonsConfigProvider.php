@@ -10,81 +10,77 @@ use Magento\Checkout\Model\ConfigProviderInterface;
 use Magento\PaymentServicesPaypal\Model\SdkService\PaymentOptionsBuilder;
 use Magento\PaymentServicesPaypal\Model\SdkService\PaymentOptionsBuilderFactory;
 use Magento\Framework\UrlInterface;
-use Magento\Store\Model\StoreManagerInterface;
 use Magento\PaymentServicesBase\Model\Config as BaseConfig;
 
-class SmartButtonsConfigProvider extends AbstractConfigProvider implements ConfigProviderInterface
+class SmartButtonsConfigProvider implements ConfigProviderInterface
 {
     public const CODE = 'payment_services_paypal_smart_buttons';
-
-    public const PAYPAL_PAYMENT_SOURCE = 'paypal';
 
     private const LOCATION = 'checkout_smart_buttons';
 
     /**
      * @var Config
      */
-    private $config;
+    private Config $config;
 
     /**
      * @var BaseConfig
      */
-    private $baseConfig;
+    private BaseConfig $baseConfig;
 
     /**
      * @var array
      */
-    private $messageStyles;
+    private array $messageStyles;
 
     /**
-     * @var StoreManagerInterface
+     * @var UrlInterface
      */
-    private StoreManagerInterface $storeManager;
+    private UrlInterface $url;
+
+    /**
+     * @var ConfigProvider
+     */
+    private ConfigProvider $configProvider;
 
     /**
      * @param Config $config
-     * @param PaymentOptionsBuilderFactory $paymentOptionsBuilderFactory
-     * @param SdkService $sdkService
-     * @param StoreManagerInterface $storeManager
      * @param UrlInterface $url
      * @param BaseConfig $baseConfig
      * @param array $messageStyles
+     * @param ConfigProvider $configProvider
      */
     public function __construct(
         Config $config,
-        PaymentOptionsBuilderFactory $paymentOptionsBuilderFactory,
-        SdkService $sdkService,
-        StoreManagerInterface $storeManager,
         UrlInterface $url,
         BaseConfig $baseConfig,
-        array $messageStyles
+        array $messageStyles,
+        ConfigProvider $configProvider
     ) {
         $this->baseConfig = $baseConfig;
         $this->config = $config;
         $this->url = $url;
         $this->messageStyles = $messageStyles;
-        $this->storeManager = $storeManager;
-        parent::__construct($config, $paymentOptionsBuilderFactory, $sdkService, $storeManager);
+        $this->configProvider = $configProvider;
     }
-
-    /**
-     * @var UrlInterface
-     */
-    private $url;
 
     /**
      * @inheritdoc
      */
     public function getConfig()
     {
-        $config = parent::getConfig();
+        $config = $this->configProvider->getConfig();
         if (!$this->baseConfig->isConfigured() || !$this->config->isLocationEnabled('checkout')) {
             $config['payment'][self::CODE]['isVisible'] = false;
             return $config;
         }
         $config['payment'][self::CODE]['isVisible'] = true;
         $config['payment'][self::CODE]['createOrderUrl'] = $this->url->getUrl('paymentservicespaypal/order/create');
-        $config['payment'][self::CODE]['sdkParams'] = $this->getScriptParams(self::CODE, self::LOCATION);
+        $config['payment'][self::CODE]['sdkParams'] = $this->configProvider->getScriptParams(
+            self::CODE,
+            self::LOCATION,
+            $this->getPaymentOptions()
+        );
         $config['payment'][self::CODE]['messageStyles'] = $this->messageStyles;
         $config['payment'][self::CODE]['canDisplayMessage'] = (bool) $this->config->canDisplayPayLaterMessage();
         $config['payment'][self::CODE]['buttonStyles'] = $this->config->getButtonConfiguration();
@@ -96,9 +92,9 @@ class SmartButtonsConfigProvider extends AbstractConfigProvider implements Confi
     /**
      * @inheritdoc
      */
-    protected function getPaymentOptions(): PaymentOptionsBuilder
+    private function getPaymentOptions(): PaymentOptionsBuilder
     {
-        $paymentOptionsBuilder =  parent::getPaymentOptions();
+        $paymentOptionsBuilder = $this->configProvider->getPaymentOptions();
         $paymentOptionsBuilder->setAreButtonsEnabled($this->config->isLocationEnabled('checkout'));
         $paymentOptionsBuilder->setIsPayPalCreditEnabled($this->config->isFundingSourceEnabledByName('paypal_credit'));
         $paymentOptionsBuilder->setIsVenmoEnabled($this->config->isFundingSourceEnabledByName('venmo'));

@@ -27,6 +27,7 @@ use Magento\Quote\Api\Data\PaymentInterface;
 use Magento\PaymentServicesPaypal\Model\OrderService;
 use Magento\PaymentServicesBase\Model\HttpException;
 use Magento\Framework\Exception\LocalizedException;
+use Psr\Log\LoggerInterface;
 
 /**
  * Cancels an order and an authorization transaction.
@@ -54,20 +55,28 @@ class OrderUpdate
     private $orderHelper;
 
     /**
+     * @var LoggerInterface
+     */
+    private LoggerInterface $logger;
+
+    /**
      * @param CartRepositoryInterface $quoteRepository
      * @param OrderService $orderService
      * @param OrderHelper $orderHelper
+     * @param LoggerInterface $logger
      * @param array $orderUpdateLocations
      */
     public function __construct(
         CartRepositoryInterface $quoteRepository,
         OrderService            $orderService,
         OrderHelper             $orderHelper,
+        LoggerInterface         $logger,
         array                   $orderUpdateLocations = []
     ) {
         $this->quoteRepository = $quoteRepository;
         $this->orderService = $orderService;
         $this->orderUpdateLocations = $orderUpdateLocations;
+        $this->logger = $logger;
         $this->orderHelper = $orderHelper;
     }
 
@@ -90,20 +99,23 @@ class OrderUpdate
         $quote = $this->quoteRepository->get($cartId);
         $location = $quote->getPayment()->getAdditionalInformation('location');
 
-        if (in_array($location, $this->orderUpdateLocations) || $this->doesRequirePriceUpdate($quote)) {
+        if (in_array($location, $this->orderUpdateLocations)) {
+            $quote->getBillingAddress()->setShouldIgnoreValidation(true);
+            $quote->getShippingAddress()->setShouldIgnoreValidation(true);
+        }
 
-            if (in_array($location, $this->orderUpdateLocations)) {
-                $quote->getBillingAddress()->setShouldIgnoreValidation(true);
-                $quote->getShippingAddress()->setShouldIgnoreValidation(true);
-            }
-
+        if ($this->doesRequirePriceUpdate($quote)) {
+            $orderIncrementId = $this->orderHelper->reserveAndGetOrderIncrementId($quote);
             $paypalOrderId = $quote->getPayment()->getAdditionalInformation('paypal_order_id');
+
             try {
                 $this->orderService->update(
                     $paypalOrderId,
                     [
                         'amount' => $this->orderHelper->formatAmount((float)$quote->getBaseGrandTotal()),
-                        'currency_code' => $quote->getCurrency()->getBaseCurrencyCode()
+                        'currency_code' => $quote->getCurrency()->getBaseCurrencyCode(),
+                        'line_items' => $this->orderHelper->getLineItems($quote, $orderIncrementId),
+                        'amount_breakdown' => $this->orderHelper->getAmountBreakdown($quote, $orderIncrementId),
                     ]
                 );
             } catch (HttpException $e) {

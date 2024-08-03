@@ -8,22 +8,22 @@ declare(strict_types=1);
 namespace Magento\PaymentServicesPaypal\Model\Adminhtml\Source;
 
 use Magento\Framework\Data\OptionSourceInterface;
-use Magento\Payment\Model\Method\AbstractMethod;
+use Magento\Payment\Model\MethodInterface;
 
 class PaymentAction implements OptionSourceInterface
 {
     /**
-     * @return array
+     * @inheritdoc
      */
     public function toOptionArray() : array
     {
         return [
             [
-                'value' => AbstractMethod::ACTION_AUTHORIZE,
+                'value' => MethodInterface::ACTION_AUTHORIZE,
                 'label' => __('Authorize'),
             ],
             [
-                'value' => AbstractMethod::ACTION_AUTHORIZE_CAPTURE,
+                'value' => MethodInterface::ACTION_AUTHORIZE_CAPTURE,
                 'label' => __('Authorize and Capture'),
             ]
         ];

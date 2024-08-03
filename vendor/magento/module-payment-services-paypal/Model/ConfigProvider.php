@@ -7,15 +7,13 @@ declare(strict_types=1);
 
 namespace Magento\PaymentServicesPaypal\Model;
 
-use Magento\Checkout\Model\ConfigProviderInterface;
-use Magento\Framework\App\CacheInterface;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Framework\Serialize\Serializer\Json;
 use Magento\PaymentServicesPaypal\Model\SdkService\PaymentOptionsBuilder;
 use Magento\PaymentServicesPaypal\Model\SdkService\PaymentOptionsBuilderFactory;
 use Magento\Store\Model\StoreManagerInterface;
 
-abstract class AbstractConfigProvider implements ConfigProviderInterface
+class ConfigProvider
 {
     public const CODE = '';
 
@@ -32,7 +30,7 @@ abstract class AbstractConfigProvider implements ConfigProviderInterface
     /**
      * @var SdkService
      */
-    private $sdkService;
+    private SdkService $sdkService;
 
     /**
      * @var StoreManagerInterface
@@ -42,7 +40,7 @@ abstract class AbstractConfigProvider implements ConfigProviderInterface
     /**
      * @var mixed
      */
-    private $cspNonceProvider;
+    private mixed $cspNonceProvider;
 
     /**
      * @param Config $config
@@ -71,9 +69,11 @@ abstract class AbstractConfigProvider implements ConfigProviderInterface
     }
 
     /**
-     * @inheritdoc
+     * Get default config.
+     *
+     * @return array
      */
-    public function getConfig()
+    public function getConfig(): array
     {
         return [
             'payment' => [
@@ -87,7 +87,7 @@ abstract class AbstractConfigProvider implements ConfigProviderInterface
      *
      * @return string
      */
-    protected function getCode() : string
+    private function getCode() : string
     {
         return self::CODE;
     }
@@ -97,12 +97,17 @@ abstract class AbstractConfigProvider implements ConfigProviderInterface
      *
      * @param string $paymentCode
      * @param string $location
+     * @param PaymentOptionsBuilder $paymentOptionsBuilder
      * @return array
      * @throws NoSuchEntityException
+     * @throws LocalizedException
      * @SuppressWarnings(PHPMD)
      */
-    protected function getScriptParams(string $paymentCode, string $location) : array
-    {
+    public function getScriptParams(
+        string $paymentCode,
+        string $location,
+        PaymentOptionsBuilder $paymentOptionsBuilder
+    ) : array {
         $storeViewId = $this->storeManager->getStore()->getId();
         $cachedParam = $this->sdkService->loadFromSdkParamsCache($location, (string)$storeViewId);
         if ($this->cspNonceProvider !== null) {
@@ -114,7 +119,7 @@ abstract class AbstractConfigProvider implements ConfigProviderInterface
             array_push($cachedParam, $cspNonceParam);
             return $cachedParam;
         }
-        $paymentOptions = $this->getPaymentOptions()->build();
+        $paymentOptions = $paymentOptionsBuilder->build();
         try {
             $paymentIntent = $this->config->getPaymentIntent($paymentCode);
             $params = $this->sdkService->getSdkParams(
@@ -145,7 +150,7 @@ abstract class AbstractConfigProvider implements ConfigProviderInterface
      *
      * @return PaymentOptionsBuilder
      */
-    protected function getPaymentOptions(): PaymentOptionsBuilder
+    public function getPaymentOptions(): PaymentOptionsBuilder
     {
         return $this->paymentOptionsBuilderFactory->create();
     }

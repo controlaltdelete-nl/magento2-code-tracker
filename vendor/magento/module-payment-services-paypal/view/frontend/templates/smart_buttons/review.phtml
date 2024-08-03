@@ -123,6 +123,7 @@ declare(strict_types=1);
         <?= $block->getChildHtml('details') ?>
 
         <form method="post" id="order-review-form" action="<?= $escaper->escapeUrl($block->getPlaceOrderUrl()) ?>" class="form order-review-form">
+            <?= $block->getChildHtml('agreements') ?>
             <div class="actions-toolbar" id="review-buttons-container">
                 <div class="primary">
                     <button type="button" id="review-button" class="action checkout primary"

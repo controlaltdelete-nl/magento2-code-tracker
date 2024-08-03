@@ -21,7 +21,7 @@ class PendingTransactionsHandler implements HandlerInterface
     /**
      * @var LoggerInterface
      */
-    protected LoggerInterface $logger;
+    private LoggerInterface $logger;
 
     /**
      * @var Config
@@ -70,7 +70,7 @@ class PendingTransactionsHandler implements HandlerInterface
             /** @var PaymentDataObjectInterface $paymentDO */
             $paymentDO = $handlingSubject['payment'];
 
-            /** @var $payment \Magento\Sales\Model\Order\Payment */
+            /** @var \Magento\Sales\Model\Order\Payment $payment */
             $payment = $paymentDO->getPayment();
 
             $payment->setIsTransactionPending(true);

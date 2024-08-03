@@ -62,7 +62,7 @@ class RefundRequest implements BuilderInterface
         /** @var \Magento\Sales\Model\Order\Payment $payment */
         $payment = $paymentDO->getPayment();
         $paymentsMode = $payment->getAdditionalInformation('payments_mode');
-        $uri = '/payments/'
+        $uri = '/'
             . $this->config->getMerchantId($paymentsMode)
             . '/payment/'
             . $payment->getParentTransactionId()

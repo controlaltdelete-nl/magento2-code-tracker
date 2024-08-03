@@ -15,7 +15,8 @@ define([
     'Magento_Checkout/js/model/payment/additional-validators',
     'Magento_Checkout/js/action/set-billing-address',
     'Magento_Ui/js/model/messageList',
-    'uiRegistry'
+    'uiRegistry',
+    'Magento_Customer/js/customer-data'
 ], function (
     Component,
     $,
@@ -27,9 +28,21 @@ define([
     additionalValidators,
     setBillingAddressAction,
     globalMessageList,
-    registry
+    registry,
+    customerData
 ) {
     'use strict';
+
+    var refreshCustomerData = function (url) {
+        // Trigger ajaxComplete event to update customer data
+        customerData.onAjaxComplete(
+            {},
+            {
+                type: 'POST',
+                url: url,
+            }
+        );
+    }
 
     return Component.extend({
         defaults: {
@@ -124,7 +137,16 @@ define([
         },
 
         onClick: function () {
-            this.googlePayButton.createOrder();
+            this.googlePayButton.showLoaderAsync(true)
+                .then(() => {
+                    return this.googlePayButton.createOrder();
+                })
+                .then(() => {
+                    refreshCustomerData(window.checkoutConfig.payment[this.getCode()].createOrderUrl);
+                })
+                .catch(error => {
+                    this.catchError(error);
+                });
         },
 
         /**
@@ -287,6 +309,8 @@ define([
                     message: this.requestProcessingError
                 });
             }
+
+            this.googlePayButton.showLoader(false);
 
             console.log('Error: ', error);
         },

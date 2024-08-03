@@ -21,12 +21,12 @@ class PaymentSourceResponseHandler implements HandlerInterface
     /**
      * @var LoggerInterface
      */
-    protected LoggerInterface $logger;
+    private LoggerInterface $logger;
 
     /**
      * @var \Magento\Framework\Encryption\EncryptorInterface
      */
-    protected EncryptorInterface $encryptor;
+    private EncryptorInterface $encryptor;
 
     /**
      * @param LoggerInterface $logger
@@ -75,7 +75,7 @@ class PaymentSourceResponseHandler implements HandlerInterface
 
             if (isset($response['mp-transaction']['payment_source_details']['card'])) {
                 $card = $response['mp-transaction']['payment_source_details']['card'];
-            } else if (isset($response['mp-transaction']['payment_source_details']['applePay']['card'])) {
+            } elseif (isset($response['mp-transaction']['payment_source_details']['applePay']['card'])) {
                 $card = $response['mp-transaction']['payment_source_details']['applePay']['card'];
             }
 

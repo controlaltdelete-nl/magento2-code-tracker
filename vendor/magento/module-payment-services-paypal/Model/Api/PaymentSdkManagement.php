@@ -241,10 +241,10 @@ class PaymentSdkManagement implements PaymentSdkManagementInterface
         $paymentOptionsBuilder->setIsPayPalCreditEnabled(
             $this->config->isFundingSourceEnabledByName('paypal_credit', $store)
         );
-        $paymentOptionsBuilder->setIsVenmoEnabled($this->config->isFundingSourceEnabledByName('venmo'), $store);
+        $paymentOptionsBuilder->setIsVenmoEnabled($this->config->isFundingSourceEnabledByName('venmo'));
         $paymentOptionsBuilder->setIsApplePayEnabled(false);
         $paymentOptionsBuilder->setIsPayPalCardEnabled(
-            $location === 'checkout' && $this->config->isFundingSourceEnabledByName('card', $store, $location)
+            $location === 'checkout' && $this->config->isFundingSourceEnabledByName('card', $store)
         );
         $paymentOptionsBuilder->setIsPaylaterMessageEnabled($this->config->canDisplayPayLaterMessage($store));
         return $paymentOptionsBuilder->build();

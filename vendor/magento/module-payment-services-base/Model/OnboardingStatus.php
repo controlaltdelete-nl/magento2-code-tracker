@@ -61,6 +61,8 @@ class OnboardingStatus
     }
 
     /**
+     * Get onboarding status
+     *
      * @param string $environment
      * @return array
      * @throws HttpException
@@ -78,6 +80,8 @@ class OnboardingStatus
     }
 
     /**
+     * Check if onboarding is completed
+     *
      * @param string $environment
      * @return bool
      * @throws HttpException
@@ -103,9 +107,9 @@ class OnboardingStatus
         return $isOnboarded;
     }
 
-
-
     /**
+     * Set onboarding status
+     *
      * @param string $environment
      * @param bool $isOnboarded
      * @throws HttpException
@@ -121,14 +125,17 @@ class OnboardingStatus
     }
 
     /**
+     * Request onboarding status
+     *
      * @param string $environment
      * @return array
      * @throws HttpException
      */
-    private function requestStatus(string $environment) : array {
+    private function requestStatus(string $environment) : array
+    {
         $result = $this->serviceClient->request(
             ['Content-Type' => 'application/json'],
-            '/payments/onboarding/paypal',
+            '/onboarding/paypal',
             Http::METHOD_GET,
             '',
             'json',

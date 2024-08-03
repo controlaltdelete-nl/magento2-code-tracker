@@ -2,7 +2,7 @@
 
 /************************************************************************
  *
- * Copyright 2014 Adobe
+ * Copyright 2024 Adobe
  * All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
@@ -57,6 +57,11 @@ class MovePaymentMethods
      */
     public function moveMethodToOtherPaymentSolutions(array $result, int|string $key): array
     {
+        if (!isset($result[self::OTHER_PAYPAL_PAYMENT_SOLUTIONS][self::CHILDREN]) ||
+            !is_array($result[self::OTHER_PAYPAL_PAYMENT_SOLUTIONS][self::CHILDREN])) {
+            $result[self::OTHER_PAYPAL_PAYMENT_SOLUTIONS][self::CHILDREN] = [];
+        }
+
         if (isset($result[self::RECOMMENDED_SOLUTIONS][self::CHILDREN][$key])) {
             $result[self::OTHER_PAYPAL_PAYMENT_SOLUTIONS][self::CHILDREN] =
                 array_merge(

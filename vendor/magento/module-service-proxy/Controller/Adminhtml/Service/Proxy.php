@@ -106,7 +106,7 @@ class Proxy extends AbstractProxyController implements
         $headers = $this->getAcceptedHeaders($this->getRequest());
 
         return $this->servicesClients[$serviceName]->request(
-            $this->getServicePath(),
+            $this->getServiceRoute(),
             $method,
             $headers,
             $this->getRequest()->getContent() ?: ''
@@ -187,5 +187,20 @@ class Proxy extends AbstractProxyController implements
     private function getServiceName() : string
     {
         return explode('/', $this->getServicePath())[0];
+    }
+
+    /**
+     * Get requested service route
+     *
+     * @return string
+     */
+    private function getServiceRoute() : string
+    {
+        $servicePath = $this->getServicePath();
+        $serviceName = $this->getServiceName();
+        $serviceNameLength = strlen($serviceName);
+
+        // Remove the service name and the following slash from the path
+        return substr($servicePath, $serviceNameLength + 1);
     }
 }

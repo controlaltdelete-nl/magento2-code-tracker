@@ -27,7 +27,7 @@ interface PaymentConfigRequestInterface
      * Get Config.
      *
      * @param string $location sdk location.
-     * @return Magento\PaymentServicesPaypal\Api\PaymentConfigResponseInterface
+     * @return \Magento\PaymentServicesPaypal\Api\PaymentConfigResponseInterface
      * @throws NoSuchEntityException
      * @since 100.1.0
      */
@@ -37,7 +37,7 @@ interface PaymentConfigRequestInterface
      * Get Apple Pay Config.
      *
      * @param string $location sdk location.
-     * @return Magento\PaymentServicesPaypal\Api\Data\PaymentConfigApplePayInterface
+     * @return \Magento\PaymentServicesPaypal\Api\Data\PaymentConfigApplePayInterface
      * @throws NoSuchEntityException
      * @since 100.1.0
      */
@@ -47,7 +47,7 @@ interface PaymentConfigRequestInterface
      * Get Google Pay Config.
      *
      * @param string $location sdk location.
-     * @return Magento\PaymentServicesPaypal\Api\Data\PaymentConfigGooglePayInterface
+     * @return \Magento\PaymentServicesPaypal\Api\Data\PaymentConfigGooglePayInterface
      * @throws NoSuchEntityException
      * @since 100.1.0
      */
@@ -57,7 +57,7 @@ interface PaymentConfigRequestInterface
      * Get Smart Buttons Config.
      *
      * @param string $location sdk location.
-     * @return Magento\PaymentServicesPaypal\Api\Data\PaymentConfigSmartButtonsInterface
+     * @return \Magento\PaymentServicesPaypal\Api\Data\PaymentConfigSmartButtonsInterface
      * @throws NoSuchEntityException
      * @since 100.1.0
      */
@@ -67,7 +67,7 @@ interface PaymentConfigRequestInterface
      * Get Hosted Fields Config.
      *
      * @param string $location sdk location.
-     * @return Magento\PaymentServicesPaypal\Api\Data\PaymentConfigHostedFieldsInterface
+     * @return \Magento\PaymentServicesPaypal\Api\Data\PaymentConfigHostedFieldsInterface
      * @throws NoSuchEntityException
      * @since 100.1.0
      */

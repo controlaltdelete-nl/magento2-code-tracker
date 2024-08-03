@@ -28,14 +28,14 @@ interface PaymentSourceDetailsInterface
     /**
      * Get card details
      *
-     * @return Magento\PaymentServicesPaypal\Api\Data\PaymentCardDetailsInterface
+     * @return \Magento\PaymentServicesPaypal\Api\Data\PaymentCardDetailsInterface
      */
     public function getCard();
 
     /**
      * Set card details
      *
-     * @param Magento\PaymentServicesPaypal\Api\Data\PaymentCardDetailsInterface $card
+     * @param \Magento\PaymentServicesPaypal\Api\Data\PaymentCardDetailsInterface $card
      * @return $this
      */
     public function setCard($card);

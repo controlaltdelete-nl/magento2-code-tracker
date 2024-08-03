@@ -38,7 +38,7 @@ interface PaymentOrderRequestInterface
      * @param string $paymentSource
      * @param int $cartId
      * @param string $location
-     * @param int|null $customerId
+     * @param int $customerId
      * @param bool $vaultIntent
      *
      * @throws InvalidArgumentException
@@ -83,7 +83,7 @@ interface PaymentOrderRequestInterface
      * Get payment order for logged in customer
      *
      * @param int $cartId
-     * @param int|null $customerId
+     * @param int $customerId
      * @param string $id
      *
      * @throws InvalidArgumentException
@@ -119,7 +119,7 @@ interface PaymentOrderRequestInterface
      * Sync payment order for logged in customer
      *
      * @param int $cartId
-     * @param int|null $customerId
+     * @param int $customerId
      * @param string $id
      *
      * @throws InvalidArgumentException

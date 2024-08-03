@@ -8,8 +8,9 @@ declare(strict_types=1);
 namespace Magento\PaymentServicesBase\Model;
 
 use GuzzleHttp\Exception\GuzzleException;
-use GuzzleHttp\Client;
 use InvalidArgumentException;
+use Magento\Framework\App\ObjectManager;
+use Magento\Framework\App\Request\Http;
 use Magento\Framework\App\State;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\ServicesConnector\Api\ClientResolverInterface;
@@ -85,6 +86,11 @@ class ServiceClient implements ServiceClientInterface
     private $successfulResponseCodes = [200, 201, 202, 204];
 
     /**
+     * @var ?ServiceRouteResolverInterface $serviceRouteResolver
+     */
+    private $serviceRouteResolver;
+
+    /**
      * @param ClientResolverInterface $clientResolver
      * @param KeyValidationInterface $keyValidator
      * @param Config $config
@@ -93,6 +99,7 @@ class ServiceClient implements ServiceClientInterface
      * @param StoreManagerInterface $storeManager
      * @param CacheInterface $cache
      * @param State $appState
+     * @param ?ServiceRouteResolverInterface $serviceRouteResolver
      */
     public function __construct(
         ClientResolverInterface $clientResolver,
@@ -102,7 +109,8 @@ class ServiceClient implements ServiceClientInterface
         LoggerInterface $logger,
         StoreManagerInterface $storeManager,
         CacheInterface $cache,
-        State $appState
+        State $appState,
+        ?ServiceRouteResolverInterface $serviceRouteResolver = null
     ) {
         $this->clientResolver = $clientResolver;
         $this->keyValidator = $keyValidator;
@@ -112,6 +120,8 @@ class ServiceClient implements ServiceClientInterface
         $this->storeManager = $storeManager;
         $this->cache = $cache;
         $this->appState = $appState;
+        $this->serviceRouteResolver = $serviceRouteResolver ??
+            ObjectManager::getInstance()->get(ServiceRouteResolverInterface::class);
     }
 
     /**
@@ -132,7 +142,7 @@ class ServiceClient implements ServiceClientInterface
     public function request(
         array $headers,
         string $path,
-        string $httpMethod = \Magento\Framework\App\Request\Http::METHOD_POST,
+        string $httpMethod = Http::METHOD_POST,
         string $data = '',
         string $requestContentType = 'json',
         string $environment = ''
@@ -152,6 +162,7 @@ class ServiceClient implements ServiceClientInterface
                 'body' => $data
             ];
             if ($this->validateApiKey($environment)) {
+                $path = $this->serviceRouteResolver->resolve($path);
                 $response = $client->request($httpMethod, $path, $options);
                 $isSuccessful = in_array($response->getStatusCode(), $this->successfulResponseCodes);
                 $result = [

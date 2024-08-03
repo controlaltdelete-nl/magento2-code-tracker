@@ -159,11 +159,14 @@ class PaymentOrderManagement implements PaymentOrderManagementInterface
         $paymentMethod->setAdditionalInformation('location', $location);
         $paymentMethod->setMethod($methodCode);
         $this->quoteRepository->save($quote);
+        $orderIncrementId = $this->orderHelper->reserveAndGetOrderIncrementId($quote);
 
         $orderServiceResponse = $this->orderService->create(
             [
                 'amount' => $this->orderHelper->formatAmount((float)$quote->getBaseGrandTotal()),
+                /** @phpstan-ignore-next-line */
                 'l2_data' => $this->orderHelper->getL2Data($quote, $paymentSource ?? ''),
+                /** @phpstan-ignore-next-line */
                 'l3_data' => $this->orderHelper->getL3Data($quote, $paymentSource ?? ''),
                 'currency_code' => $quote->getCurrency()->getBaseCurrencyCode(),
                 'is_digital' => $quote->isVirtual(),
@@ -177,7 +180,9 @@ class PaymentOrderManagement implements PaymentOrderManagementInterface
                 'vault' => $vaultIntent,
                 'shipping_address' => $this->orderService->mapAddress($quote->getShippingAddress()),
                 'billing_address' => $this->orderService->mapAddress($quote->getBillingAddress()),
-                'order_increment_id' => $this->orderHelper->reserveAndGetOrderIncrementId($quote)
+                'order_increment_id' => $orderIncrementId,
+                'line_items' => $this->orderHelper->getLineItems($quote, $orderIncrementId),
+                'amount_breakdown' => $this->orderHelper->getAmountBreakdown($quote, $orderIncrementId),
             ]
         );
 

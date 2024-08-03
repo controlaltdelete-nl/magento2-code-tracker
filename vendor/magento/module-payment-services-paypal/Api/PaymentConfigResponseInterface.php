@@ -29,7 +29,7 @@ interface PaymentConfigResponseInterface
     /**
      * Get payment sdk params.
      *
-     * @return Magento\PaymentServicesPaypal\Api\Data\PaymentConfigApplePayInterface
+     * @return \Magento\PaymentServicesPaypal\Api\Data\PaymentConfigApplePayInterface
      * @since 100.1.0
      */
     public function getApplePay();
@@ -45,7 +45,7 @@ interface PaymentConfigResponseInterface
     /**
      * Get payment sdk params.
      *
-     * @return Magento\PaymentServicesPaypal\Api\Data\PaymentConfigGooglePayInterface
+     * @return \Magento\PaymentServicesPaypal\Api\Data\PaymentConfigGooglePayInterface
      * @since 100.1.0
      */
     public function getGooglePay();
@@ -61,7 +61,7 @@ interface PaymentConfigResponseInterface
     /**
      * Get Hosted Fields
      *
-     * @return Magento\PaymentServicesPaypal\Api\Data\PaymentConfigHostedFieldsInterface
+     * @return \Magento\PaymentServicesPaypal\Api\Data\PaymentConfigHostedFieldsInterface
      * @since 100.1.0
      */
     public function getHostedFields();
@@ -77,7 +77,7 @@ interface PaymentConfigResponseInterface
     /**
      * Get Hosted Fields
      *
-     * @return Magento\PaymentServicesPaypal\Api\Data\PaymentConfigSmartButtonsInterface
+     * @return \Magento\PaymentServicesPaypal\Api\Data\PaymentConfigSmartButtonsInterface
      * @since 100.1.0
      */
     public function getSmartButtons();

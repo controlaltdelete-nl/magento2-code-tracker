@@ -61,6 +61,7 @@ class SmartButtons extends Template implements ShortcutInterface
             $context,
             $data
         );
+        /** @phpstan-ignore-next-line */
         $this->setTemplate($data['template'] ?? $componentConfig[$this->pageType]['template']);
     }
 

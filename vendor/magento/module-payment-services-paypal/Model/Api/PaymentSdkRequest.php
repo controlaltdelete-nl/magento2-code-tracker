@@ -83,7 +83,7 @@ class PaymentSdkRequest implements PaymentSdkRequestInterface
      *
      * @param string $location
      * @param string|null $methodCode
-     * @return Magento\PaymentServicesPaypal\Api\Data\PaymentSdkParamsInterface[]
+     * @return \Magento\PaymentServicesPaypal\Api\Data\PaymentSdkParamsInterface[]
      */
     private function get(string $location, string $methodCode = null)
     {

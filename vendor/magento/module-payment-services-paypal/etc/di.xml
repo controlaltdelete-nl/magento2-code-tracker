@@ -268,6 +268,8 @@
             <argument name="handler" xsi:type="object">PaymentServicesPaypalResponseHostedFieldsHandlerComposite</argument>
             <argument name="transferFactory" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\HostedFieldsServiceClient</argument>
+            <argument name="validator" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ResponseValidator</argument>
+            <argument name="errorMessageMapper" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ErrorMessageMapper</argument>
         </arguments>
     </virtualType>
     <!-- Smart Buttons authorize command -->
@@ -277,6 +279,8 @@
             <argument name="handler" xsi:type="object">PaymentServicesPaypalResponseHandlerComposite</argument>
             <argument name="transferFactory" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\SmartButtonsServiceClient</argument>
+            <argument name="validator" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ResponseValidator</argument>
+            <argument name="errorMessageMapper" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ErrorMessageMapper</argument>
         </arguments>
     </virtualType>
     <!-- Apple Pay authorize command -->
@@ -286,6 +290,8 @@
             <argument name="handler" xsi:type="object">PaymentServicesPaypalResponseApplePayHandlerComposite</argument>
             <argument name="transferFactory" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\ApplePayServiceClient</argument>
+            <argument name="validator" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ResponseValidator</argument>
+            <argument name="errorMessageMapper" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ErrorMessageMapper</argument>
         </arguments>
     </virtualType>
     <!-- Google Pay authorize command -->
@@ -295,6 +301,8 @@
             <argument name="handler" xsi:type="object">PaymentServicesPaypalResponseGooglePayHandlerComposite</argument>
             <argument name="transferFactory" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\GooglePayServiceClient</argument>
+            <argument name="validator" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ResponseValidator</argument>
+            <argument name="errorMessageMapper" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ErrorMessageMapper</argument>
         </arguments>
     </virtualType>
     <!-- Hosted Fields authorize and capture command -->
@@ -304,6 +312,8 @@
             <argument name="handler" xsi:type="object">PaymentServicesPaypalCaptureResponseHostedFieldsHandlerComposite</argument>
             <argument name="transferFactory" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\HostedFieldsServiceClient</argument>
+            <argument name="validator" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ResponseValidator</argument>
+            <argument name="errorMessageMapper" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ErrorMessageMapper</argument>
         </arguments>
     </virtualType>
     <!-- Smart Buttons authorize and capture command -->
@@ -313,6 +323,8 @@
             <argument name="handler" xsi:type="object">PaymentServicesPaypalCaptureResponseHandlerComposite</argument>
             <argument name="transferFactory" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\SmartButtonsServiceClient</argument>
+            <argument name="validator" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ResponseValidator</argument>
+            <argument name="errorMessageMapper" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ErrorMessageMapper</argument>
         </arguments>
     </virtualType>
     <!-- Google Pay authorize and capture command -->
@@ -322,6 +334,8 @@
             <argument name="handler" xsi:type="object">PaymentServicesPaypalCaptureResponseGooglePayHandlerComposite</argument>
             <argument name="transferFactory" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\GooglePayServiceClient</argument>
+            <argument name="validator" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ResponseValidator</argument>
+            <argument name="errorMessageMapper" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ErrorMessageMapper</argument>
         </arguments>
     </virtualType>
     <!-- Smart Buttons authorize and capture command -->
@@ -331,6 +345,8 @@
             <argument name="handler" xsi:type="object">PaymentServicesPaypalCaptureResponseApplePayHandlerComposite</argument>
             <argument name="transferFactory" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\ApplePayServiceClient</argument>
+            <argument name="validator" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ResponseValidator</argument>
+            <argument name="errorMessageMapper" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ErrorMessageMapper</argument>
         </arguments>
     </virtualType>
     <!-- Hosted Fields capture command -->
@@ -340,6 +356,8 @@
             <argument name="handler" xsi:type="object">PaymentServicesPaypalCaptureResponseHandlerComposite</argument>
             <argument name="transferFactory" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\HostedFieldsServiceClient</argument>
+            <argument name="validator" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ResponseValidator</argument>
+            <argument name="errorMessageMapper" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ErrorMessageMapper</argument>
         </arguments>
     </virtualType>
     <!-- Smart Buttons capture command -->
@@ -349,6 +367,8 @@
             <argument name="handler" xsi:type="object">PaymentServicesPaypalCaptureResponseHandlerComposite</argument>
             <argument name="transferFactory" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\SmartButtonsServiceClient</argument>
+            <argument name="validator" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ResponseValidator</argument>
+            <argument name="errorMessageMapper" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ErrorMessageMapper</argument>
         </arguments>
     </virtualType>
     <!-- Google Pay capture command -->
@@ -358,6 +378,8 @@
             <argument name="handler" xsi:type="object">PaymentServicesPaypalCaptureResponseHandlerComposite</argument>
             <argument name="transferFactory" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\GooglePayServiceClient</argument>
+            <argument name="validator" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ResponseValidator</argument>
+            <argument name="errorMessageMapper" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ErrorMessageMapper</argument>
         </arguments>
     </virtualType>
     <!-- Smart Buttons capture command -->
@@ -367,6 +389,8 @@
             <argument name="handler" xsi:type="object">PaymentServicesPaypalCaptureResponseHandlerComposite</argument>
             <argument name="transferFactory" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\ApplePayServiceClient</argument>
+            <argument name="validator" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ResponseValidator</argument>
+            <argument name="errorMessageMapper" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ErrorMessageMapper</argument>
         </arguments>
     </virtualType>
     <!-- Hosted Fields refund command -->
@@ -376,6 +400,8 @@
             <argument name="handler" xsi:type="object">PaymentServicesPaypalResponseHandlerComposite</argument>
             <argument name="transferFactory" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\HostedFieldsServiceClient</argument>
+            <argument name="validator" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ResponseValidator</argument>
+            <argument name="errorMessageMapper" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ErrorMessageMapper</argument>
         </arguments>
     </virtualType>
     <!-- Smart Buttons refund command -->
@@ -385,6 +411,8 @@
             <argument name="handler" xsi:type="object">PaymentServicesPaypalResponseHandlerComposite</argument>
             <argument name="transferFactory" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\SmartButtonsServiceClient</argument>
+            <argument name="validator" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ResponseValidator</argument>
+            <argument name="errorMessageMapper" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ErrorMessageMapper</argument>
         </arguments>
     </virtualType>
     <!-- Google Pay refund command -->
@@ -394,6 +422,8 @@
             <argument name="handler" xsi:type="object">PaymentServicesPaypalResponseHandlerComposite</argument>
             <argument name="transferFactory" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\GooglePayServiceClient</argument>
+            <argument name="validator" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ResponseValidator</argument>
+            <argument name="errorMessageMapper" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ErrorMessageMapper</argument>
         </arguments>
     </virtualType>
     <!-- Apple Pay refund command -->
@@ -403,6 +433,8 @@
             <argument name="handler" xsi:type="object">PaymentServicesPaypalResponseHandlerComposite</argument>
             <argument name="transferFactory" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\ApplePayServiceClient</argument>
+            <argument name="validator" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ResponseValidator</argument>
+            <argument name="errorMessageMapper" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ErrorMessageMapper</argument>
         </arguments>
     </virtualType>
     <!-- Hosted Fields void command -->
@@ -412,6 +444,8 @@
             <argument name="handler" xsi:type="object">PaymentServicesPaypalResponseHandlerComposite</argument>
             <argument name="transferFactory" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\HostedFieldsServiceClient</argument>
+            <argument name="validator" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ResponseValidator</argument>
+            <argument name="errorMessageMapper" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ErrorMessageMapper</argument>
         </arguments>
     </virtualType>
     <!-- Smart Buttons void command -->
@@ -421,6 +455,8 @@
             <argument name="handler" xsi:type="object">PaymentServicesPaypalResponseHandlerComposite</argument>
             <argument name="transferFactory" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\SmartButtonsServiceClient</argument>
+            <argument name="validator" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ResponseValidator</argument>
+            <argument name="errorMessageMapper" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ErrorMessageMapper</argument>
         </arguments>
     </virtualType>
     <!-- Google Pay void command -->
@@ -430,6 +466,8 @@
             <argument name="handler" xsi:type="object">PaymentServicesPaypalResponseHandlerComposite</argument>
             <argument name="transferFactory" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\GooglePayServiceClient</argument>
+            <argument name="validator" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ResponseValidator</argument>
+            <argument name="errorMessageMapper" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ErrorMessageMapper</argument>
         </arguments>
     </virtualType>
     <!-- Apple Pay void command -->
@@ -439,6 +477,8 @@
             <argument name="handler" xsi:type="object">PaymentServicesPaypalResponseHandlerComposite</argument>
             <argument name="transferFactory" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\ApplePayServiceClient</argument>
+            <argument name="validator" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ResponseValidator</argument>
+            <argument name="errorMessageMapper" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ErrorMessageMapper</argument>
         </arguments>
     </virtualType>
     <!-- Authorization request -->

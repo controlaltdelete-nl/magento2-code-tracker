@@ -14,7 +14,7 @@ use Magento\ServicesConnector\Api\KeyValidationInterface;
 use Magento\ServicesConnector\Exception\KeyNotFoundException;
 use Magento\ServicesConnector\Exception\PrivateKeySignException;
 use Magento\Store\Model\ScopeInterface;
-use Magento\ServicesId\Model\ServicesConfig;
+use Magento\ServicesId\Model\ServicesConfigInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Framework\App\Config as AppConfig;
 
@@ -36,7 +36,7 @@ class Config
     private $scopeConfig;
 
     /**
-     * @var ServicesConfig
+     * @var ServicesConfigInterface
      */
     private $servicesConfig;
 
@@ -77,7 +77,7 @@ class Config
      */
     public function __construct(
         ScopeConfigInterface $scopeConfig,
-        ServicesConfig $servicesConfig,
+        ServicesConfigInterface $servicesConfig,
         KeyValidationInterface $keyValidator,
         StoreManagerInterface $storeManager,
         CacheInterface $cache,

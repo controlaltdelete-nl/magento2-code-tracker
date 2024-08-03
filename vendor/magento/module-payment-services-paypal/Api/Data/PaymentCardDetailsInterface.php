@@ -92,14 +92,14 @@ interface PaymentCardDetailsInterface
     /**
      * Get bin details
      *
-     * @return Magento\PaymentServicesPaypal\Api\Data\PaymentCardBinDetailsInterface
+     * @return \Magento\PaymentServicesPaypal\Api\Data\PaymentCardBinDetailsInterface
      */
     public function getBinDetails();
 
     /**
      * Set admin area 1
      *
-     * @param Magento\PaymentServicesPaypal\Api\Data\PaymentCardBinDetailsInterface $binDetails
+     * @param \Magento\PaymentServicesPaypal\Api\Data\PaymentCardBinDetailsInterface $binDetails
      * @return $this
      */
     public function setBinDetails($binDetails);

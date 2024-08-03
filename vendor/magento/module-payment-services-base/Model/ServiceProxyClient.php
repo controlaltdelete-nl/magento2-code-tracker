@@ -8,7 +8,6 @@ declare(strict_types=1);
 namespace Magento\PaymentServicesBase\Model;
 
 use GuzzleHttp\Exception\GuzzleException;
-use GuzzleHttp\Client;
 use Psr\Http\Message\ResponseInterface as HttpResponseInterface;
 use InvalidArgumentException;
 use Magento\Framework\App\Response\Http as HttpResponse;
@@ -18,6 +17,7 @@ use Magento\ServicesConnector\Api\KeyValidationInterface;
 use Magento\Framework\App\ResponseInterface;
 use Psr\Log\LoggerInterface;
 use Magento\ServiceProxy\Model\ServiceProxyClientInterface;
+use Magento\Framework\App\ObjectManager;
 
 /**
  * Client to work with generic service proxy controller.
@@ -60,24 +60,33 @@ class ServiceProxyClient implements ServiceProxyClientInterface
     private $response;
 
     /**
+     * @var ?ServiceRouteResolverInterface $serviceRouteResolver
+     */
+    private $serviceRouteResolver;
+
+    /**
      * @param ClientResolverInterface $clientResolver
      * @param KeyValidationInterface $keyValidator
      * @param Config $config
      * @param LoggerInterface $logger
      * @param HttpResponse $response
+     * @param ?ServiceRouteResolverInterface $serviceRouteResolver
      */
     public function __construct(
         ClientResolverInterface $clientResolver,
         KeyValidationInterface $keyValidator,
         Config $config,
         LoggerInterface $logger,
-        HttpResponse $response
+        HttpResponse $response,
+        ?ServiceRouteResolverInterface $serviceRouteResolver = null
     ) {
         $this->clientResolver = $clientResolver;
         $this->keyValidator = $keyValidator;
         $this->config = $config;
         $this->logger = $logger;
         $this->response = $response;
+        $this->serviceRouteResolver = $serviceRouteResolver ??
+            ObjectManager::getInstance()->get(ServiceRouteResolverInterface::class);
     }
 
     /**
@@ -100,6 +109,7 @@ class ServiceProxyClient implements ServiceProxyClientInterface
             }
             $client = $this->clientResolver->createHttpClient(self::EXTENSION_NAME, $environment);
             $options = $this->getOptions($headers, $body, $environment);
+            $path = $this->serviceRouteResolver->resolve($path);
             $response = $client->request($httpMethod, $path, $options);
             $this->buildResponse($response);
             $isSuccessful = in_array($response->getStatusCode(), $this->successfulResponseCodes);

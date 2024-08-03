@@ -34,7 +34,7 @@ interface PaymentConfigSdkParamsInterface
      * Set code
      *
      * @param string $name
-     * @return void
+     * @return \Magento\Framework\DataObject
      */
     public function setName($name);
 
@@ -49,7 +49,7 @@ interface PaymentConfigSdkParamsInterface
      * Set config
      *
      * @param string $value
-     * @return void
+     * @return \Magento\Framework\DataObject
      */
     public function setValue($value);
 }

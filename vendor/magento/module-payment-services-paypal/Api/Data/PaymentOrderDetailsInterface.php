@@ -31,14 +31,14 @@ interface PaymentOrderDetailsInterface extends PaymentOrderInterface
     /**
      * Get payment source details
      *
-     * @return Magento\PaymentServicesPaypal\Api\Data\PaymentSourceDetailsInterface
+     * @return \Magento\PaymentServicesPaypal\Api\Data\PaymentSourceDetailsInterface
      */
     public function getPaymentSourceDetails();
 
     /**
      * Set payment source details
      *
-     * @param Magento\PaymentServicesPaypal\Api\Data\PaymentSourceDetailsInterface $paymentSourceDetails
+     * @param \Magento\PaymentServicesPaypal\Api\Data\PaymentSourceDetailsInterface $paymentSourceDetails
      * @return $this
      */
     public function setPaymentSourceDetails($paymentSourceDetails);

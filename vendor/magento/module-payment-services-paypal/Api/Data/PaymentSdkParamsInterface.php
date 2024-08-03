@@ -46,7 +46,7 @@ interface PaymentSdkParamsInterface
     /**
      * Get the payments sdk params
      *
-     * @return Magento\PaymentServicesPaypal\Api\Data\PaymentConfigSdkParamsInterface[]
+     * @return \Magento\PaymentServicesPaypal\Api\Data\PaymentConfigSdkParamsInterface[]
      */
     public function getParams();
 

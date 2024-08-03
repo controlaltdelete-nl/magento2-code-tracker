@@ -100,6 +100,8 @@ class Create implements HttpPostActionInterface, CsrfAwareActionInterface
             $quote = $this->checkoutSession->getQuote();
             $quoteId = $quote->getId();
             $isLoggedIn = $this->customerSession->isLoggedIn();
+            $orderIncrementId = $this->orderHelper->reserveAndGetOrderIncrementId($quote);
+
             $response = $this->orderService->create(
                 [
                     'amount' => $this->orderHelper->formatAmount((float)$quote->getBaseGrandTotal()),
@@ -116,7 +118,9 @@ class Create implements HttpPostActionInterface, CsrfAwareActionInterface
                     'payment_source' => $paymentSource,
                     'vault' => $shouldCardBeVaulted,
                     'quote_id' => $quoteId,
-                    'order_increment_id' => $this->orderHelper->reserveAndGetOrderIncrementId($quote)
+                    'order_increment_id' => $orderIncrementId,
+                    'line_items' => $this->orderHelper->getLineItems($quote, $orderIncrementId),
+                    'amount_breakdown' => $this->orderHelper->getAmountBreakdown($quote, $orderIncrementId),
                 ]
             );
 

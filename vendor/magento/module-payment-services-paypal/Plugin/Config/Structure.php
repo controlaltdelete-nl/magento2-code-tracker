@@ -26,7 +26,7 @@ class Structure
      *
      * @param ConfigStructure $subject
      * @param array $result
-     * @return mixed
+     * @return array
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function afterGetSectionList(ConfigStructure $subject, array $result) : array

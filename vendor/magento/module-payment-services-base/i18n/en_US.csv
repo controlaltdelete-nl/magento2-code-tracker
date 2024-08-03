@@ -8,8 +8,10 @@ Production,Production
 "General Configuration","General Configuration"
 Enable,Enable
 Method,Method
-"Sandbox Merchant ID","Sandbox Merchant ID"
-"Production Merchant ID","Production Merchant ID"
+"Payment Services Sandbox ID","Payment Services Sandbox ID"
+"Reset Payment Services Sandbox ID","Reset Payment Services Sandbox ID"
+"Payment Services Production ID","Payment Services Production ID"
+"Reset Payment Services Production ID","Reset Payment Services Production ID"
 "Secure transaction","Secure transaction"
 "Pay with PayPal","Pay with PayPal"
 "Pay with credit card","Pay with credit card"
@@ -24,3 +26,6 @@ Method,Method
 "Secure and up-to-date extension with SaaS","Secure and up-to-date extension with SaaS"
 "Accept debit/credit cards with Payment Services","Accept debit/credit cards with Payment Services"
 "If you have product questions or need help with setup, follow this link and fill out the form","If you have product questions or need help with setup, follow this link and fill out the form"
+"This value will be automatically populated after setting up the Commerce Connector and visiting the Payment Services dashboard for the first time. This value associates your SaaS ID to Payment Services.","This value will be automatically populated after setting up the Commerce Connector and visiting the Payment Services dashboard for the first time. This value associates your SaaS ID to Payment Services."
+"Your unique Production Merchant ID for Adobe Commerce Payment Services","Your unique Production Merchant ID for Adobe Commerce Payment Services"
+"Payment Services ID can't be reset right now","Payment Services ID can't be reset right now"

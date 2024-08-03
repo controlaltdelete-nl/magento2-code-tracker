@@ -44,4 +44,18 @@
     <type name="Magento\InstantPurchase\Model\QuoteManagement\PaymentConfiguration">
         <plugin name="payment_services_create_order_instant_purchase" type="Magento\PaymentServicesPaypal\Plugin\InstantPurchase\PaymentConfiguration"/>
     </type>
+    <type name="Magento\InstantPurchase\Model\QuoteManagement\QuoteCreation">
+        <plugin name="payment_services_create_quote_instant_purchase" type="Magento\PaymentServicesPaypal\Plugin\InstantPurchase\QuoteCreation"/>
+    </type>
+    <type name="Magento\InstantPurchase\Model\ShippingMethodChoose\CheapestMethodChooser">
+        <!-- Fixes https://github.com/magento/magento2/issues/38811 -->
+        <plugin name="payment_services_choose_cheapest_method_chooser" type="Magento\PaymentServicesPaypal\Plugin\InstantPurchase\CheapestMethodChooser"/>
+    </type>
+    <type name="Magento\InstantPurchase\Model\ShippingMethodChoose\DeferredShippingMethodChooserPool">
+        <arguments>
+            <argument name="choosers" xsi:type="array">
+                <item name="payment-services-cheapest" xsi:type="object">Magento\PaymentServicesPaypal\Model\InstantPurchase\CheapestMethodDeferredChooser</item>
+            </argument>
+        </arguments>
+    </type>
 </config>

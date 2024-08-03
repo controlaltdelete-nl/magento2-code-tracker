@@ -31,10 +31,17 @@ class L2DataProvider
     private LoggerInterface $logger;
 
     /**
+     * @var PaypalApiDataFormatter
+     */
+    private PaypalApiDataFormatter $paypalApiDataFormatter;
+
+    /**
+     * @param PaypalApiDataFormatter $paypalApiDataFormatter
      * @param LoggerInterface $logger
      */
-    public function __construct(LoggerInterface $logger)
+    public function __construct(PaypalApiDataFormatter $paypalApiDataFormatter, LoggerInterface $logger)
     {
+        $this->paypalApiDataFormatter = $paypalApiDataFormatter;
         $this->logger = $logger;
     }
 
@@ -96,19 +103,8 @@ class L2DataProvider
             : 0.00;
 
         return [
-            'value' => $this->formatAmount($amount),
+            'value' => $this->paypalApiDataFormatter->formatAmount($amount),
             'currency_code' => $quote->getCurrency()->getBaseCurrencyCode()
         ];
-    }
-
-    /**
-     * Format the amount with two decimal places
-     *
-     * @param float $amount
-     * @return string
-     */
-    private function formatAmount(float $amount): string
-    {
-        return number_format((float)$amount, 2, '.', '');
     }
 }

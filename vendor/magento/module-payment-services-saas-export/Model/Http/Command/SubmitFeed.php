@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace Magento\PaymentServicesSaaSExport\Model\Http\Command;
 
 use Laminas\Http\Request;
+use Magento\Framework\App\ObjectManager;
 use Magento\PaymentServicesBase\Model\Config;
 use Psr\Log\LoggerInterface;
 use GuzzleHttp\Exception\GuzzleException;
@@ -23,6 +24,8 @@ use Magento\PaymentServicesBase\Model\OnboardingStatus;
 
 /**
  * Class responsible for call execution to SaaS Payment Service
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class SubmitFeed
 {
@@ -58,11 +61,6 @@ class SubmitFeed
     private $config;
 
     /**
-     * @var ServicesConfigInterface
-     */
-    private $servicesConfig;
-
-    /**
      * @var LoggerInterface
      */
     private $logger;
@@ -83,9 +81,9 @@ class SubmitFeed
     private $environment;
 
     /**
-     * @var string
+     * @var FeedRouteResolverInterface
      */
-    private $feedRoute;
+    private FeedRouteResolverInterface $feedRouteResolver;
 
     /**
      * @param ClientResolverInterface $clientResolver
@@ -97,8 +95,10 @@ class SubmitFeed
      * @param OnboardingStatus $onboardingStatus
      * @param Config $paymentsConfig
      * @param string $environment
-     * @param string $feedRoute
+     * @param ?string $feedRoute
+     * @param ?FeedRouteResolverInterface $feedRouteResolver
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function __construct(
         ClientResolverInterface $clientResolver,
@@ -110,30 +110,19 @@ class SubmitFeed
         OnboardingStatus $onboardingStatus,
         Config $paymentsConfig,
         string $environment,
-        string $feedRoute
+        string $feedRoute = null,
+        ?FeedRouteResolverInterface $feedRouteResolver = null
     ) {
         $this->clientResolver = $clientResolver;
         $this->keyValidator = $keyValidator;
         $this->converter = $converter;
         $this->config = $config;
-        $this->servicesConfig = $servicesConfig;
         $this->logger = $logger;
         $this->onboardingStatus = $onboardingStatus;
         $this->paymentsConfig = $paymentsConfig;
         $this->environment = $environment;
-        $this->feedRoute = $feedRoute;
-    }
-
-    /**
-     * Build URL to SaaS Service
-     *
-     * @return string
-     */
-    private function getUrl() : string
-    {
-        $route = '/' . $this->feedRoute . '/';
-        $environmentId = $this->servicesConfig->getEnvironmentId();
-        return $route . $environmentId;
+        $this->feedRouteResolver = $feedRouteResolver
+            ?? ObjectManager::getInstance()->get(FeedRouteResolverInterface::class);
     }
 
     /**
@@ -168,7 +157,7 @@ class SubmitFeed
                 'headers' => $headers,
                 'body' => $body
             ];
-            $response = $client->request(Request::METHOD_POST, $this->getUrl(), $options);
+            $response = $client->request(Request::METHOD_POST, $this->feedRouteResolver->getRoute($feedName), $options);
             $responseCode = $response->getStatusCode();
             $result = ($responseCode == 200);
             if (!$result) {

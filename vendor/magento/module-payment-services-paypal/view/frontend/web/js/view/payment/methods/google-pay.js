@@ -15,6 +15,8 @@ define([
 ], function ($, _, Component, loadSdkScript, scriptLoader, $t) {
     'use strict';
 
+    const HTTP_STATUS_CREATED = 201;
+
     const googleSDKSrc = 'https://pay.google.com/gp/p/js/pay.js',
         baseRequest = {
             apiVersion: 2,
@@ -30,21 +32,22 @@ define([
      * @param {String} url
      * @param {Object} payPalOrderData
      * @param {FormData} orderData
-     * @return {Promise<Object>}
+     * @return {Object}
      */
     var performCreateOrder = function (url, payPalOrderData, orderData) {
             orderData = orderData || new FormData();
             orderData.append('form_key', $.mage.cookies.get('form_key'));
             orderData.append('payment_source', payPalOrderData['paymentSource']);
 
-            return fetch(url, {
-                method: 'POST',
-                headers: {},
-                body: orderData || new FormData(),
-                credentials: 'same-origin'
-            }).then(function (response) {
-                return response.json();
-            });
+            let xhr = new XMLHttpRequest();
+            xhr.open('POST', url, false);
+            xhr.send(orderData);
+
+            if (xhr.status !== HTTP_STATUS_CREATED) {
+                throw new Error('Request failed');
+            } else {
+                return JSON.parse(xhr.responseText);
+            }
         },
 
         /**
@@ -153,7 +156,7 @@ define([
         },
 
         onCancel: function () {
-          this.onError();
+            this.showLoader(false);
         },
 
         getGooglePaymentDataRequest: async function (transactionInfo) {
@@ -259,29 +262,25 @@ define([
 
         /**
          * Calls before create order.
-         *
-         * @return {Promise}
          */
-        beforeCreateOrder: function () {
-            return Promise.resolve();
-        },
+        beforeCreateOrder: function () {},
 
         /**
          * Create order.
          *
-         * @return {Promise}
+         * @return {String}
          */
         createOrder: function () {
             let data = {'paymentSource': this.paymentSource};
 
-            return this.beforeCreateOrder()
-                .then(performCreateOrder.bind(this, this.createOrderUrl, data))
-                .then(function (orderData) {
-                    this.paypalOrderId = this.afterCreateOrder(orderData);
-                    return this.paypalOrderId;
-                }.bind(this)).catch(function (error) {
-                    return this.catchCreateOrder(error);
-                }.bind(this));
+            try {
+                this.beforeCreateOrder();
+                let orderData = performCreateOrder(this.createOrderUrl, data, null);
+                this.paypalOrderId = this.afterCreateOrder(orderData);
+                return this.paypalOrderId;
+            } catch (error) {
+                return this.catchCreateOrder(error);
+            }
         },
 
         /**
@@ -349,6 +348,34 @@ define([
 
         isEligible: function () {
             return this.eligible;
-        }
+        },
+
+        /**
+         * Async Show/hide loader
+         *
+         * @param {Boolean} show
+         */
+        showLoaderAsync: function (show) {
+            return new Promise(function (resolve, reject) {
+                var event = show ? 'processStart' : 'processStop';
+                $('body').trigger(event);
+
+                // Set minimum time for loader to show
+                setTimeout(() => {
+                    resolve();
+                }, 10);
+            });
+        },
+
+        /**
+         * Show/hide loader.
+         *
+         * @param {Boolean} show
+         */
+        showLoader: function (show) {
+            var event = show ? 'processStart' : 'processStop';
+
+            $('body').trigger(event);
+        },
     });
 });

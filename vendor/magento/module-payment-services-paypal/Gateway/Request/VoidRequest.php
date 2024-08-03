@@ -54,14 +54,14 @@ class VoidRequest implements BuilderInterface
         /** @var PaymentDataObjectInterface $paymentDO */
         $paymentDO = SubjectReader::readPayment($buildSubject);
 
-        /** @var $payment Payment|QuotePayment */
+        /** @var Payment|QuotePayment $payment */
         $payment = $paymentDO->getPayment();
         $paymentsMode = $payment->getAdditionalInformation('payments_mode');
         //Using $payment->getAuthorizationTransaction()->getTxnId() for old orders
         $auth =
             $payment->getAdditionalInformation(TxnIdHandler::AUTH_ID_KEY)
             ?? $payment->getAuthorizationTransaction()?->getTxnId();
-        $uri = '/payments/'
+        $uri = '/'
             . $this->config->getMerchantId($paymentsMode)
             . '/payment/'
             . $auth

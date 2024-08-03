@@ -16,6 +16,19 @@ define([
 ], function (_, $, utils, Component, $t, customerData, ResponseError, GooglePayButton) {
     'use strict';
 
+    const HTTP_STATUS_OK = 200;
+
+    var refreshCustomerData = function (url) {
+        // Trigger ajaxComplete event to update customer data
+        customerData.onAjaxComplete(
+            {},
+            {
+                type: 'POST',
+                url: url,
+            }
+        );
+    }
+
     return Component.extend({
         defaults: {
             sdkNamespace: 'paypalGooglePay',
@@ -74,7 +87,7 @@ define([
 
         afterUpdateQuote: function (data) {
             window.location = data.redirectUrl;
-            this.showLoader(false);
+            this.googlePayButton.showLoader(false);
         },
 
         onClick: function () {
@@ -86,8 +99,17 @@ define([
 
             if (this.formValid) {
                 this.isErrorDisplayed = false;
-                this.showLoader(true);
-                this.googlePayButton.createOrder();
+
+                this.googlePayButton.showLoaderAsync(true)
+                    .then(() => {
+                        return this.googlePayButton.createOrder();
+                    })
+                    .then(() => {
+                        refreshCustomerData(this.createOrderUrl);
+                    })
+                    .catch(error => {
+                        this.catchError(error);
+                    });
             }
         },
 
@@ -98,7 +120,7 @@ define([
          */
         catchError: function (error) {
             console.log(error);
-            this.showLoader(false);
+            this.googlePayButton.showLoader(false);
 
             if (this.isErrorDisplayed) {
                 return;
@@ -109,17 +131,6 @@ define([
             }
 
             this.isErrorDisplayed = true;
-        },
-
-        /**
-         * Show/hide loader.
-         *
-         * @param {Boolean} show
-         */
-        showLoader: function (show) {
-            var event = show ? 'processStart' : 'processStop';
-
-            $('body').trigger(event);
         },
 
         /**
@@ -142,38 +153,38 @@ define([
         /**
          * Before create order.
          *
-         * @return {Promise}
+         * @return {String}
          */
         beforeCreateOrder: function () {
             this.isErrorDisplayed = false;
 
-            return new Promise(function (resolve, reject) {
-                if (this.formInvalid) {
-                    return reject();
-                }
+            if (this.formInvalid) {
+                throw new Error('Form is Invalid');
+            }
 
-                fetch(this.addToCartUrl, {
-                    method: 'POST',
-                    headers: {},
-                    body: new FormData($(this.productFormSelector)[0]),
-                    credentials: 'same-origin'
-                }).then(function (response) {
-                    return response.json();
-                }).then(function (data) {
-                    if (typeof data.success !== 'undefined') {
-                        return resolve();
+            let xhr = new XMLHttpRequest();
+            xhr.open('POST', this.addToCartUrl, false);
+            xhr.send(new FormData($(this.productFormSelector)[0]));
+
+            if (xhr.status !== HTTP_STATUS_OK) {
+                throw new Error('Request failed');
+            } else {
+                try {
+                    let result = JSON.parse(xhr.responseText);
+
+                    if (typeof result.success !== 'undefined') {
+                        refreshCustomerData(this.addToCartUrl);
+                        return result.success;
                     }
-
-                    return reject(new ResponseError(data.error));
-                }).catch(function () {
-                    return reject();
-                });
-            }.bind(this));
+                } catch (parseError) {
+                    throw new Error('Failed to parse response JSON: ' + parseError.message);
+                }
+            }
         },
 
         afterOnAuthorize: function (data) {
             window.location = data.redirectUrl;
-            this.showLoader(false);
+            this.googlePayButton.showLoader(false);
         },
 
         /**

@@ -19,7 +19,7 @@ class SafeMigrateDataFromAnotherTable implements DDLTriggerInterface
     /**
      * Pattern with which we can match whether we can apply and use this trigger or not.
      */
-    const MATCH_PATTERN = '/safeMigrateDataFromAnotherTable\(([^\)]+)\)/';
+    private const MATCH_PATTERN = '/safeMigrateDataFromAnotherTable\(([^\)]+)\)/';
 
     /**
      * @var ResourceConnection
@@ -70,7 +70,6 @@ class SafeMigrateDataFromAnotherTable implements DDLTriggerInterface
             );
 
             return function () {
-                return;
             };
         }
 

@@ -14,7 +14,7 @@ use Magento\Framework\UrlInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\PaymentServicesBase\Model\Config as BaseConfig;
 
-class GooglePayConfigProvider extends AbstractConfigProvider implements ConfigProviderInterface
+class GooglePayConfigProvider implements ConfigProviderInterface
 {
     public const CODE = 'payment_services_paypal_google_pay';
 
@@ -25,7 +25,7 @@ class GooglePayConfigProvider extends AbstractConfigProvider implements ConfigPr
     /**
      * @var Config
      */
-    private $config;
+    private Config $config;
 
     /**
      * @var BaseConfig
@@ -33,38 +33,39 @@ class GooglePayConfigProvider extends AbstractConfigProvider implements ConfigPr
     private $baseConfig;
 
     /**
+     * @var ConfigProvider
+     */
+    private ConfigProvider $configProvider;
+
+    /**
      * @param Config $config
-     * @param PaymentOptionsBuilderFactory $paymentOptionsBuilderFactory
-     * @param SdkService $sdkService
-     * @param StoreManagerInterface $storeManager
      * @param UrlInterface $url
      * @param BaseConfig $baseConfig
+     * @param ConfigProvider $configProvider
      */
     public function __construct(
         Config $config,
-        PaymentOptionsBuilderFactory $paymentOptionsBuilderFactory,
-        SdkService $sdkService,
-        StoreManagerInterface $storeManager,
         UrlInterface $url,
-        BaseConfig $baseConfig
+        BaseConfig $baseConfig,
+        ConfigProvider $configProvider
     ) {
         $this->baseConfig = $baseConfig;
         $this->config = $config;
         $this->url = $url;
-        parent::__construct($config, $paymentOptionsBuilderFactory, $sdkService, $storeManager);
+        $this->configProvider = $configProvider;
     }
 
     /**
      * @var UrlInterface
      */
-    private $url;
+    private UrlInterface $url;
 
     /**
      * @inheritdoc
      */
     public function getConfig()
     {
-        $config = parent::getConfig();
+        $config = $this->configProvider->getConfig();
         if (!$this->baseConfig->isConfigured() || !$this->config->isGooglePayLocationEnabled('checkout')) {
             $config['payment'][self::CODE]['isVisible'] = false;
             return $config;
@@ -73,7 +74,11 @@ class GooglePayConfigProvider extends AbstractConfigProvider implements ConfigPr
         $config['payment'][self::CODE]['mode'] = $this->config->getGooglePayMode();
         $config['payment'][self::CODE]['isVisible'] = true;
         $config['payment'][self::CODE]['createOrderUrl'] = $this->url->getUrl('paymentservicespaypal/order/create');
-        $config['payment'][self::CODE]['sdkParams'] = $this->getScriptParams(self::CODE, self::LOCATION);
+        $config['payment'][self::CODE]['sdkParams'] = $this->configProvider->getScriptParams(
+            self::CODE,
+            self::LOCATION,
+            $this->getPaymentOptions()
+        );
         $config['payment'][self::CODE]['styles'] =
             array_merge($this->config->getButtonConfiguration(), $this->getGooglePayStyles());
         $config['payment'][self::CODE]['paymentSource'] = self::PAYMENT_SOURCE;
@@ -96,9 +101,9 @@ class GooglePayConfigProvider extends AbstractConfigProvider implements ConfigPr
     /**
      * @inheritdoc
      */
-    protected function getPaymentOptions(): PaymentOptionsBuilder
+    private function getPaymentOptions(): PaymentOptionsBuilder
     {
-        $paymentOptionsBuilder = parent::getPaymentOptions();
+        $paymentOptionsBuilder = $this->configProvider->getPaymentOptions();
         $paymentOptionsBuilder->setAreButtonsEnabled(false);
         $paymentOptionsBuilder->setIsPayPalCreditEnabled(false);
         $paymentOptionsBuilder->setIsVenmoEnabled(false);

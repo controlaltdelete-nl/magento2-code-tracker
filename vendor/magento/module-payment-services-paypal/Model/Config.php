@@ -462,7 +462,7 @@ class Config
      * Get the Google Pay button style
      *
      * @param string $configName
-     * @param int $storeCode
+     * @param string $storeCode
      * @return string
      */
     private function getGooglePayButtonStyle(string $configName, string $storeCode): string
