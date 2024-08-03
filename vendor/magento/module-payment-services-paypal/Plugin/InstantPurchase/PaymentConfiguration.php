@@ -75,11 +75,11 @@ class PaymentConfiguration
             return $quote;
         }
 
-        $this->forceTotalsRecalculation($quote);
-
         $totalAmount = $quote->getBaseGrandTotal();
         $currencyCode = $quote->getCurrency()->getBaseCurrencyCode();
         $customer = $this->customerSession->getCustomer();
+        $orderIncrementId = $this->orderHelper->reserveAndGetOrderIncrementId($quote);
+
         $response = $this->orderService->create(
             [
                 'amount' => $this->orderHelper->formatAmount((float)$totalAmount),
@@ -93,7 +93,9 @@ class PaymentConfiguration
                 'payer' => $this->orderService->buildPayer($quote, $customer->getId()),
                 'payment_source' => TokenUiComponentProvider::CC_VAULT_SOURCE,
                 'quote_id' => $quote->getId(),
-                'order_increment_id' => $this->orderHelper->reserveAndGetOrderIncrementId($quote)
+                'order_increment_id' => $orderIncrementId,
+                'line_items' => $this->orderHelper->getLineItems($quote, $orderIncrementId),
+                'amount_breakdown' => $this->orderHelper->getAmountBreakdown($quote, $orderIncrementId),
             ]
         );
         if (!$response['is_successful']) {
@@ -107,23 +109,5 @@ class PaymentConfiguration
             ->setAdditionalInformation('paypal_order_amount', $totalAmount);
 
         return $quote;
-    }
-
-    /**
-     * Force recalculation of quote shipping rates
-     *
-     * @param Quote $quote
-     * @return void
-     */
-    private function forceTotalsRecalculation(Quote $quote): void
-    {
-        // Force recalculation of shipping rates to have correct shipping and base grand total in quote
-        // This only happens with InstantPurchase checkout
-        $quote->setTotalsCollectedFlag(false);
-
-        $quote->getShippingAddress()->setCollectShippingRates(true);
-        $quote->getBillingAddress()->setCollectShippingRates(true);
-
-        $quote->collectTotals();
     }
 }

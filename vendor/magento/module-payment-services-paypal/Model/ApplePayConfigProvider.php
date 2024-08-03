@@ -14,7 +14,7 @@ use Magento\Framework\UrlInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\PaymentServicesBase\Model\Config as BaseConfig;
 
-class ApplePayConfigProvider extends AbstractConfigProvider implements ConfigProviderInterface
+class ApplePayConfigProvider implements ConfigProviderInterface
 {
     public const CODE = 'payment_services_paypal_apple_pay';
 
@@ -33,25 +33,26 @@ class ApplePayConfigProvider extends AbstractConfigProvider implements ConfigPro
     private $baseConfig;
 
     /**
+     * @var ConfigProvider
+     */
+    private $configProvider;
+
+    /**
      * @param Config $config
-     * @param PaymentOptionsBuilderFactory $paymentOptionsBuilderFactory
-     * @param SdkService $sdkService
-     * @param StoreManagerInterface $storeManager
      * @param UrlInterface $url
      * @param BaseConfig $baseConfig
+     * @param ConfigProvider $configProvider
      */
     public function __construct(
         Config $config,
-        PaymentOptionsBuilderFactory $paymentOptionsBuilderFactory,
-        SdkService $sdkService,
-        StoreManagerInterface $storeManager,
         UrlInterface $url,
-        BaseConfig $baseConfig
+        BaseConfig $baseConfig,
+        ConfigProvider $configProvider
     ) {
         $this->baseConfig = $baseConfig;
         $this->config = $config;
         $this->url = $url;
-        parent::__construct($config, $paymentOptionsBuilderFactory, $sdkService, $storeManager);
+        $this->configProvider = $configProvider;
     }
 
     /**
@@ -64,14 +65,18 @@ class ApplePayConfigProvider extends AbstractConfigProvider implements ConfigPro
      */
     public function getConfig()
     {
-        $config = parent::getConfig();
+        $config = $this->configProvider->getConfig();
         if (!$this->baseConfig->isConfigured() || !$this->config->isApplePayLocationEnabled('checkout')) {
             $config['payment'][self::CODE]['isVisible'] = false;
             return $config;
         }
         $config['payment'][self::CODE]['isVisible'] = true;
         $config['payment'][self::CODE]['createOrderUrl'] = $this->url->getUrl('paymentservicespaypal/order/create');
-        $config['payment'][self::CODE]['sdkParams'] = $this->getScriptParams(self::CODE, self::LOCATION);
+        $config['payment'][self::CODE]['sdkParams'] = $this->configProvider->getScriptParams(
+            self::CODE,
+            self::LOCATION,
+            $this->getPaymentOptions()
+        );
         $config['payment'][self::CODE]['buttonStyles'] = $this->config->getButtonConfiguration();
         $config['payment'][self::CODE]['paymentTypeIconUrl'] =
             $this->config->getViewFileUrl('Magento_PaymentServicesPaypal::images/applepay.png');
@@ -82,9 +87,9 @@ class ApplePayConfigProvider extends AbstractConfigProvider implements ConfigPro
     /**
      * @inheritdoc
      */
-    protected function getPaymentOptions(): PaymentOptionsBuilder
+    private function getPaymentOptions(): PaymentOptionsBuilder
     {
-        $paymentOptionsBuilder =  parent::getPaymentOptions();
+        $paymentOptionsBuilder = $this->configProvider->getPaymentOptions();
         $paymentOptionsBuilder->setAreButtonsEnabled($this->config->isApplePayLocationEnabled('checkout'));
         $paymentOptionsBuilder->setIsPayPalCreditEnabled(false);
         $paymentOptionsBuilder->setIsVenmoEnabled(false);

@@ -88,6 +88,8 @@ class Create extends AbstractProxyController implements HttpPostActionInterface,
                 ? $this->orderService->buildPayer($quote, (string)$customerId)
                 : $this->orderService->buildGuestPayer($quote);
             $paymentSource = $this->getRequest()->getPost('payment_source');
+            $orderIncrementId = $this->resolveOrderIncrementId($quote);
+
             $response = $this->orderService->create(
                 [
                     'amount' => $this->orderHelper->formatAmount((float)$quote->getBaseGrandTotal()),
@@ -102,7 +104,9 @@ class Create extends AbstractProxyController implements HttpPostActionInterface,
                     'store_code' => $quote->getStore()->getCode(),
                     'payment_source' => $paymentSource,
                     'quote_id' => $quote->getId(),
-                    'order_increment_id' => $this->resolveOrderIncrementId($quote)
+                    'order_increment_id' => $orderIncrementId,
+                    'line_items' => $this->orderHelper->getLineItems($quote, $orderIncrementId),
+                    'amount_breakdown' => $this->orderHelper->getAmountBreakdown($quote, $orderIncrementId),
                 ]
             );
 

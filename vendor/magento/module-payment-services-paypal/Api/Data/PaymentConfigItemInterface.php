@@ -46,14 +46,14 @@ interface PaymentConfigItemInterface
     /**
      * Get SDK params
      *
-     * @return Magento\PaymentServicesPaypal\Api\Data\PaymentConfigSdkParamsInterface[]
+     * @return \Magento\PaymentServicesPaypal\Api\Data\PaymentConfigSdkParamsInterface[]
      */
     public function getSdkParams();
 
     /**
      * Set SDK params
      *
-     * @param Magento\PaymentServicesPaypal\Api\Data\PaymentConfigSdkParamsInterface[] $sdkParams
+     * @param \Magento\PaymentServicesPaypal\Api\Data\PaymentConfigSdkParamsInterface[] $sdkParams
      * @return PaymentConfigItemInterface
      */
     public function setSdkParams(array $sdkParams);

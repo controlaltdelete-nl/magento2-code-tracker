@@ -55,7 +55,7 @@ class VaultService
     {
         $tokenId = $paymentToken->getGatewayToken();
 
-        $uri = '/payments/'
+        $uri = '/'
             . $this->config->getMerchantId()
             . '/vault/card';
 

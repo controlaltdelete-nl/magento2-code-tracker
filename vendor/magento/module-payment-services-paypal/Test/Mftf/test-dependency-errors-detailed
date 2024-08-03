@@ -120,3 +120,18 @@ File "/var/www/html/app/code/Magento/PaymentServicesPaypal/Test/Mftf/ActionGroup
 contains entity references that violate dependency constraints:
 		
 	 StorefrontPaypalSwitchBackToMagentoActionGroup from module(s): magento/module-paypal
+
+File "/var/www/html/app/code/Magento/PaymentServicesPaypal/Test/Mftf/ActionGroup/AdminOpenPayPalAdvancedFrontendExperienceFeaturesPageActionGroup.xml"
+contains entity references that violate dependency constraints:
+		
+	 PayPalExpressCheckoutConfigSection from module(s): magento/module-paypal
+
+File "/var/www/html/app/code/Magento/PaymentServicesPaypal/Test/Mftf/ActionGroup/AdminPayPalExpressCheckoutEnableActionGroup.xml"
+contains entity references that violate dependency constraints:
+		
+	 PayPalExpressCheckoutConfigSection from module(s): magento/module-paypal
+
+File "/var/www/html/app/code/Magento/PaymentServicesPaypal/Test/Mftf/ActionGroup/ConfigPayPalExpressCheckoutActionGroup.xml"
+contains entity references that violate dependency constraints:
+		
+	 PayPalExpressCheckoutConfigSection from module(s): magento/module-paypal

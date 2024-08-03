@@ -59,10 +59,10 @@ class CaptureRequest implements BuilderInterface
         /** @var PaymentDataObjectInterface $paymentDO */
         $paymentDO = SubjectReader::readPayment($buildSubject);
 
-        /** @var $payment \Magento\Sales\Model\Order\Payment */
+        /** @var \Magento\Sales\Model\Order\Payment $payment */
         $payment = $paymentDO->getPayment();
         $paymentsMode = $payment->getAdditionalInformation('payments_mode');
-        $uri = '/payments/'
+        $uri = '/'
             . $this->config->getMerchantId($paymentsMode)
             . '/payment/'
             . $payment->getAuthorizationTransaction()->getTxnId()

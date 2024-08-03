@@ -18,6 +18,17 @@ define([
 ], function (_, $, utils, Component, loadSdkScript, SmartButtons, $t, customerData, ResponseError) {
     'use strict';
 
+    var refreshCustomerData = function (url) {
+        // Trigger ajaxComplete event to update customer data
+        customerData.onAjaxComplete(
+            {},
+            {
+                type: 'POST',
+                url: url,
+            }
+        );
+    }
+
     return Component.extend({
         defaults: {
             sdkNamespace: 'paypalProduct',
@@ -178,11 +189,13 @@ define([
                     return response.json();
                 }).then(function (data) {
                     if (typeof data.success !== 'undefined') {
+                        refreshCustomerData(this.addToCartUrl);
+
                         return resolve();
                     }
 
                     return reject(new ResponseError(data.error));
-                }).catch(function () {
+                }.bind(this)).catch(function () {
                     return reject();
                 });
             }.bind(this));
@@ -196,6 +209,8 @@ define([
          */
         afterCreateOrder: function (res) {
             if (res.response['is_successful']) {
+                refreshCustomerData(this.createOrderUrl);
+
                 return res.response['paypal-order'].id;
             }
 

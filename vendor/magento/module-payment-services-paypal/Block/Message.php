@@ -59,6 +59,7 @@ class Message extends Template implements ShortcutInterface
         $this->pageType = $pageType;
         $this->session = $session;
         parent::__construct($context, $data);
+        /** @phpstan-ignore-next-line */
         $this->setTemplate($data['template'] ?? $componentConfig[$this->pageType]['template']);
     }
 

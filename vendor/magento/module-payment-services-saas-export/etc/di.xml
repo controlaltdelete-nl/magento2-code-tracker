@@ -6,6 +6,7 @@
  */
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <preference for="Magento\PaymentServicesSaaSExport\Model\Http\Command\FeedRouteResolverInterface" type="Magento\PaymentServicesSaaSExport\Model\Http\Command\FeedRouteResolver"/>
     <!--  Payment Services Order Production/Sandbox Feed  -->
     <virtualType name="Magento\PaymentServicesSaaSExport\Model\Http\Converter\OrderConverter" type="Magento\PaymentServicesSaaSExport\Model\Http\Converter">
         <arguments>
@@ -39,14 +40,12 @@
         <arguments>
             <argument name="converter" xsi:type="object">Magento\PaymentServicesSaaSExport\Model\Http\Converter\OrderConverter</argument>
             <argument name="environment" xsi:type="string">production</argument>
-            <argument name="feedRoute" xsi:type="string">payments/exports/commerce/orders</argument>
         </arguments>
     </virtualType>
     <virtualType name="Magento\PaymentServicesSaaSExport\Model\Http\Command\SubmitSandboxOrderFeed" type="Magento\PaymentServicesSaaSExport\Model\Http\Command\SubmitFeed">
         <arguments>
             <argument name="converter" xsi:type="object">Magento\PaymentServicesSaaSExport\Model\Http\Converter\OrderConverter</argument>
             <argument name="environment" xsi:type="string">sandbox</argument>
-            <argument name="feedRoute" xsi:type="string">payments/exports/commerce/orders</argument>
         </arguments>
     </virtualType>
     <virtualType name="Magento\PaymentServicesSaaSExport\Cron\OrderProductionSubmitFeed" type="Magento\PaymentServicesSaaSExport\Cron\SubmitFeed">
@@ -123,14 +122,12 @@
         <arguments>
             <argument name="converter" xsi:type="object">Magento\PaymentServicesSaaSExport\Model\Http\Converter\OrderStatusConverter</argument>
             <argument name="environment" xsi:type="string">production</argument>
-            <argument name="feedRoute" xsi:type="string">payments/exports/commerce/orderStatuses</argument>
         </arguments>
     </virtualType>
     <virtualType name="Magento\PaymentServicesSaaSExport\Model\Http\Command\SubmitSandboxOrderStatusFeed" type="Magento\PaymentServicesSaaSExport\Model\Http\Command\SubmitFeed">
         <arguments>
             <argument name="converter" xsi:type="object">Magento\PaymentServicesSaaSExport\Model\Http\Converter\OrderStatusConverter</argument>
             <argument name="environment" xsi:type="string">sandbox</argument>
-            <argument name="feedRoute" xsi:type="string">payments/exports/commerce/orderStatuses</argument>
         </arguments>
     </virtualType>
     <virtualType name="Magento\PaymentServicesSaaSExport\Cron\OrderStatusSubmitProductionFeed" type="Magento\PaymentServicesSaaSExport\Cron\SubmitFeed">
@@ -205,14 +202,12 @@
         <arguments>
             <argument name="converter" xsi:type="object">Magento\PaymentServicesSaaSExport\Model\Http\Converter\StoreConverter</argument>
             <argument name="environment" xsi:type="string">production</argument>
-            <argument name="feedRoute" xsi:type="string">payments/exports/commerce/stores</argument>
         </arguments>
     </virtualType>
     <virtualType name="Magento\PaymentServicesSaaSExport\Model\Http\Command\SubmitSandboxStoreFeed" type="\Magento\PaymentServicesSaaSExport\Model\Http\Command\SubmitFeed">
         <arguments>
             <argument name="converter" xsi:type="object">Magento\PaymentServicesSaaSExport\Model\Http\Converter\StoreConverter</argument>
             <argument name="environment" xsi:type="string">sandbox</argument>
-            <argument name="feedRoute" xsi:type="string">payments/exports/commerce/stores</argument>
         </arguments>
     </virtualType>
     <virtualType name="Magento\PaymentServicesSaaSExport\Cron\StoreSubmitProductionFeed" type="Magento\PaymentServicesSaaSExport\Cron\SubmitFeed">

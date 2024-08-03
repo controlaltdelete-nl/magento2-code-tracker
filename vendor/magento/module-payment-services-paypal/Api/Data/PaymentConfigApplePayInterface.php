@@ -28,7 +28,7 @@ interface PaymentConfigApplePayInterface extends PaymentConfigItemInterface
     /**
      * Get buttonStyles
      *
-     * @return Magento\PaymentServicesPaypal\Api\Data\PaymentConfigButtonStylesInterface
+     * @return \Magento\PaymentServicesPaypal\Api\Data\PaymentConfigButtonStylesInterface
      */
     public function getButtonStyles();
 

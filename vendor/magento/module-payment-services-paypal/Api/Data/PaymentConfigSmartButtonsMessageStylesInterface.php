@@ -42,14 +42,14 @@ interface PaymentConfigSmartButtonsMessageStylesInterface
     /**
      * Get messageStyles
      *
-     * @return Magento\PaymentServicesPaypal\Api\Data\PaymentConfigSmartButtonsLogoInterface
+     * @return \Magento\PaymentServicesPaypal\Api\Data\PaymentConfigSmartButtonsLogoInterface
      */
     public function getLogo();
 
     /**
      * Set messageStyles
      *
-     * @param Magento\PaymentServicesPaypal\Api\Data\PaymentConfigSmartButtonsLogoInterface $logo
+     * @param \Magento\PaymentServicesPaypal\Api\Data\PaymentConfigSmartButtonsLogoInterface $logo
      * @return $this
      */
     public function setLogo($logo);

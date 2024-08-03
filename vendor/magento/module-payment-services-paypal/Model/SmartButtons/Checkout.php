@@ -217,7 +217,9 @@ class Checkout
                 'website_id' => $quote->getStore()->getWebsiteId(),
                 'payment_source' => $paymentSource,
                 'quote_id' => $quoteId,
-                'order_increment_id' => $this->orderHelper->reserveAndGetOrderIncrementId($quote)
+                'order_increment_id' => $this->orderHelper->reserveAndGetOrderIncrementId($quote),
+                'line_items' => $this->orderHelper->getLineItems($quote, $quote->getReservedOrderId()),
+                'amount_breakdown' => $this->orderHelper->getAmountBreakdown($quote, $quote->getReservedOrderId()),
             ]
         );
 
@@ -459,17 +461,21 @@ class Checkout
      */
     private function updatePayPalOrder() : void
     {
-        $orderId = $this->getQuote()
-            ->getPayment()
-            ->getAdditionalInformation('paypal_order_id');
-        $totalAmount = $this->getQuote()->getBaseGrandTotal();
-        $currencyCode = $this->getQuote()->getCurrency()->getBaseCurrencyCode();
+        $quote = $this->getQuote();
+
+        $orderIncrementId = $this->orderHelper->reserveAndGetOrderIncrementId($quote);
+        $paypalOrderId = $quote->getPayment()->getAdditionalInformation('paypal_order_id');
+        $totalAmount = $quote->getBaseGrandTotal();
+        $currencyCode = $quote->getCurrency()->getBaseCurrencyCode();
+
         try {
             $this->orderService->update(
-                (string) $orderId,
+                (string) $paypalOrderId,
                 [
                     'amount' => $this->orderHelper->formatAmount((float)$totalAmount),
-                    'currency_code' => $currencyCode
+                    'currency_code' => $currencyCode,
+                    'line_items' => $this->orderHelper->getLineItems($quote, $orderIncrementId),
+                    'amount_breakdown' => $this->orderHelper->getAmountBreakdown($quote, $orderIncrementId),
                 ]
             );
         } catch (HttpException $e) {

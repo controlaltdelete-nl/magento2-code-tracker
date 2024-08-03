@@ -28,7 +28,7 @@ interface PaymentConfigGooglePayInterface extends PaymentConfigItemInterface
     /**
      * Get buttonStyles
      *
-     * @return Magento\PaymentServicesPaypal\Api\Data\PaymentConfigGooglePayButtonStylesInterface
+     * @return \Magento\PaymentServicesPaypal\Api\Data\PaymentConfigGooglePayButtonStylesInterface
      */
     public function getButtonStyles();
 

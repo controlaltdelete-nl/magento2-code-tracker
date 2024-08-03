@@ -16,6 +16,17 @@ define([
 ], function (_, $, utils, Component, $t, customerData, ResponseError, GooglePayButton) {
     'use strict';
 
+    var refreshCustomerData = function (url) {
+        // Trigger ajaxComplete event to update customer data
+        customerData.onAjaxComplete(
+            {},
+            {
+                type: 'POST',
+                url: url,
+            }
+        );
+    }
+
     return Component.extend({
         defaults: {
             sdkNamespace: 'paypalGooglePay',
@@ -64,24 +75,22 @@ define([
 
         afterOnAuthorize: function (data) {
             window.location = data.redirectUrl;
-            this.showLoader(false);
+            this.googlePayButton.showLoader(false);
         },
 
         onClick: function () {
             this.isErrorDisplayed = false;
-            this.showLoader(true);
-            this.googlePayButton.createOrder();
-        },
 
-        /**
-         * Show/hide loader.
-         *
-         * @param {Boolean} show
-         */
-        showLoader: function (show) {
-            var event = show ? 'processStart' : 'processStop';
-
-            $('body').trigger(event);
+            this.googlePayButton.showLoaderAsync(true)
+                .then(() => {
+                    return this.googlePayButton.createOrder();
+                })
+                .then(() => {
+                    refreshCustomerData(this.createOrderUrl);
+                })
+                .catch(error => {
+                    this.catchError(error);
+                });
         },
 
         /**
@@ -94,7 +103,7 @@ define([
 
             console.log(error);
 
-            this.showLoader(false);
+            this.googlePayButton.showLoader(false);
 
             if (this.isErrorDisplayed) {
                 return;

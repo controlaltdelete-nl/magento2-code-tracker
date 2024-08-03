@@ -25,7 +25,7 @@ class SdkService
     private const PAYMENT_OPTIONS = 'payment_options';
     private const IS_REVIEW_PAYMENT_REQUIRED = 'review_payment';
     private const PAYMENT_ACTION = 'payment_action';
-    private const PAYMENT_BUILD_SDK_URL_PATH = '/payments/payment/paypal/sdkurl';
+    private const PAYMENT_BUILD_SDK_URL_PATH = '/payment/paypal/sdkurl';
     private const CACHE_LIFETIME_KEY = 'data-expires-in';
     public const CACHE_TYPE_IDENTIFIER = 'paypal_sdk_params';
     public const CACHE_LIFETIME = 3600;

@@ -34,7 +34,7 @@ class Payment extends \Magento\Config\Block\System\Config\Form\Fieldset
     /**
      * @var ProductMetadataInterface
      */
-    protected $productMeta;
+    private $productMeta;
 
     /**
      * @var bool
@@ -139,16 +139,17 @@ class Payment extends \Magento\Config\Block\System\Config\Form\Fieldset
                 . $this->getExtensionDescription()
                 . '</div>';
         }
+        $logosUrl = 'Magento_PaymentServicesBase::images/logos/';
         $html .= '<div class="logos">
-        <img src="' . $this->getViewFileUrl('Magento_PaymentServicesBase::images/logos/visa.svg') . '" alt="Visa">
-        <img src="' . $this->getViewFileUrl('Magento_PaymentServicesBase::images/logos/mastercard.svg') . '" alt="Mastercard">
-        <img src="' . $this->getViewFileUrl('Magento_PaymentServicesBase::images/logos/amex.svg') . '" alt="American Express">
-        <img src="' . $this->getViewFileUrl('Magento_PaymentServicesBase::images/logos/discover.png') . '" alt="Discover">
-        <img src="' . $this->getViewFileUrl('Magento_PaymentServicesBase::images/logos/venmo.svg') . '" alt="Venmo">
-        <img src="' . $this->getViewFileUrl('Magento_PaymentServicesBase::images/logos/apple-pay.svg') . '" alt="Apple Pay">
-        <img src="' . $this->getViewFileUrl('Magento_PaymentServicesBase::images/logos/google-pay.svg') . '" alt="Google Pay">
-        <img src="' . $this->getViewFileUrl('Magento_PaymentServicesBase::images/logos/paypal.svg') . '" alt="PayPal">
-        <img src="' . $this->getViewFileUrl('Magento_PaymentServicesBase::images/logos/paylater.png') . '" alt="PayPal Pay Later">
+        <img src="' . $this->getViewFileUrl($logosUrl . 'visa.svg') . '" alt="Visa">
+        <img src="' . $this->getViewFileUrl($logosUrl . 'mastercard.svg') . '" alt="Mastercard">
+        <img src="' . $this->getViewFileUrl($logosUrl . 'amex.svg') . '" alt="American Express">
+        <img src="' . $this->getViewFileUrl($logosUrl . 'discover.png') . '" alt="Discover">
+        <img src="' . $this->getViewFileUrl($logosUrl . 'venmo.svg') . '" alt="Venmo">
+        <img src="' . $this->getViewFileUrl($logosUrl . 'apple-pay.svg') . '" alt="Apple Pay">
+        <img src="' . $this->getViewFileUrl($logosUrl . 'google-pay.svg') . '" alt="Google Pay">
+        <img src="' . $this->getViewFileUrl($logosUrl . 'paypal.svg') . '" alt="PayPal">
+        <img src="' . $this->getViewFileUrl($logosUrl . 'paylater.png') . '" alt="PayPal Pay Later">
 </div>';
         $html .= '<div class="config-alt"></div></div></div>';
 
@@ -283,7 +284,9 @@ class Payment extends \Magento\Config\Block\System\Config\Form\Fieldset
         $ph4 = new Phrase("Competitive processing fees");
         $ph5 = new Phrase("Advanced financial reporting capabilities");
         $ph6 = new Phrase("Secure and up-to-date extension with SaaS");
-        $ph7 = new Phrase("If you have product questions or need help with setup, follow this link and fill out the form");
+        $ph7 = new Phrase(
+            "If you have product questions or need help with setup, follow this link and fill out the form"
+        );
 
         return <<<EOD
             <p>$ph1</p>

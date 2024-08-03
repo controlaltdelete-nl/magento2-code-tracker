@@ -17,7 +17,8 @@ define([
     'Magento_Checkout/js/model/payment/additional-validators',
     'Magento_Checkout/js/action/set-billing-address',
     'Magento_Ui/js/model/messageList',
-    'uiRegistry'
+    'uiRegistry',
+    'Magento_Customer/js/customer-data'
 ], function (
     Component,
     $,
@@ -31,9 +32,21 @@ define([
     additionalValidators,
     setBillingAddressAction,
     globalMessageList,
-    registry
+    registry,
+    customerData
 ) {
     'use strict';
+
+    var refreshCustomerData = function (url) {
+        // Trigger ajaxComplete event to update customer data
+        customerData.onAjaxComplete(
+            {},
+            {
+                type: 'POST',
+                url: url,
+            }
+        );
+    }
 
     return Component.extend({
         defaults: {
@@ -267,6 +280,8 @@ define([
          */
         afterCreateOrder: function (data) {
             if (data.response['paypal-order'] && data.response['paypal-order']['mp_order_id']) {
+                refreshCustomerData(window.checkoutConfig.payment[this.getCode()].createOrderUrl);
+
                 this.paymentsOrderId = data.response['paypal-order']['mp_order_id'];
                 this.paypalOrderId = data.response['paypal-order'].id;
 

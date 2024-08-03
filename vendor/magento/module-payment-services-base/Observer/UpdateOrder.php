@@ -68,7 +68,7 @@ class UpdateOrder extends AbstractDataAssignObserver
                 'Content-Type' => 'application/json',
                 'x-scope-id' => $websiteId
             ],
-            '/payments/payment/order/' . $internalOrderId,
+            '/payment/order/' . $internalOrderId,
             Http::METHOD_PATCH,
             json_encode($order)
         );

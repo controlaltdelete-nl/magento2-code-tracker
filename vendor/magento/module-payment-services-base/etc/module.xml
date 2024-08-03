@@ -13,6 +13,9 @@
             <module name="Magento_Paypal" />
             <module name="Magento_ServicesConnector" />
             <module name="Magento_ServiceProxy" />
+            <module name="Magento_PaymentServicesDashboard" />
+            <module name="Magento_ServicesIdLayout" />
+            <module name="Magento_Ui"/>
         </sequence>
     </module>
 </config>

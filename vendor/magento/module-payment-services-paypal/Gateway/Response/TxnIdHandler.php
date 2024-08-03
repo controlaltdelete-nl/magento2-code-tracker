@@ -28,7 +28,7 @@ class TxnIdHandler implements HandlerInterface
     /**
      * @var LoggerInterface
      */
-    protected LoggerInterface $logger;
+    private LoggerInterface $logger;
 
     /**
      * @param CartRepositoryInterface $quoteRepository

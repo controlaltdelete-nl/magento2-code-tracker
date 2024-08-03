@@ -7,9 +7,9 @@ declare(strict_types=1);
 
 namespace Magento\PaymentServicesPaypal\Model\Adminhtml\Source;
 
-use Magento\Framework\Option\ArrayInterface;
+use Magento\Framework\Data\OptionSourceInterface;
 
-class SdkButtonLabel implements ArrayInterface
+class SdkButtonLabel implements OptionSourceInterface
 {
     /**
      * Possible Button Labels.
@@ -26,7 +26,7 @@ class SdkButtonLabel implements ArrayInterface
 
     // phpcs:disable
     /**
-     * @return array
+     * @inheritdoc
      */
     public function toOptionArray() : array
     {

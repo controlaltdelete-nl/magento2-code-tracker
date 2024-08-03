@@ -12,6 +12,7 @@ use Magento\Framework\UrlInterface;
 use Magento\PaymentServicesPaypal\Api\Data\PaymentConfigApplePayInterface;
 use Magento\PaymentServicesPaypal\Api\Data\PaymentConfigGooglePayInterface;
 use Magento\PaymentServicesPaypal\Api\Data\PaymentConfigHostedFieldsInterface;
+use Magento\PaymentServicesPaypal\Api\Data\PaymentConfigItemInterface;
 use Magento\PaymentServicesPaypal\Api\Data\PaymentConfigSmartButtonsInterface;
 use Magento\PaymentServicesPaypal\Api\Data\PaymentConfigApplePayInterfaceFactory;
 use Magento\PaymentServicesPaypal\Api\Data\PaymentConfigGooglePayInterfaceFactory;
@@ -288,7 +289,7 @@ class PaymentConfigManagement implements PaymentConfigManagementInterface
      * @param string $location
      * @param string $code
      * @param int $store
-     * @return array
+     * @return array|\Magento\PaymentServicesPaypal\Api\Data\PaymentConfigItemInterface
      * @throws NoSuchEntityException
      */
     private function getSpecificConfigByMethod(string $location, string $code, int $store)
@@ -411,7 +412,6 @@ class PaymentConfigManagement implements PaymentConfigManagementInterface
         $params = [];
         foreach ($sdkParams as $sdkParamItem) {
             if (isset($sdkParamItem['name']) && isset($sdkParamItem['value'])) {
-                /** @var  PaymentConfigSdkParamsInterface $configSdk */
                 $params[] = $this->paymentConfigSdkParamsFactory
                     ->create()
                     ->setName($sdkParamItem['name'])

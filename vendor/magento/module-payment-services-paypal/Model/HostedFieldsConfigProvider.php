@@ -19,7 +19,7 @@ use Magento\Store\Model\StoreManagerInterface;
 /**
  * @SuppressWarnings(PHPMD.CookieAndSessionMisuse)
  */
-class HostedFieldsConfigProvider extends AbstractConfigProvider implements ConfigProviderInterface
+class HostedFieldsConfigProvider implements ConfigProviderInterface
 {
     public const CODE = 'payment_services_paypal_hosted_fields';
 
@@ -34,63 +34,64 @@ class HostedFieldsConfigProvider extends AbstractConfigProvider implements Confi
     /**
      * @var Config
      */
-    private $config;
+    private Config $config;
 
     /**
      * @var CcConfig
      */
-    private $ccConfig;
+    private CcConfig $ccConfig;
 
     /**
      * @var CcConfigProvider
      */
-    private $ccConfigProvider;
+    private CcConfigProvider $ccConfigProvider;
 
     /**
      * @var CustomerSession
      */
-    private $customerSession;
+    private CustomerSession $customerSession;
 
     /**
      * @var BaseConfig
      */
-    private $baseConfig;
+    private BaseConfig $baseConfig;
 
     /**
      * @var UrlInterface
      */
-    private $url;
+    private UrlInterface $url;
+
+    /**
+     * @var ConfigProvider
+     */
+    private $configProvider;
 
     /**
      *
      * @param Config $config
-     * @param PaymentOptionsBuilderFactory $paymentOptionsBuilderFactory
-     * @param SdkService $sdkService
-     * @param StoreManagerInterface $storeManager
      * @param CcConfig $ccConfig
      * @param CcConfigProvider $ccConfigProvider
      * @param CustomerSession $customerSession
      * @param UrlInterface $url
      * @param BaseConfig $baseConfig
+     * @param ConfigProvider $configProvider
      */
     public function __construct(
         Config $config,
-        PaymentOptionsBuilderFactory $paymentOptionsBuilderFactory,
-        SdkService $sdkService,
-        StoreManagerInterface $storeManager,
         CcConfig $ccConfig,
         CcConfigProvider $ccConfigProvider,
         CustomerSession $customerSession,
         UrlInterface $url,
-        BaseConfig $baseConfig
+        BaseConfig $baseConfig,
+        ConfigProvider $configProvider
     ) {
-        parent::__construct($config, $paymentOptionsBuilderFactory, $sdkService, $storeManager);
         $this->config = $config;
         $this->baseConfig = $baseConfig;
         $this->ccConfig = $ccConfig;
         $this->ccConfigProvider = $ccConfigProvider;
         $this->customerSession = $customerSession;
         $this->url = $url;
+        $this->configProvider = $configProvider;
     }
 
     /**
@@ -98,7 +99,7 @@ class HostedFieldsConfigProvider extends AbstractConfigProvider implements Confi
      */
     public function getConfig()
     {
-        $config = parent::getConfig();
+        $config = $this->configProvider->getConfig();
         if (!$this->baseConfig->isConfigured() || !$this->config->isHostedFieldsEnabled()) {
             $config['payment'][self::CODE]['isVisible'] = false;
             return $config;
@@ -108,7 +109,11 @@ class HostedFieldsConfigProvider extends AbstractConfigProvider implements Confi
         $config['payment'][self::CODE]['requiresCardDetails'] = $this->decideIfCardDetailsAreRequired();
         $config['payment'][self::CODE]['getOrderDetailsUrl'] =
             $this->url->getUrl('paymentservicespaypal/order/getcurrentorder');
-        $config['payment'][self::CODE]['sdkParams'] = $this->getScriptParams(self::CODE, self::LOCATION);
+        $config['payment'][self::CODE]['sdkParams'] = $this->configProvider->getScriptParams(
+            self::CODE,
+            self::LOCATION,
+            $this->getPaymentOptions()
+        );
         $config['payment'][self::CODE]['ccIcons'] = $this->ccConfigProvider->getIcons();
         $config['payment'][self::CODE]['cvvImageUrl'] = $this->ccConfig->getCvvImageUrl();
         $config['payment'][self::CODE]['paymentTypeIconUrl'] =
@@ -125,9 +130,9 @@ class HostedFieldsConfigProvider extends AbstractConfigProvider implements Confi
     /**
      * @inheritdoc
      */
-    protected function getPaymentOptions(): PaymentOptionsBuilder
+    private function getPaymentOptions(): PaymentOptionsBuilder
     {
-        $paymentOptionsBuilder =  parent::getPaymentOptions();
+        $paymentOptionsBuilder = $this->configProvider->getPaymentOptions();
         $paymentOptionsBuilder->setIsCreditCardEnabled($this->config->isHostedFieldsEnabled());
         return $paymentOptionsBuilder;
     }

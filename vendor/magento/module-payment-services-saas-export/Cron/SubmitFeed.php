@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace Magento\PaymentServicesSaaSExport\Cron;
 
+use Magento\Framework\App\ObjectManager;
 use Magento\SaaSCommon\Cron\SubmitFeedInterface;
 use Magento\SaaSCommon\Model\Exception\UnableSendData;
 use Magento\DataExporter\Model\FeedPool;
@@ -16,12 +17,14 @@ use Magento\Framework\Module\ModuleList;
 use Magento\SaaSCommon\Model\FeedRegistry;
 use Magento\PaymentServicesSaaSExport\Model\Http\Command\SubmitFeed as HttpCommandSubmitFeed;
 use Magento\ServicesConnector\Exception\PrivateKeySignException;
-use Magento\ServicesConnector\Model\Environment;
 use Psr\Log\LoggerInterface;
 use Magento\PaymentServicesBase\Model\OnboardingStatus;
+use Magento\PaymentServicesBase\Model\Config;
 
 /**
  * Class to execute submitting data feed
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class SubmitFeed implements SubmitFeedInterface
 {
@@ -29,11 +32,6 @@ class SubmitFeed implements SubmitFeedInterface
      * @var HttpCommandSubmitFeed
      */
     private $submitFeed;
-
-    /**
-     * @var ModuleList
-     */
-    private $moduleList;
 
     /**
      * @var FeedPool
@@ -56,11 +54,6 @@ class SubmitFeed implements SubmitFeedInterface
     private $logger;
 
     /**
-     * @var ScopeConfigInterface
-     */
-    private $config;
-
-    /**
      * @var OnboardingStatus
      */
     private $onboardingStatus;
@@ -81,6 +74,11 @@ class SubmitFeed implements SubmitFeedInterface
     private $environment;
 
     /**
+     * @var Config
+     */
+    private $baseConfig;
+
+    /**
      * @var int
      */
     private static $chunkSize = 100;
@@ -99,10 +97,12 @@ class SubmitFeed implements SubmitFeedInterface
      * @param LoggerInterface $logger
      * @param ScopeConfigInterface $config
      * @param OnboardingStatus $onboardingStatus
+     * @param ?Config $baseConfig
      * @param string $feedName
      * @param string $feedSyncFlag
      * @param string $environment
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function __construct(
         FeedPool $feedPool,
@@ -113,21 +113,21 @@ class SubmitFeed implements SubmitFeedInterface
         LoggerInterface $logger,
         ScopeConfigInterface $config,
         OnboardingStatus $onboardingStatus,
+        Config $baseConfig = null,
         string $feedName,
         string $feedSyncFlag,
         string $environment
     ) {
         $this->feedPool = $feedPool;
         $this->submitFeed = $submitFeed;
-        $this->moduleList = $moduleList;
         $this->flagManager = $flagManager;
         $this->feedRegistry = $feedRegistry;
         $this->logger = $logger;
-        $this->config = $config;
         $this->onboardingStatus = $onboardingStatus;
         $this->feedName = $feedName;
         $this->feedSyncFlag = $feedSyncFlag;
         $this->environment = $environment;
+        $this->baseConfig = $baseConfig ?? ObjectManager::getInstance()->get(Config::class);
     }
 
     /**
@@ -199,8 +199,9 @@ class SubmitFeed implements SubmitFeedInterface
      */
     public function execute()
     {
-        $key = $this->config->getValue(str_replace('{env}', $this->environment, Environment::API_KEY_PATH));
-        if ($key && $this->onboardingStatus->isOnboarded($this->environment)) {
+        if ($this->baseConfig->isMagentoServicesConfigured($this->environment) &&
+            $this->onboardingStatus->isOnboarded($this->environment)
+        ) {
             for ($i=0; $i < self::$iterations; $i++) {
                 $this->iteration();
             }

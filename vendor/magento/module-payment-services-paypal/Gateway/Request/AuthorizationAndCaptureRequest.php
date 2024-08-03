@@ -61,7 +61,7 @@ class AuthorizationAndCaptureRequest implements BuilderInterface
         $extensionAttributes = $payment->getPayment()->getExtensionAttributes();
         $paymentToken = $extensionAttributes->getVaultPaymentToken();
 
-        $uri = '/payments/'
+        $uri = '/'
             . $this->config->getMerchantId()
             . '/payment/paypal/order/'
             . $payment->getPayment()->getAdditionalInformation('paypal_order_id')

@@ -86,7 +86,7 @@ class VaultDetailsHandler implements HandlerInterface
             $payment = $paymentDO->getPayment();
             try {
                 $paymentToken = $this->createPaymentToken($vault);
-                /** @phpstan-ignore-next-line */
+
                 $extensionAttributes = $this->getExtensionAttributes($payment);
                 $extensionAttributes->setVaultPaymentToken($paymentToken);
             } catch (Exception $e) {

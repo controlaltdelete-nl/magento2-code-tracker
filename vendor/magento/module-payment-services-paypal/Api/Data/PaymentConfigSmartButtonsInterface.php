@@ -63,14 +63,14 @@ interface PaymentConfigSmartButtonsInterface extends PaymentConfigItemInterface
     /**
      * Get messageStyles
      *
-     * @return Magento\PaymentServicesPaypal\Api\Data\PaymentConfigSmartButtonsMessageStylesInterface
+     * @return \Magento\PaymentServicesPaypal\Api\Data\PaymentConfigSmartButtonsMessageStylesInterface
      */
     public function getMessageStyles();
 
     /**
      * Set messageStyles
      *
-     * @param Magento\PaymentServicesPaypal\Api\Data\paymentConfigSmartButtonsMessageStylesFactory $messageStyles
+     * @param \Magento\PaymentServicesPaypal\Api\Data\paymentConfigSmartButtonsMessageStylesFactory $messageStyles
      * @return $this
      */
     public function setMessageStyles($messageStyles);
@@ -78,7 +78,7 @@ interface PaymentConfigSmartButtonsInterface extends PaymentConfigItemInterface
     /**
      * Get buttonStyles
      *
-     * @return Magento\PaymentServicesPaypal\Api\Data\PaymentConfigButtonStylesInterface
+     * @return \Magento\PaymentServicesPaypal\Api\Data\PaymentConfigButtonStylesInterface
      */
     public function getButtonStyles();
 
