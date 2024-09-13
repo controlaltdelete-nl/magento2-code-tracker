@@ -20,22 +20,20 @@ declare(strict_types=1);
 
 namespace Magento\PaymentServicesPaypal\Test\Unit\Helper;
 
-use Magento\Directory\Model\Currency;
 use Magento\PaymentServicesPaypal\Helper\L2DataProvider;
 use Magento\PaymentServicesPaypal\Helper\L3DataProvider;
 use Magento\PaymentServicesPaypal\Helper\LineItemsProvider;
 use Magento\PaymentServicesPaypal\Helper\OrderHelper;
 use Magento\PaymentServicesPaypal\Model\Config;
+use Magento\Quote\Api\Data\CurrencyInterface;
 use Magento\Quote\Model\Quote;
-use Magento\TestFramework\Helper\Bootstrap;
-use Magento\TestFramework\ObjectManager;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
 class OrderHelperTest extends TestCase
 {
-    const ORDER_INCREMENT_ID = '100000001';
+    private const ORDER_INCREMENT_ID = '100000001';
 
     /**
      * @var MockObject|L2DataProvider
@@ -68,17 +66,10 @@ class OrderHelperTest extends TestCase
     private $orderHelper;
 
     /**
-     * @var ObjectManager
-     */
-    private $objectManager;
-
-    /**
      * Setup the test
      */
     protected function setUp(): void
     {
-        $this->objectManager = Bootstrap::getObjectManager();
-
         $this->l2DataProvider = $this->createMock(L2DataProvider::class);
         $this->l3DataProvider = $this->createMock(L3DataProvider::class);
         $this->lineItemsProvider = $this->createMock(LineItemsProvider::class);
@@ -109,7 +100,7 @@ class OrderHelperTest extends TestCase
     {
         // baseSubtotal should be the sum of the lineItems unit_amount * quantity
         // baseTaxAmount should be the sum of the lineItems tax * quantity
-        $quote = $this->createQuote(80.28,70.00,10.28);
+        $quote = $this->createQuote(80.28, 70.00, 10.28);
 
         $lineItems = [
             [
@@ -208,7 +199,7 @@ class OrderHelperTest extends TestCase
     {
         // baseSubtotal should be the sum of the lineItems unit_amount * quantity
         // baseTaxAmount should be the sum of the lineItems tax * quantity
-        $quote = $this->createQuote(84.28, 74.00,10.28);
+        $quote = $this->createQuote(84.28, 74.00, 10.28);
 
         $lineItems = [
             [
@@ -304,15 +295,15 @@ class OrderHelperTest extends TestCase
         float $addressTaxAmount,
         float $addressShippingAmount = 10.00,
         float $addressDiscountAmount = 2.00,
-    ): Quote
-    {
+    ): Quote {
         $currency = $this->createCurrency();
 
         $address = $this->getMockBuilder(Quote\Address::class)
-            ->setMethods([
+            ->addMethods([
                 'getBaseTaxAmount',
                 'getBaseShippingAmount',
                 'getBaseDiscountAmount',
+                'getBaseShippingTaxAmount',
             ])
             ->disableOriginalConstructor()
             ->getMock();
@@ -329,12 +320,18 @@ class OrderHelperTest extends TestCase
             ->method('getBaseDiscountAmount')
             ->willReturn($addressDiscountAmount);
 
+        $address->expects($this->any())
+            ->method('getBaseShippingTaxAmount')
+            ->willReturn(0.00);
+
         $quote = $this->getMockBuilder(Quote::class)
-            ->setMethods([
+            ->addMethods([
                 'getBaseSubtotal',
                 'getBaseTaxAmount',
-                'getShippingAddress',
                 'getBaseGrandTotal',
+            ])
+            ->onlyMethods([
+                'getShippingAddress',
                 'isVirtual',
                 'getCurrency',
             ])
@@ -367,12 +364,14 @@ class OrderHelperTest extends TestCase
     /**
      * Create a currency
      *
-     * @return Currency
+     * @return CurrencyInterface
      */
-    private function createCurrency(): Currency
+    private function createCurrency(): CurrencyInterface
     {
-        $currency = $this->objectManager->create(Currency::class);
-        $currency->setBaseCurrencyCode('USD');
+        $currency = $this->createMock(CurrencyInterface::class);
+        $currency->expects($this->any())
+            ->method('getBaseCurrencyCode')
+            ->willReturn('USD');
 
         return $currency;
     }

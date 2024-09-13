@@ -15,7 +15,8 @@ define([
     'Magento_PaymentServicesPaypal/js/view/errors/response-error',
     'Magento_Checkout/js/action/set-billing-address',
     'Magento_Ui/js/model/messageList',
-    'Magento_Vault/js/view/payment/vault-enabler'
+    'Magento_Vault/js/view/payment/vault-enabler',
+    'Magento_Checkout/js/model/payment/additional-validators',
 ], function (
     $,
     _,
@@ -27,7 +28,8 @@ define([
     ResponseError,
     setBillingAddressAction,
     globalMessageList,
-    VaultEnabler
+    VaultEnabler,
+    additionalValidators
 ) {
     'use strict';
 
@@ -398,7 +400,7 @@ define([
          * @param {Object} hostedFields
          */
         submitForm: function (hostedFields) {
-            if (this.isFormValid() && this.isPlaceOrderActionAllowed()) {
+            if (this.canProceedWithOrder()) {
                 loader.startLoader();
                 hostedFields.submit(
                     this.getPaymentData()
@@ -532,6 +534,10 @@ define([
 
             this.shouldCardBeVaulted(checked);
             return checked;
+        },
+
+        canProceedWithOrder: function () {
+            return this.validate() && additionalValidators.validate() && this.isFormValid() && this.isPlaceOrderActionAllowed();
         }
 
     });

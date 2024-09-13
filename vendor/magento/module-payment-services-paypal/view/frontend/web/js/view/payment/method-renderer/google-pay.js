@@ -173,13 +173,14 @@ define([
          * @return {Promise}
          */
         beforeCreateOrder: function () {
-            return new Promise(function (resolve, reject) {
-                if (this.validate() && this.isPlaceOrderActionAllowed() && additionalValidators.validate()) {
-                    setBillingAddressAction(globalMessageList).done(resolve.bind(null, null)).fail(reject);
-                } else {
-                    reject({message: 'before create order validation failed'});
-                }
-            }.bind(this));
+            if (this.validate() && this.isPlaceOrderActionAllowed() && additionalValidators.validate()) {
+                setBillingAddressAction(globalMessageList)
+                    .fail(function () {
+                        throw {message: 'Failed to set billing address'};
+                    });
+            } else {
+                throw {message: 'before create order validation failed', hidden: true};
+            }
         },
 
         /**

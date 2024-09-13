@@ -21,4 +21,7 @@
     <event name="admin_system_config_save">
         <observer name="paypal_sdk_params_cache_flush" instance="Magento\PaymentServicesPaypal\Observer\FlushSdkParamsCache"/>
     </event>
+    <event name="sales_order_shipment_save_after">
+        <observer name="payment_services_paypal_send_tracking_information" instance="Magento\PaymentServicesPaypal\Observer\SendTrackingInformation" />
+    </event>
 </config>

@@ -205,6 +205,52 @@ class OrderService
     }
 
     /**
+     * Add tracking information for a Paypal Order
+     *
+     * @param string $orderId
+     * @param array $data
+     * @throws HttpException
+     */
+    public function track(string $orderId, array $data) : void
+    {
+        $path = sprintf('/%s/payment/paypal/order/%s/tracking-info', $this->config->getMerchantId(), $orderId);
+        $headers = ['Content-Type' => 'application/json'];
+        $body = json_encode($data);
+
+        if (!$body) {
+            throw new HttpException(
+                sprintf('Error encoding body creating tracking information request for order id %s', $orderId)
+            );
+        }
+
+        $response = $this->httpClient->request(
+            $headers,
+            $path,
+            Http::METHOD_POST,
+            $body
+        );
+
+        $this->logger->debug(
+            var_export(
+                [
+                    'request' => [
+                        $path,
+                        $headers,
+                        Http::METHOD_POST,
+                        $body
+                    ],
+                    'response' => $response
+                ],
+                true
+            )
+        );
+
+        if (!isset($response['is_successful']) || !$response['is_successful']) {
+            throw new HttpException(sprintf('Failed to create tracking information for order id %s', $orderId));
+        }
+    }
+
+    /**
      * Get the Order object from PayPal
      *
      * @param string $id

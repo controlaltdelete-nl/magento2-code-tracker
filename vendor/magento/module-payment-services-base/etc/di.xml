@@ -24,6 +24,7 @@
     <type name="Magento\PaymentServicesBase\Model\ServiceClient">
         <arguments>
             <argument name="logger" xsi:type="object">Magento\PaymentServicesBase\Model\Logger</argument>
+            <argument name="keyValidator" xsi:type="object">Magento\PaymentServicesBase\Model\ServicesConnector\InMemoryKeyValidor</argument>
         </arguments>
     </type>
     <type name="Magento\Config\Model\Config\Structure">
@@ -31,5 +32,10 @@
     </type>
     <type name="Magento\Directory\Model\Region">
         <plugin name="magpay_payments_model_region" type="Magento\PaymentServicesBase\Plugin\Directory\Region" />
+    </type>
+    <type name="Magento\PaymentServicesBase\Model\Config">
+        <arguments>
+            <argument name="keyValidator" xsi:type="object">Magento\PaymentServicesBase\Model\ServicesConnector\InMemoryKeyValidor</argument>
+        </arguments>
     </type>
 </config>
