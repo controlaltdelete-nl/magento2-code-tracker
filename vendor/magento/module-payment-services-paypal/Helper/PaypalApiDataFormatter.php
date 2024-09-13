@@ -31,6 +31,8 @@ class PaypalApiDataFormatter
     public const MAX_SKU_LENGTH = 127;
     public const MAX_URL_LENGTH = 2048;
 
+    public const CARRIER_OTHER = 'OTHER';
+
     private const TYPE_PHYSICAL = 'PHYSICAL';
     private const TYPE_DIGITAL = 'DIGITAL';
 
@@ -59,7 +61,7 @@ class PaypalApiDataFormatter
      */
     public function formatCommodityCode(string $commodityCode): string
     {
-        return substr($commodityCode, 0, self::MAX_COMMODITY_CODE_LENGTH);
+        return mb_substr($commodityCode, 0, self::MAX_COMMODITY_CODE_LENGTH);
     }
 
     /**
@@ -70,7 +72,7 @@ class PaypalApiDataFormatter
      */
     public function formatName(string $name): string
     {
-        return substr($name, 0, self::MAX_NAME_LENGTH);
+        return mb_substr($name, 0, self::MAX_NAME_LENGTH);
     }
 
     /**
@@ -81,18 +83,18 @@ class PaypalApiDataFormatter
      */
     public function formatSku(string $sku): string
     {
-        return substr($sku, 0, self::MAX_SKU_LENGTH);
+        return mb_substr($sku, 0, self::MAX_SKU_LENGTH);
     }
 
     /**
      * Format the UPC code with type and value
      *
-     * @param string $productId
+     * @param int $productId
      * @return string
      */
-    public function formatUPCCode(string $productId): string
+    public function formatUPCCode(int $productId): string
     {
-        $trimmedCode = substr($productId, 0, self::MAX_UPC_CODE_LENGTH);
+        $trimmedCode = substr((string)$productId, 0, self::MAX_UPC_CODE_LENGTH);
         return str_pad($trimmedCode, self::MIN_UPC_CODE_LENGTH, '0', STR_PAD_LEFT);
     }
 
@@ -104,7 +106,7 @@ class PaypalApiDataFormatter
      */
     public function formatDescription(string $description): string
     {
-        return trim(substr(strip_tags($description), 0, self::MAX_DESCRIPTION_LENGTH));
+        return trim(mb_substr(strip_tags($description), 0, self::MAX_DESCRIPTION_LENGTH));
     }
 
     /**
@@ -115,7 +117,7 @@ class PaypalApiDataFormatter
      */
     public function formatUrl(string $url): string
     {
-        return substr($url, 0, self::MAX_URL_LENGTH);
+        return mb_substr($url, 0, self::MAX_URL_LENGTH);
     }
 
     /**

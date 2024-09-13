@@ -18,16 +18,15 @@ declare(strict_types=1);
 
 namespace Magento\PaymentServicesPaypal\Test\Unit\Helper;
 
+use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Catalog\Model\Product;
-use Magento\Directory\Model\Currency;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\PaymentServicesPaypal\Helper\LineItemsProvider;
 use Magento\PaymentServicesPaypal\Helper\PaypalApiDataFormatter;
+use Magento\Quote\Api\Data\CurrencyInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Item;
-use Magento\TestFramework\Helper\Bootstrap;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -48,17 +47,10 @@ class LineItemsProviderTest extends TestCase
     private $productRepository;
 
     /**
-     * @var ObjectManager
-     */
-    private $objectManager;
-
-    /**
      * Setup the test
      */
     protected function setUp(): void
     {
-        $this->objectManager = Bootstrap::getObjectManager();
-
         $this->productRepository = $this->createMock(ProductRepositoryInterface::class);
         $paypalFormatter = new(PaypalApiDataFormatter::class);
         $logger = $this->createMock(LoggerInterface::class);
@@ -718,14 +710,27 @@ class LineItemsProviderTest extends TestCase
      */
     private function createProduct(int $id, bool $hasShortDescription = true): Product
     {
-        $product = $this->objectManager->create(Product::class);
+        /**
+         * @var ProductInterface|MockObject $product
+         */
+        $product = $this->createMock(Product::class);
 
-        $product->setId($id);
-        $product->setName('name');
-        $product->setDescription('description');
+        $product->expects($this->any())
+            ->method('getId')
+            ->willReturn($id);
+
+        $product->expects($this->any())
+            ->method('getProductUrl')
+            ->willReturn(sprintf('catalog/product/view/id/%s/', $id));
 
         if ($hasShortDescription) {
-            $product->setShortDescription('short description');
+            $product->expects($this->any())
+                ->method('getName')
+                ->willReturn('short description');
+        } else {
+            $product->expects($this->any())
+                ->method('getName')
+                ->willReturn('description');
         }
 
         return $product;
@@ -734,12 +739,14 @@ class LineItemsProviderTest extends TestCase
     /**
      * Create a currency
      *
-     * @return Currency
+     * @return CurrencyInterface
      */
-    private function createCurrency(): Currency
+    private function createCurrency(): CurrencyInterface
     {
-        $currency = $this->objectManager->create(Currency::class);
-        $currency->setBaseCurrencyCode('USD');
+        $currency = $this->createMock(CurrencyInterface::class);
+        $currency->expects($this->any())
+            ->method('getBaseCurrencyCode')
+            ->willReturn('USD');
 
         return $currency;
     }
@@ -757,7 +764,7 @@ class LineItemsProviderTest extends TestCase
      * @return Item
      */
     private function createQuoteItem(
-        Product $product,
+        ProductInterface $product,
         float $unitPrice,
         float $rowTotal,
         float $taxAmount,
@@ -855,8 +862,8 @@ class LineItemsProviderTest extends TestCase
     private function productRepositoryWillReturn(
         int $product1Id,
         int $product2Id,
-        Product $productWithShortDescription,
-        Product $productWithDescription
+        ProductInterface $productWithShortDescription,
+        ProductInterface $productWithDescription
     ): void {
         $this->productRepository->expects($this->exactly(2))
             ->method('getById')
@@ -883,7 +890,6 @@ class LineItemsProviderTest extends TestCase
      */
     private function getMagentoBaseUrl(): string
     {
-        $storeManager = $this->objectManager->get('\Magento\Store\Model\StoreManagerInterface');
-        return $storeManager->getStore()->getBaseUrl();
+        return "";
     }
 }

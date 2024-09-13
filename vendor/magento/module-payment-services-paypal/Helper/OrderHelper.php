@@ -172,8 +172,8 @@ class OrderHelper
         $address = $this->getQuoteAddress($quote);
 
         $baseSubtotal = (float)$quote->getBaseSubtotal();
-        $shippingAmount = (float)$address->getBaseShippingAmount();
-        $taxAmount = (float)$address->getBaseTaxAmount();
+        $shippingAmount = (float)$address->getBaseShippingAmount() + (float)$address->getBaseShippingTaxAmount();
+        $taxAmount = (float)$address->getBaseTaxAmount() - (float)$address->getBaseShippingTaxAmount();
         $discountAmount = (float)$address->getBaseDiscountAmount();
 
         if ($this->hasBreakdownAmountMismatch(
@@ -267,9 +267,11 @@ class OrderHelper
         }
 
         $address = $this->getQuoteAddress($quote);
+        $quoteItemsTaxAmount = $this->lineItemsProvider->toCents((float)$address->getBaseTaxAmount()) -
+            $this->lineItemsProvider->toCents((float)$address->getBaseShippingTaxAmount());
 
         if ($itemTotal !== $this->lineItemsProvider->toCents((float)$quote->getBaseSubtotal()) ||
-            $taxTotal !== $this->lineItemsProvider->toCents((float)$address->getBaseTaxAmount())) {
+            $taxTotal !== $quoteItemsTaxAmount) {
             $this->logger->info(
                 'Line items total does not match quote subtotal or tax amount',
                 [

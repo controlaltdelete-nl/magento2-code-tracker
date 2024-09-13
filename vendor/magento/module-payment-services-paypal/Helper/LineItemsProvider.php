@@ -281,7 +281,7 @@ class LineItemsProvider
             ],
             'upc' => [
                 'type' => PaypalApiDataFormatter::DEFAULT_UPC_TYPE,
-                'code' => $this->paypalApiDataFormatter->formatUPCCode((string)$item->getProduct()->getId()),
+                'code' => $this->paypalApiDataFormatter->formatUPCCode((int)$item->getProduct()->getId()),
             ],
             'description' => $this->getProductDescription($product),
         ];

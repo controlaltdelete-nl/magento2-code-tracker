@@ -64,7 +64,7 @@ class AuthorizationRequest implements BuilderInterface
         $uri = '/'
             . $this->config->getMerchantId()
             . '/payment/paypal/order/'
-            . $payment->getPayment()->getAdditionalInformation('paypal_order_id')
+            . $this->getPayPalOrderId($payment)
             . '/authorize';
 
         $websiteId = $this->storeManager->getStore($payment->getOrder()->getStoreId())->getWebsiteId();
@@ -89,5 +89,15 @@ class AuthorizationRequest implements BuilderInterface
         $request['headers'] = array_merge($request['headers'], $customHeaders);
 
         return $request;
+    }
+
+    private function getPayPalOrderId($payment) {
+        $orderId = $payment->getPayment()->getAdditionalInformation('paypal_order_id');
+
+        if (empty($orderId)) {
+            throw new NoSuchEntityException(__("Order is missing and can not be authorized. Try again later."));
+        }
+
+        return $orderId;
     }
 }
