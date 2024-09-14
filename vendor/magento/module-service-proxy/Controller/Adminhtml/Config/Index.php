@@ -19,6 +19,7 @@ use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Serialize\Serializer\Json;
+use Magento\PaymentServicesPaypal\Model\SdkService;
 use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\ServiceProxy\Controller\Adminhtml\AbstractProxyController;
@@ -39,7 +40,6 @@ class Index extends AbstractProxyController implements
     private const PAGE_CACHE_PARAM_TYPE = 'page';
     private const ALL_CACHE_PARAM_TYPE = 'all';
     private const IS_DEFAULT_SUFFIX = '/isDefault';
-    private const CUSTOM_CACHE_IDENTIFIER = 'paypal_sdk_params';
 
     /**
      * @var configPaths
@@ -408,6 +408,6 @@ class Index extends AbstractProxyController implements
      */
     private function handleCustomCacheClear(): void
     {
-        $this->cache->remove(self::CUSTOM_CACHE_IDENTIFIER);
+        $this->cache->clean([SdkService::CACHE_TYPE_TAG]);
     }
 }
