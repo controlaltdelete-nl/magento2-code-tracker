@@ -13,6 +13,7 @@ use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\Request\Http;
 use Magento\Framework\App\State;
 use Magento\Framework\Serialize\Serializer\Json;
+use Magento\PaymentServicesPaypal\Model\SdkService;
 use Magento\ServicesConnector\Api\ClientResolverInterface;
 use Magento\ServicesConnector\Exception\KeyNotFoundException;
 use Magento\ServicesConnector\Api\KeyValidationInterface;
@@ -219,7 +220,7 @@ class ServiceClient implements ServiceClientInterface
                     ];
                     if ($exceptionMessage === self::AUTH_REQUEST_EXCEPTION
                         || $exceptionMessage === self::NO_ACTIVE_ACCOUNT_EXCEPTION) {
-                        $this->cache->remove('paypal_sdk_params');
+                        $this->cache->clean([SdkService::CACHE_TYPE_TAG]);
                     }
                     $this->logger->error(
                         'An error occurred.',

@@ -27,7 +27,8 @@ class SdkService
     private const PAYMENT_ACTION = 'payment_action';
     private const PAYMENT_BUILD_SDK_URL_PATH = '/payment/paypal/sdkurl';
     private const CACHE_LIFETIME_KEY = 'data-expires-in';
-    public const CACHE_TYPE_IDENTIFIER = 'paypal_sdk_params';
+    public const CACHE_TYPE_IDENTIFIER = 'paypal_sdk_params_payment_services';
+    public const CACHE_TYPE_TAG = 'paypal_sdk_params_payment_services_all';
     public const CACHE_LIFETIME = 3600;
 
     /**
@@ -134,10 +135,10 @@ class SdkService
      */
     public function loadFromSdkParamsCache(string $location, string $storeViewId): array
     {
-        $sdkParams = $this->cache->load(self::CACHE_TYPE_IDENTIFIER);
-        $cacheKey = sprintf('%s_%s_%s', 'payment_services', $location, $storeViewId);
-        if ($sdkParams && array_key_exists($cacheKey, $this->serializer->unserialize($sdkParams))) {
-            return $this->serializer->unserialize($sdkParams)[$cacheKey];
+        $cacheKey = sprintf('%s_%s_%s', self::CACHE_TYPE_IDENTIFIER, $location, $storeViewId);
+        $sdkParams = $this->cache->load($cacheKey);
+        if ($sdkParams) {
+            return $this->serializer->unserialize($sdkParams);
         }
         return [];
     }
@@ -152,22 +153,12 @@ class SdkService
      */
     public function updateSdkParamsCache(array $result, string $location, string $storeViewId)
     {
-        $cached = $this->cache->load(self::CACHE_TYPE_IDENTIFIER);
-        $cacheKey = sprintf('%s_%s_%s', 'payment_services', $location, $storeViewId);
-        if ($cached) {
-            $cachedParams = $this->serializer->unserialize($cached);
-            $cachedParams[$cacheKey] = $result;
-            $updatedParams = $cachedParams;
-        } else {
-            $updatedParams = [
-                $cacheKey => $result
-            ];
-        }
+        $cacheKey = sprintf('%s_%s_%s', self::CACHE_TYPE_IDENTIFIER, $location, $storeViewId);
         $cacheLifetime = $this->getCacheLifetime($result);
         $this->cache->save(
-            $this->serializer->serialize($updatedParams),
-            self::CACHE_TYPE_IDENTIFIER,
-            [],
+            $this->serializer->serialize($result),
+            $cacheKey,
+            [self::CACHE_TYPE_TAG],
             $cacheLifetime
         );
     }

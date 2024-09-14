@@ -39,7 +39,7 @@ class FlushSdkParamsCache implements ObserverInterface
         $configData = $observer->getData('configData');
         $configSection = $configData['section'];
         if ($configSection === 'payment') {
-            $this->cache->remove(SdkService::CACHE_TYPE_IDENTIFIER);
+            $this->cache->clean([SdkService::CACHE_TYPE_TAG]);
         }
     }
 }
