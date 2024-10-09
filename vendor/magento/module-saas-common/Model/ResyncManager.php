@@ -172,11 +172,9 @@ class ResyncManager
                 $this->truncateIndexTable();
             }
             if ($this->isImmediateExport()) {
-                $this->resetIndexedData();
                 $this->regenerateFeedData();
                 return;
             }
-            $this->resetIndexedData();
             $this->resetSubmittedData();
             $this->regenerateFeedData();
             $this->submitAllToFeed();
@@ -204,7 +202,8 @@ class ResyncManager
 
     /**
      * Reset SaaS indexed feed data in order to re-generate
-     *
+     * @deprecated
+     * @phpcs:disable Magento2.Functions.DiscouragedFunction
      * @throws \Zend_Db_Statement_Exception
      */
     public function resetIndexedData(): void
