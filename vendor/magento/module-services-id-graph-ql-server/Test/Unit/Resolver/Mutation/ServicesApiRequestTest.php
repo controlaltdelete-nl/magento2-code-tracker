@@ -126,6 +126,9 @@ class ServicesApiRequestTest extends TestCase
     {
         return [
             ["/path/test/"],
+            ["path/without/initial/slash"],
+            ["/path/test/dkdioe-483948-dh8dodl"],
+            ["path/ending/slash/"],
             ["https://commerce-int.adobe.io/ping"],
             ["http://test.commerce.adobe.io/ping"],
             ["https://test.commerce.adobe.io:8080/ping/pong"],
@@ -184,6 +187,9 @@ class ServicesApiRequestTest extends TestCase
             ["http://127.0.0.1:9200"],
             ["http://127.0.0.1/magento2/auth.json.sample"],
             ["https://user:password@commerce-int.adobe.com/ping"],
+            ["//collaborator-url.com"],
+            ["/path///../test/"],
+            ["path/invalid@./cca342"],
         ];
     }
 }
