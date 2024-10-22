@@ -28,6 +28,14 @@ class ServicesApiRequest implements ResolverInterface
     protected const ALLOWED_DOMAIN = "adobe.io";
 
     /**
+     * Regular expression for validating the path
+     * The paths can have one or more segments
+     * Each segment can contain alphanumeric characters, underscores, or hyphens.
+     * The path can optionally start and/or end with a forward slash.
+     */
+    protected const PATH_REGEX = "/^(\/?[\w-]+)+\/?$/";
+
+    /**
      * @var ServicesClientInterface
      */
     private $servicesClient;
@@ -99,7 +107,7 @@ class ServicesApiRequest implements ResolverInterface
 
     /**
      * Validates uri param from request:
-     * - In case only path is provided it's valid (standard usage)
+     * - In case path is provided (standard usage), validate is a correct path format
      * - If a full URI is passed, only  requests to adobeio domain are allowed,
      *
      * @param string $uri
@@ -119,6 +127,13 @@ class ServicesApiRequest implements ResolverInterface
                     )
                 );
             }
+        } elseif (!(preg_match(self::PATH_REGEX, $uri))) {
+            throw new InvalidArgumentException(
+                sprintf(
+                    "servicesApiRequest mutation - invalid uri parameter provided: %s",
+                    $uri
+                )
+            );
         }
     }
 }
