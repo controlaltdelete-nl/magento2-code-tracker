@@ -736,6 +736,7 @@
                     <item name="template" xsi:type="string">Magento_PaymentServicesPaypal::smart_buttons_minicart.phtml</item>
                 </item>
             </argument>
+            <argument name="compositeConfigProvider" xsi:type="object">Magento\Checkout\Model\CompositeConfigProvider</argument>
         </arguments>
     </type>
     <type name="Magento\PaymentServicesPaypal\Block\Message">

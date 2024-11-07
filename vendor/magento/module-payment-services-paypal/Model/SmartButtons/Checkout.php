@@ -13,6 +13,7 @@ use Magento\PaymentServicesPaypal\Model\GooglePayConfigProvider;
 use Magento\PaymentServicesPaypal\Model\OrderService;
 use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
+use Magento\Quote\Model\Quote as QuoteEntity;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use Magento\Checkout\Helper\Data;
@@ -223,6 +224,14 @@ class Checkout
             ]
         );
 
+        if (isset($saasResponse['is_successful'])
+            && $saasResponse['is_successful'] === true
+            && isset($saasResponse["paypal-order"]['id'])
+        ) {
+            $quote->getPayment()->setAdditionalInformation('paypal_order_id', $saasResponse["paypal-order"]['id']);
+            $this->quoteRepository->save($quote);
+        }
+
         return array_merge_recursive(
             $saasResponse,
             [
@@ -274,6 +283,7 @@ class Checkout
         $this->ignoreAddressValidation();
         $this->getQuote()->collectTotals();
         $this->updatePayPalOrder();
+        $this->updateQuoteCustomerData($this->getQuote());
         $order = $this->quoteManagement->submit($this->getQuote());
         if (!$order) {
             return null;
@@ -480,6 +490,23 @@ class Checkout
             );
         } catch (HttpException $e) {
             throw new LocalizedException(__('Your payment was not successful. Try again.'));
+        }
+    }
+
+    /**
+     * Update Quote with customer data from active session
+     *
+     * @param QuoteEntity $quote
+     * @return void
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
+     */
+    private function updateQuoteCustomerData(QuoteEntity $quote): void {
+        if ($this->customerSession->isLoggedIn()) {
+            $customerData = $this->customerSession->getCustomerData();
+            $quote->setCustomerFirstname($customerData->getFirstname());
+            $quote->setCustomerLastname($customerData->getLastname());
+            $this->quoteRepository->save($quote);
         }
     }
 }

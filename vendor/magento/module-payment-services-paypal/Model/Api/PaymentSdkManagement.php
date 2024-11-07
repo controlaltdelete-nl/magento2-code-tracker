@@ -263,7 +263,7 @@ class PaymentSdkManagement implements PaymentSdkManagementInterface
             return [];
         }
         $paymentOptionsBuilder = $this->paymentOptionsBuilderFactory->create();
-        $paymentOptionsBuilder->setAreButtonsEnabled(true);
+        $paymentOptionsBuilder->setAreButtonsEnabled(false);
         $paymentOptionsBuilder->setIsPayPalCreditEnabled(false);
         $paymentOptionsBuilder->setIsVenmoEnabled(false);
         $paymentOptionsBuilder->setIsApplePayEnabled(true);

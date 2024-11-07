@@ -14,16 +14,15 @@ use Magento\Payment\Model\CcConfig;
 use Magento\PaymentServicesPaypal\Model\SdkService\PaymentOptionsBuilder;
 use Magento\PaymentServicesPaypal\Model\SdkService\PaymentOptionsBuilderFactory;
 use Magento\PaymentServicesBase\Model\Config as BaseConfig;
-use Magento\Store\Model\StoreManagerInterface;
 
 /**
  * @SuppressWarnings(PHPMD.CookieAndSessionMisuse)
  */
 class HostedFieldsConfigProvider implements ConfigProviderInterface
 {
-    public const CODE = 'payment_services_paypal_hosted_fields';
+    public const CODE = Config::PAYMENTS_SERVICES_PREFIX . 'hosted_fields';
 
-    public const CC_VAULT_CODE = 'payment_services_paypal_vault';
+    public const CC_VAULT_CODE = Config::PAYMENTS_SERVICES_PREFIX . 'vault';
 
     public const CC_SOURCE = 'cc';
 

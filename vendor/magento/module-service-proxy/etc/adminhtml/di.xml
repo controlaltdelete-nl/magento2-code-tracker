@@ -15,17 +15,4 @@
             </argument>
         </arguments>
     </type>
-    <virtualType name="Magento\ServiceProxy\Model\Logger\Handler" type="Magento\Framework\Logger\Handler\Base">
-        <arguments>
-            <argument name="fileName" xsi:type="string">/var/log/services_proxy.log</argument>
-        </arguments>
-    </virtualType>
-    <virtualType name="Magento\ServiceProxy\Model\Logger" type="Magento\Framework\Logger\Monolog">
-        <arguments>
-            <argument name="handlers" xsi:type="array">
-                <item name="debug" xsi:type="object">Magento\ServiceProxy\Model\Logger\Handler</item>
-                <item name="error" xsi:type="object">Magento\ServiceProxy\Model\Logger\Handler</item>
-            </argument>
-        </arguments>
-    </virtualType>
 </config>
