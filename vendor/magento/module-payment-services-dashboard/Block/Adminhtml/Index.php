@@ -104,7 +104,8 @@ class Index extends Template
             ],
             'userDetails' => [
                 'locale' => $this->adminSession->getUser()->getInterfaceLocale()
-            ]
+            ],
+            'extensionVersion' => $this->config->getVersion()
         ];
         return json_encode($config);
     }

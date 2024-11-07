@@ -46,7 +46,7 @@ class SmartButtonsCart extends SmartButtons
      */
     public function isLocationEnabled(string $location): bool
     {
-        return parent::isEnabled() && (bool)(int)$this->session->getQuote()->getGrandTotal()
+        return parent::isEnabled() && (bool)(float)$this->session->getQuote()->getGrandTotal()
             && parent::isLocationEnabled($location);
     }
 }

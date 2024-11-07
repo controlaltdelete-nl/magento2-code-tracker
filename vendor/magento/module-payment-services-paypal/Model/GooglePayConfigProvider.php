@@ -11,12 +11,11 @@ use Magento\Checkout\Model\ConfigProviderInterface;
 use Magento\PaymentServicesPaypal\Model\SdkService\PaymentOptionsBuilderFactory;
 use Magento\PaymentServicesPaypal\Model\SdkService\PaymentOptionsBuilder;
 use Magento\Framework\UrlInterface;
-use Magento\Store\Model\StoreManagerInterface;
 use Magento\PaymentServicesBase\Model\Config as BaseConfig;
 
 class GooglePayConfigProvider implements ConfigProviderInterface
 {
-    public const CODE = 'payment_services_paypal_google_pay';
+    public const CODE = Config::PAYMENTS_SERVICES_PREFIX . 'google_pay';
 
     private const LOCATION = 'checkout_googlepay';
 

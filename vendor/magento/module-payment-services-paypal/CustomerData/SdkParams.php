@@ -160,7 +160,7 @@ class SdkParams extends DataObject implements SectionSourceInterface
     private function getApplePayOptions(): array
     {
         $paymentOptionsBuilder = $this->paymentOptionsBuilderFactory->create();
-        $paymentOptionsBuilder->setAreButtonsEnabled(true);
+        $paymentOptionsBuilder->setAreButtonsEnabled(false);
         $paymentOptionsBuilder->setIsPayPalCreditEnabled(false);
         $paymentOptionsBuilder->setIsVenmoEnabled(false);
         $paymentOptionsBuilder->setIsApplePayEnabled(true);

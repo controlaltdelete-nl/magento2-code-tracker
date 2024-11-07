@@ -21,6 +21,7 @@ declare(strict_types=1);
 namespace Magento\PaymentServicesPaypal\Plugin;
 
 use Magento\PaymentServicesPaypal\Helper\OrderHelper;
+use Magento\PaymentServicesPaypal\Model\Config;
 use Magento\Quote\Api\CartManagementInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\PaymentInterface;
@@ -132,6 +133,10 @@ class OrderUpdate
      */
     private function doesRequirePriceUpdate(\Magento\Quote\Api\Data\CartInterface $quote) : bool
     {
+        if (!str_starts_with($quote->getPayment()->getMethod(), Config::PAYMENTS_SERVICES_PREFIX)) {
+            return false;
+        }
+
         $originalOrderAmount = $quote->getPayment()->getAdditionalInformation('paypal_order_amount');
         if (empty($originalOrderAmount)) {
             return false;

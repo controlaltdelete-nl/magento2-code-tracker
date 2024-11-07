@@ -29,6 +29,7 @@ use Magento\Framework\Session\Generic;
 use Magento\Framework\Locale\ResolverInterface;
 use Magento\Framework\Escaper;
 use Magento\Quote\Api\Data\CartInterfaceFactory;
+use Magento\Quote\Model\QuoteIdMaskFactory;
 use Magento\Framework\Exception\LocalizedException;
 use Psr\Log\LoggerInterface;
 
@@ -124,6 +125,11 @@ class AddToCart implements HttpPostActionInterface, CsrfAwareActionInterface
     private $checkoutHelper;
 
     /**
+     * @var QuoteIdMaskFactory
+     */
+    private $quoteIdMaskFactory;
+
+    /**
      * @param RequestInterface $request
      * @param ResponseInterface $response
      * @param CheckoutSession $checkoutSession
@@ -141,26 +147,28 @@ class AddToCart implements HttpPostActionInterface, CsrfAwareActionInterface
      * @param UrlInterface $url
      * @param LoggerInterface $logger
      * @param Data $checkoutHelper
+     * @param QuoteIdMaskFactory $quoteIdMaskFactory
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
-        RequestInterface $request,
-        ResponseInterface $response,
-        CheckoutSession $checkoutSession,
-        CustomerSession $customerSession,
-        Generic $paypalSession,
-        CartInterfaceFactory $quoteFactory,
-        Cart $cart,
+        RequestInterface           $request,
+        ResponseInterface          $response,
+        CheckoutSession            $checkoutSession,
+        CustomerSession            $customerSession,
+        Generic                    $paypalSession,
+        CartInterfaceFactory       $quoteFactory,
+        Cart                       $cart,
         ProductRepositoryInterface $productRepository,
-        Validator $formKeyValidator,
-        StoreManagerInterface $storeManager,
-        ResolverInterface $localeResolver,
-        MessageManagerInterface $messageManager,
-        ManagerInterface $eventManager,
-        Escaper $escaper,
-        UrlInterface $url,
-        LoggerInterface $logger,
-        Data $checkoutHelper
+        Validator                  $formKeyValidator,
+        StoreManagerInterface      $storeManager,
+        ResolverInterface          $localeResolver,
+        MessageManagerInterface    $messageManager,
+        ManagerInterface           $eventManager,
+        Escaper                    $escaper,
+        UrlInterface               $url,
+        LoggerInterface            $logger,
+        Data                       $checkoutHelper,
+        QuoteIdMaskFactory         $quoteIdMaskFactory
     ) {
         $this->request = $request;
         $this->response = $response;
@@ -179,6 +187,7 @@ class AddToCart implements HttpPostActionInterface, CsrfAwareActionInterface
         $this->url = $url;
         $this->eventManager = $eventManager;
         $this->checkoutHelper = $checkoutHelper;
+        $this->quoteIdMaskFactory = $quoteIdMaskFactory;
     }
 
     /**
@@ -267,8 +276,13 @@ class AddToCart implements HttpPostActionInterface, CsrfAwareActionInterface
             $this->paypalSession->setCustomerQuoteId($origQuoteId);
             $this->checkoutSession->setQuoteId($origQuoteId);
             if (!$this->cart->getQuote()->getHasError()) {
+                $quoteIdMask = $this->getOrCreateQuoteIdMask($this->cart->getQuote()->getId());
+
                 return $this->response->representJson(
-                    json_encode(['success' => []])
+                    json_encode(['success' => [
+                        'quoteIdMask' => $quoteIdMask,
+                        'quoteId' => $this->cart->getQuote()->getId(),
+                    ]])
                 );
             }
             $errors = $this->cart->getQuote()->getErrors();
@@ -320,5 +334,22 @@ class AddToCart implements HttpPostActionInterface, CsrfAwareActionInterface
                 ]
             )
         );
+    }
+
+    /**
+     * Get or create, if not exists, a quote id mask
+     *
+     * @param string $quoteId
+     * @return string
+     */
+    private function getOrCreateQuoteIdMask(string $quoteId) : string
+    {
+        $quoteIdMask = $this->quoteIdMaskFactory->create()->load($quoteId, 'quote_id');
+
+        if (!$quoteIdMask->getMaskedId()) {
+            $quoteIdMask->setQuoteId($quoteId)->save();
+        }
+
+        return $quoteIdMask->getMaskedId();
     }
 }
