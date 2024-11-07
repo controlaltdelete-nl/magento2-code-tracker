@@ -120,13 +120,13 @@ class PaymentOptionsBuilder extends DataObject
             self::IS_CREDIT_CARD_ENABLED => $this->getData(self::IS_CREDIT_CARD_ENABLED),
             self::IS_PAYLATER_MESSAGE_ENABLED => $this->getData(self::IS_PAYLATER_MESSAGE_ENABLED),
             self::IS_GOOGLE_PAY_ENABLED => $this->getData(self::IS_GOOGLE_PAY_ENABLED),
+            self::IS_APPLE_PAY_ENABLED => $this->getData(self::IS_APPLE_PAY_ENABLED),
         ];
         if ($this->getData(self::ARE_BUTTONS_ENABLED)) {
             $result[self::BUTTONS] = [
                 self::IS_PAYPAL_CARD_ENABLED => $this->getData(self::IS_PAYPAL_CARD_ENABLED),
                 self::IS_PAYPAL_CREDIT_ENABLED => $this->getData(self::IS_PAYPAL_CREDIT_ENABLED),
                 self::IS_VENMO_ENABLED => $this->getData(self::IS_VENMO_ENABLED),
-                self::IS_APPLE_PAY_ENABLED => $this->getData(self::IS_APPLE_PAY_ENABLED),
             ];
         }
         return $result;

@@ -14,7 +14,7 @@ use Magento\PaymentServicesBase\Model\Config as BaseConfig;
 
 class SmartButtonsConfigProvider implements ConfigProviderInterface
 {
-    public const CODE = 'payment_services_paypal_smart_buttons';
+    public const CODE = Config::PAYMENTS_SERVICES_PREFIX . 'smart_buttons';
 
     private const LOCATION = 'checkout_smart_buttons';
 

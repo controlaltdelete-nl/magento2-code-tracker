@@ -38,6 +38,8 @@ class Config
     public const GOOGLE_PAY_TEST_MODE = "TEST";
     public const GOOGLE_PAY_PROD_MODE = "PRODUCTION";
 
+    public const PAYMENTS_SERVICES_PREFIX = 'payment_services_paypal_';
+
     /**
      * @var BaseConfig
      */

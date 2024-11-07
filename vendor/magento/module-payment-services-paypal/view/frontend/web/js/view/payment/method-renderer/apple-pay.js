@@ -12,7 +12,7 @@ define([
     'Magento_Checkout/js/model/quote',
     'Magento_Checkout/js/model/full-screen-loader',
     'mage/translate',
-    'Magento_PaymentServicesPaypal/js/view/payment/methods/smart-buttons',
+    'Magento_PaymentServicesPaypal/js/view/payment/methods/apple-pay',
     'Magento_Checkout/js/model/payment/additional-validators',
     'Magento_Checkout/js/action/set-billing-address',
     'Magento_Ui/js/model/messageList',
@@ -25,7 +25,7 @@ define([
     quote,
     fullScreenLoader,
     $t,
-    SmartButtons,
+    ApplePayButton,
     additionalValidators,
     setBillingAddressAction,
     globalMessageList,
@@ -58,20 +58,17 @@ define([
             paymentTypeIconTitle: $t('Pay with Apple Pay'),
             requestProcessingError: $t('Error happened when processing the request. Please try again later.'),
             notEligibleErrorMessage: $t('This payment option is currently unavailable.'),
-            paymentTypeIconUrl:  window.checkoutConfig.payment['payment_services_paypal_apple_pay'].paymentTypeIconUrl
+            paymentTypeIconUrl: window.checkoutConfig.payment['payment_services_paypal_apple_pay'].paymentTypeIconUrl
         },
 
         /**
          * @inheritdoc
          */
         initialize: function (config) {
-            _.bindAll(this, 'onClick', 'onInit', 'catchError', 'beforeCreateOrder', 'afterCreateOrder');
+            _.bindAll(this, 'catchError', 'beforeCreateOrder', 'afterCreateOrder', 'placeOrder', 'onClick');
             config.uid = utils.uniqueid();
             this._super();
-            this.initSmartButtons();
-            quote.totals.subscribe(function (totals) {
-                this.grandTotalAmount(totals['base_grand_total']);
-            }.bind(this));
+            this.initApplePayButton();
 
             return this;
         },
@@ -91,22 +88,24 @@ define([
         /**
          * Create instance of smart buttons.
          */
-        initSmartButtons: function () {
-            this.buttons = new SmartButtons({
-                sdkNamespace: this.sdkNamespace,
-                fundingSource: this.fundingSource,
+        initApplePayButton: function () {
+            this.applePayButton = new ApplePayButton({
                 scriptParams: window.checkoutConfig.payment[this.getCode()].sdkParams,
                 createOrderUrl: window.checkoutConfig.payment[this.getCode()].createOrderUrl,
-                styles: window.checkoutConfig.payment[this.getCode()].buttonStyles,
-                onInit: this.onInit,
+                estimateShippingMethodsWhenLoggedInUrl: window.checkoutConfig.payment[this.getCode()].estimateShippingMethodsWhenLoggedInUrl,
+                estimateShippingMethodsWhenGuestUrl: window.checkoutConfig.payment[this.getCode()].estimateShippingMethodsWhenGuestUrl,
+                shippingInformationWhenLoggedInUrl: window.checkoutConfig.payment[this.getCode()].shippingInformationWhenLoggedInUrl,
+                shippingInformationWhenGuestUrl: window.checkoutConfig.payment[this.getCode()].shippingInformationWhenGuestUrl,
+                updatePayPalOrderUrl: window.checkoutConfig.payment[this.getCode()].updatePayPalOrderUrl,
+                countriesUrl: window.checkoutConfig.payment[this.getCode()].countriesUrl,
                 onClick: this.onClick,
                 beforeCreateOrder: this.beforeCreateOrder,
                 afterCreateOrder: this.afterCreateOrder,
                 catchCreateOrder: this.catchError,
-                onApprove: function () {
-                    this.placeOrder();
-                }.bind(this),
-                onError: this.catchError
+                onError: this.catchError,
+                buttonContainerId: this.buttonContainerId,
+                onApprove: this.placeOrder,
+                styles: window.checkoutConfig.payment[this.getCode()].buttonStyles
             });
         },
 
@@ -139,13 +138,14 @@ define([
          * Render buttons
          */
         afterRender: function () {
-            this.buttons.sdkLoaded.then(function () {
-                this.buttons.render('#' + this.buttonContainerId);
-                this.isAvailable(!!this.buttons.instance && this.buttons.instance.isEligible());
-            }.bind(this)).catch(function () {
+            this.applePayButton.sdkLoaded
+                .then(this.applePayButton.initAppleSDK)
+                .then(function () {
+                        this.isAvailable(true);
+                        this.isButtonRendered(true);
+                    }.bind(this)
+                ).catch(function () {
                 this.isAvailable(false);
-
-                return this.buttons;
             }.bind(this)).finally(function () {
                 this.isButtonRendered(true);
             }.bind(this));
@@ -179,11 +179,16 @@ define([
          * @return {*}
          */
         onClick: function (data, actions) {
-            if (this.validate() && additionalValidators.validate()) {
-                return actions.resolve();
-            }
-
-            return actions.reject();
+            this.applePayButton.showLoaderAsync(true)
+                .then(() => {
+                    this.applePayButton.createOrder();
+                })
+                .then(() => {
+                    refreshCustomerData(window.checkoutConfig.payment[this.getCode()].createOrderUrl);
+                })
+                .catch(error => {
+                    this.catchError(error);
+                });
         },
 
         /**
@@ -192,9 +197,13 @@ define([
          * @return {Promise}
          */
         beforeCreateOrder: function () {
-            return new Promise(function (resolve, reject) {
-                setBillingAddressAction(globalMessageList).done(resolve.bind(null, null)).fail(reject);
-            });
+            if (this.validate() && this.isPlaceOrderActionAllowed() && additionalValidators.validate()) {
+                return new Promise(function (resolve, reject) {
+                    setBillingAddressAction(globalMessageList).done(resolve.bind(null, null)).fail(reject);
+                });
+            } else {
+                throw {message: 'before create order validation failed', hidden: true};
+            }
         },
 
         /**
@@ -205,10 +214,10 @@ define([
          */
         afterCreateOrder: function (data) {
             if (data.response['paypal-order'] && data.response['paypal-order']['mp_order_id']) {
-                refreshCustomerData(window.checkoutConfig.payment[this.getCode()].createOrderUrl);
-
                 this.paymentsOrderId = data.response['paypal-order']['mp_order_id'];
                 this.paypalOrderId = data.response['paypal-order'].id;
+
+                this.applePayButton.showPopup(data, quote);
 
                 return this.paypalOrderId;
             }
@@ -227,6 +236,5 @@ define([
             });
             console.log('Error: ', error.message);
         }
-
     });
 });

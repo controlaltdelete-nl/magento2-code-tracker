@@ -10,6 +10,14 @@ declare(strict_types=1);
 <?php
 /** @var \Magento\PaymentServicesPaypal\Block\SmartButtons $block */
 /** @var \Magento\Framework\Escaper $escaper */
+/** @var \Magento\Framework\View\Helper\SecureHtmlRenderer $secureRenderer */
+?>
+
+<?php $serializedCheckoutConfig = /* @noEscape */ $block->getSerializedCheckoutConfig();
+
+$scriptString = <<<script
+            window.checkoutConfig = {$serializedCheckoutConfig};
+script;
 ?>
 
 <?php if ($block->isLocationEnabled('minicart')): ?>
@@ -30,3 +38,5 @@ declare(strict_types=1);
         <?= /* @noEscape */ json_encode($block->getComponentParams()) ?>}'></div>
     </div>
 <?php endif ?>
+
+<?= /* @noEscape */ $secureRenderer->renderTag('script', [], $scriptString, false) ?>
