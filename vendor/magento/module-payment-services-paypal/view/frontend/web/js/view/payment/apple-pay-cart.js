@@ -5,72 +5,163 @@
 
 /* eslint-disable no-undef */
 define([
-    'Magento_PaymentServicesPaypal/js/view/payment/smart-buttons-cart',
-    'Magento_PaymentServicesPaypal/js/view/payment/methods/smart-buttons'
-], function (Component, SmartButtons) {
+    'underscore',
+    'jquery',
+    'mageUtils',
+    'Magento_PaymentServicesPaypal/js/view/payment/paypal-abstract',
+    'mage/translate',
+    'Magento_Customer/js/customer-data',
+    'Magento_PaymentServicesPaypal/js/view/errors/response-error',
+    'Magento_PaymentServicesPaypal/js/view/payment/methods/apple-pay',
+    'Magento_Checkout/js/model/quote',
+    'Magento_Checkout/js/model/cart/totals-processor/default',
+], function (_, $, utils, Component, $t, customerData, ResponseError, ApplePayButton, quote, totalsProcessor) {
     'use strict';
 
     return Component.extend({
         defaults: {
             sdkNamespace: 'paypalApplePay',
             sdkParamsKey: 'applepay',
-            fundingSource: 'applepay',
-            buttonsContainerId: 'apple-pay-${ $.uid }',
-            paymentRequest: {
-                applepay: {
-                    requiredShippingContactFields: []
-                }
-            },
-            contactFields: [
-                'postalAddress',
-                'name',
-                'phone',
-                'email'
-            ],
-            virtualContactFields: [
-                'name',
-                'phone',
-                'email'
-            ]
+            buttonContainerId: 'apple-pay-${ $.uid }',
+            paymentActionError: $t('Something went wrong with your request. Please try again later.'),
+            isErrorDisplayed: false
         },
 
         /**
-         * Check if ApplePay is available.
-         *
-         * @return {Promise<Object>}
+         * @inheritdoc
          */
-        getSdkParams: function () {
-            if (!window.ApplePaySession) {
-                return Promise.reject('Apple Pay is not supported or not available');
+        initialize: function (config, element) {
+            _.bindAll(this, 'initApplePayButton', 'onClick', 'afterOnAuthorize',  'afterCreateOrder', 'showPopup', 'cancelApplePay');
+            config.uid = utils.uniqueid();
+            this._super();
+            this.element = element;
+            this.element.id = this.buttonContainerId;
+
+            this.getSdkParams()
+                .then(this.initApplePayButton)
+                .catch(console.log);
+
+            // Reload quote totals in minicart to have the correct grand_total for the Apple Popup
+            if (this.pageType === 'minicart') {
+                totalsProcessor.estimateTotals().done(function (result) {
+                    quote.setTotals(result);
+                });
             }
-            return this._super();
+            return this;
         },
 
-        /**
-         * Create instance of smart buttons.
-         */
-        initSmartButtons: function () {
-            this.paymentRequest.applepay.requiredShippingContactFields = this.isVirtual ?
-                this.virtualContactFields : this.contactFields;
-            this.buttons = new SmartButtons({
-                sdkNamespace: this.sdkNamespace,
+        initApplePayButton: function () {
+            this.applePayButton = new ApplePayButton({
                 scriptParams: this.sdkParams,
-                styles: this.styles,
-                fundingSource: this.fundingSource,
-                paymentRequest: this.paymentRequest,
                 createOrderUrl: this.createOrderUrl,
-                authorizeOrderUrl: this.authorizeOrderUrl,
-                beforeCreateOrder: this.beforeCreateOrder,
+                estimateShippingMethodsWhenLoggedInUrl: this.estimateShippingMethodsWhenLoggedInUrl,
+                estimateShippingMethodsWhenGuestUrl: this.estimateShippingMethodsWhenGuestUrl,
+                shippingInformationWhenLoggedInUrl: this.shippingInformationWhenLoggedInUrl,
+                shippingInformationWhenGuestUrl: this.shippingInformationWhenGuestUrl,
+                updatePaypalOrderUrl: this.updatePaypalOrderUrl,
+                countriesUrl: this.countriesUrl,
+                placeOrderUrl: this.placeOrderUrl,
+                showPopup: this.showPopup,
+                updateQuoteUrl: this.authorizeOrderUrl,
+                onClick: this.onClick,
                 afterCreateOrder: this.afterCreateOrder,
                 catchCreateOrder: this.catchError,
-                finallyCreateOrder: this.showLoader.bind(this, false),
-                beforeOnAuthorize: this.beforeOnAuthorize,
-                afterOnAuthorize: this.afterOnAuthorize,
-                catchOnAuthorize: this.catchError,
-                finallyOnAuthorize: this.showLoader.bind(this, false),
                 onError: this.catchError,
-                onCancel: this.onCancel
+                buttonContainerId: this.buttonContainerId,
+                afterOnAuthorize: this.afterOnAuthorize,
+                shippingAddressRequired: !this.isVirtual,
+                styles: this.styles,
+                pageType: this.pageType,
             });
-        }
+
+            $('#' + this.buttonContainerId).on('click', this.onClick);
+
+            this.applePayButton.sdkLoaded
+                .then(this.applePayButton.initAppleSDK);
+        },
+
+        afterOnAuthorize: function (data) {
+
+            this.applePayButton.showLoaderAsync(true)
+            .then(() => {
+                $.ajax({
+                    type: 'POST',
+                    url: this.placeOrderUrl,
+                }).then(result => {
+                    customerData.invalidate(['cart']);
+                    document.open();
+                    document.write(result);
+                    document.close();
+                });
+            })
+            .catch(error => {
+                this.catchError(error);
+            });
+        },
+
+        onClick: function () {
+            this.isErrorDisplayed = false;
+
+            this.applePayButton.showLoaderAsync(true).then(() => {
+                const data = {
+                    response: {
+                        'paypal-order': {
+                            currency_code: String(quote.totals().quote_currency_code),
+                            amount: Number(quote.totals().grand_total).toString(),
+                        }
+                    }
+                }
+                this.applePayButton.showPopup(data);
+            })
+        },
+
+        /**
+         * After order created.
+         *
+         * @param {Object} data
+         * @return {String}
+         */
+        afterCreateOrder: function (data) {
+            if (data.response['paypal-order'] && data.response['paypal-order']['mp_order_id']) {
+                this.paymentsOrderId = data.response['paypal-order']['mp_order_id'];
+                this.paypalOrderId = data.response['paypal-order'].id;
+                return this.paypalOrderId;
+            }
+
+            throw new Error();
+        },
+
+        cancelApplePay: function (){
+            customerData.invalidate(['cart']);
+            window.location.reload();
+        },
+
+        showPopup: function (paymentData) {
+            const paymentRequest = {
+                countryCode: this.applePayButton.applePayConfig.countryCode,
+                merchantCapabilities: this.applePayButton.applePayConfig.merchantCapabilities,
+                supportedNetworks: this.applePayButton.applePayConfig.supportedNetworks,
+                currencyCode: paymentData.response['paypal-order']['currency_code'],
+                requiredShippingContactFields: ["name", "phone", "email", "postalAddress"],
+                requiredBillingContactFields: ["postalAddress"],
+                total: {
+                    label: $t("Summary"),
+                    type: "final",
+                    amount: Number(paymentData.response['paypal-order']['amount']).toString(),
+                }
+            };
+
+            // See https://developer.apple.com/documentation/apple_pay_on_the_web/applepaysession
+            this.applePaySession = new ApplePaySession(this.applePayButton.applePayVersionNumber, paymentRequest);
+
+            this.applePayButton.onApplePayValidateMerchant(this.applePaySession);
+            this.applePayButton.onApplePayPaymentMethodSelected(this.applePaySession, paymentRequest.total);
+            this.applePayButton.onApplePayCancel(this.applePaySession, this.cancelApplePay);
+            this.applePayButton.onApplePayShippingContactSelected(this.applePaySession, quote.getQuoteId() , paymentRequest.total, quote.isVirtual());
+            this.applePayButton.onApplePayShippingMethodSelectedInCartPage(this.applePaySession, quote.getQuoteId());
+            this.applePayButton.onApplePayPaymentAuthorized(this.applePaySession);
+
+            this.applePaySession.begin();
+        },
     });
 });

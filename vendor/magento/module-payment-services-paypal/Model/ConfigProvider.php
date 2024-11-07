@@ -63,7 +63,7 @@ class ConfigProvider
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
         try {
             $this->cspNonceProvider = $objectManager->get("\Magento\Csp\Helper\CspNonceProvider");
-        } catch (\ReflectionException $e) {
+        } catch (\Throwable $e) {
             $this->cspNonceProvider = null;
         }
     }

@@ -6,7 +6,10 @@
 declare(strict_types=1);
 namespace Magento\PaymentServicesPaypal\Block;
 
+use Magento\Checkout\Model\CompositeConfigProvider;
 use Magento\Checkout\Model\Session;
+use Magento\Framework\App\ObjectManager;
+use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Framework\View\Element\Template\Context;
 use Magento\PaymentServicesPaypal\Model\Config;
 use Magento\Catalog\Block\ShortcutInterface;
@@ -38,12 +41,24 @@ class SmartButtons extends Template implements ShortcutInterface
     private $session;
 
     /**
+     * @var CompositeConfigProvider
+     */
+    protected $configProvider;
+
+    /**
+     * @var Json
+     */
+    private $serializer;
+
+    /**
      * @param Context $context
      * @param Config $config
      * @param Session $session
      * @param string $pageType
      * @param array $componentConfig
      * @param array $data
+     * @param Json|null $serializer
+     * @param CompositeConfigProvider|null $compositeConfigProvider
      */
     public function __construct(
         Context $context,
@@ -51,7 +66,9 @@ class SmartButtons extends Template implements ShortcutInterface
         Session $session,
         string $pageType = 'minicart',
         array $componentConfig = [],
-        array $data = []
+        array $data = [],
+        Json $serializer = null,
+        CompositeConfigProvider $compositeConfigProvider = null
     ) {
         $this->config = $config;
         $this->componentConfig = $componentConfig;
@@ -63,6 +80,8 @@ class SmartButtons extends Template implements ShortcutInterface
         );
         /** @phpstan-ignore-next-line */
         $this->setTemplate($data['template'] ?? $componentConfig[$this->pageType]['template']);
+        $this->serializer = $serializer ?: ObjectManager::getInstance()->get(Json::class);
+        $this->configProvider = $compositeConfigProvider ?: ObjectManager::getInstance()->get(CompositeConfigProvider::class);
     }
 
     /**
@@ -87,9 +106,18 @@ class SmartButtons extends Template implements ShortcutInterface
             'authorizeOrderUrl' => $this->getUrl('paymentservicespaypal/smartbuttons/updatequote'),
             'orderReviewUrl' => $this->getUrl('paymentservicespaypal/smartbuttons/review'),
             'cancelUrl' => $this->getUrl('checkout/cart'),
+            'estimateShippingMethodsWhenLoggedInUrl' => $this->getUrl('rest/V1/carts/mine/estimate-shipping-methods'),
+            'estimateShippingMethodsWhenGuestUrl' => $this->getUrl('rest/V1/guest-carts/:cartId/estimate-shipping-methods'),
+            'shippingInformationWhenLoggedInUrl' => $this->getUrl('rest/V1/carts/mine/shipping-information'),
+            'shippingInformationWhenGuestUrl' => $this->getUrl('rest/V1/guest-carts/:quoteId/shipping-information'),
+            'updatePayPalOrderUrl' => $this->getUrl('paymentservicespaypal/smartbuttons/updatepaypalorder/'),
+            'countriesUrl' => $this->getUrl('rest/V1/directory/countries/:countryCode'),
+            'setQuoteAsInactiveUrl' => $this->getUrl('paymentservicespaypal/smartbuttons/setquoteasinactive'),
+            'placeOrderUrl' => $this->getUrl('paymentservicespaypal/smartbuttons/placeorder/'),
             'styles' => $this->getStyles(),
             'isVirtual' => $this->session->getQuote()->isVirtual(),
-            'googlePayMode' => $this->config->getGooglePayMode()
+            'googlePayMode' => $this->config->getGooglePayMode(),
+            'pageType' => $this->pageType,
         ];
     }
 
@@ -144,5 +172,15 @@ class SmartButtons extends Template implements ShortcutInterface
     private function getStyles() : array
     {
         return array_merge($this->config->getButtonConfiguration(), $this->config->getGooglePayStyles());
+    }
+
+    /**
+     * Get Serialized Checkout Config
+     *
+     * @return bool|string
+     */
+    public function getSerializedCheckoutConfig()
+    {
+        return $this->serializer->serialize($this->configProvider->getConfig());
     }
 }

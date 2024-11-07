@@ -122,6 +122,11 @@ class OrderService
         $path = '/' . $this->config->getMerchantId() . '/payment/paypal/order';
         $body = json_encode($order);
 
+        if (!$body) {
+            $this->logger->error('Error encoding body for order creation request', $order);
+            throw new HttpException('Error encoding body for order creation request');
+        }
+
         $response = $this->httpClient->request(
             $headers,
             $path,
@@ -177,6 +182,15 @@ class OrderService
         $path = '/' . $this->config->getMerchantId() . '/payment/paypal/order/' . $id;
         $headers = ['Content-Type' => 'application/json'];
         $body = json_encode($order);
+
+        if (!$body) {
+            $this->logger->error(
+                sprintf('Error encoding body for order update request for order id %s', $id),
+                $order
+            );
+            throw new HttpException('Error encoding body for order update request');
+        }
+
         $response = $this->httpClient->request(
             $headers,
             $path,
@@ -218,9 +232,11 @@ class OrderService
         $body = json_encode($data);
 
         if (!$body) {
-            throw new HttpException(
-                sprintf('Error encoding body creating tracking information request for order id %s', $orderId)
+            $this->logger->error(
+                sprintf('Error encoding body for tracking info request for order id %s', $orderId),
+                $data
             );
+            throw new HttpException('Error encoding body for tracking info request');
         }
 
         $response = $this->httpClient->request(
