@@ -1,5 +1,15 @@
 Magento Functional Testing Framework Changelog
 ================================================
+4.3.7
+---------
+### Enhancements
+* Chrome Upgrade 127 : Added headless in arguments. 
+
+4.3.6
+---------
+### Enhancements
+* Update All dependent symfony packages to >5.4 to overcome security vulnerability in MFTF version used by 2.4.6
+
 
 4.3.5
 ---------
