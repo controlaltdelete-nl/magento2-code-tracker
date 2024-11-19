@@ -1,9 +1,14 @@
 Magento Functional Testing Framework Changelog
 ================================================
+4.3.8
+---------
+### Enhancements
+* Same as 4.3.7
+
 4.3.7
 ---------
 ### Enhancements
-* Chrome Upgrade 127 : Added headless in arguments. 
+* Same as 4.3.6
 
 4.3.6
 ---------
