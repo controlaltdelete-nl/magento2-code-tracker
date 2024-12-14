@@ -95,6 +95,7 @@ class Create implements HttpPostActionInterface, CsrfAwareActionInterface
     {
         $shouldCardBeVaulted = $this->request->getParam(self::VAULT_PARAM_KEY) === 'true';
         $paymentSource = $this->request->getPost('payment_source');
+        $threeDsMode = $this->request->getPost('three_ds_mode');
         $result = $this->resultFactory->create(ResultFactory::TYPE_JSON);
         try {
             $quote = $this->checkoutSession->getQuote();
@@ -115,6 +116,7 @@ class Create implements HttpPostActionInterface, CsrfAwareActionInterface
                         : $this->orderService->buildGuestPayer($quote),
                     'is_digital' => $quote->isVirtual(),
                     'website_id' => $quote->getStore()->getWebsiteId(),
+                    'three_ds_mode' => $threeDsMode,
                     'payment_source' => $paymentSource,
                     'vault' => $shouldCardBeVaulted,
                     'quote_id' => $quoteId,

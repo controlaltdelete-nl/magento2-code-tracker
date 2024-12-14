@@ -52,6 +52,29 @@ define([
             }
             $('#' + this.container).find('[name="payment[token_switcher]"]')
                 .on('click', this.selectPaymentMethod.bind(this));
+            this.initChangePaymentMethodHandler();
+        },
+
+        /**
+         * Initialize the "changePaymentMethod" event handler.
+         */
+        initChangePaymentMethodHandler: function () {
+            // NOTE: There already exists a handler for "changePaymentMethod.${code}" in the "Magento_Vault" core
+            //   ... module. Add the "payment_services" sub-namespace not to override it.
+            var eventName = 'changePaymentMethod.' + this.code + '.payment_services'
+            this.$orderForm.off(eventName).on(eventName, this.onChangePaymentMethod.bind(this));
+        },
+
+        /**
+         * Reset the 'beforeSubmitOrder' event listener when the user switches to another payment method.
+         *
+         * @param {Object} event
+         * @param {String} method
+         */
+        onChangePaymentMethod: function (event, method) {
+            if (method !== this.code) {
+                this.disableEventListeners();
+            }
         },
 
         /**
@@ -73,7 +96,7 @@ define([
          * Disable form event listeners
          */
         disableEventListeners: function () {
-            this.$orderForm.off('beforeSubmitOrder');
+            this.$orderForm.off('beforeSubmitOrder.' + this.getCode());
         },
 
         /**

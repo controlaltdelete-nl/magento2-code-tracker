@@ -146,7 +146,8 @@ class PaymentOrderManagement implements PaymentOrderManagementInterface
         int    $cartId,
         string $location,
         bool   $vaultIntent = false,
-        int    $customerId = null
+        int    $customerId = null,
+        string $threeDSMode = null
     ) {
         if (!in_array($methodCode, $this->validMethodCodes)) {
             throw new InvalidArgumentException(__('Invalid methodCode'));
@@ -183,6 +184,7 @@ class PaymentOrderManagement implements PaymentOrderManagementInterface
                 'order_increment_id' => $orderIncrementId,
                 'line_items' => $this->orderHelper->getLineItems($quote, $orderIncrementId),
                 'amount_breakdown' => $this->orderHelper->getAmountBreakdown($quote, $orderIncrementId),
+                'three_ds_mode' => $threeDSMode
             ]
         );
 
