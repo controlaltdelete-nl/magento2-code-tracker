@@ -8,14 +8,16 @@ declare(strict_types=1);
 namespace Magento\PaymentServicesPaypal\Gateway\Response;
 
 use Exception;
-use DateInterval;
-use DateTime;
-use DateTimeZone;
+use Magento\Payment\Gateway\Data\AddressAdapterInterface;
 use Magento\Payment\Gateway\Data\PaymentDataObjectInterface;
 use Magento\Payment\Gateway\Response\HandlerInterface;
-use Magento\Vault\Api\Data\PaymentTokenFactoryInterface;
-use Magento\Framework\Serialize\Serializer\Json;
-use Magento\Vault\Api\Data\PaymentTokenInterface;
+use Magento\PaymentServicesPaypal\Api\Data\VaultCardBillingAddressInterface;
+use Magento\PaymentServicesPaypal\Api\Data\VaultCardBillingAddressInterfaceFactory;
+use Magento\PaymentServicesPaypal\Api\Data\VaultCardDetailsInterface;
+use Magento\PaymentServicesPaypal\Api\Data\VaultCardDetailsInterfaceFactory;
+use Magento\PaymentServicesPaypal\Api\Data\VaultPaymentSourceDetailsInterface;
+use Magento\PaymentServicesPaypal\Api\Data\VaultPaymentSourceDetailsInterfaceFactory;
+use Magento\PaymentServicesPaypal\Model\Vault\VaultTokenProvider;
 use Magento\Payment\Model\InfoInterface;
 use Magento\Sales\Api\Data\OrderPaymentExtensionInterfaceFactory;
 use Magento\Sales\Api\Data\OrderPaymentExtensionInterface;
@@ -26,10 +28,12 @@ use Psr\Log\LoggerInterface;
  */
 class VaultDetailsHandler implements HandlerInterface
 {
+    private const UNKNOWN_TYPE = 'UNKNOWN';
+
     /**
-     * @var PaymentTokenFactoryInterface
+     * @var VaultTokenProvider
      */
-    private PaymentTokenFactoryInterface $paymentTokenFactory;
+    private VaultTokenProvider $vaultTokenProvider;
 
     /**
      * @var OrderPaymentExtensionInterfaceFactory
@@ -37,30 +41,46 @@ class VaultDetailsHandler implements HandlerInterface
     private OrderPaymentExtensionInterfaceFactory $paymentExtensionFactory;
 
     /**
-     * @var Json
+     * @var VaultPaymentSourceDetailsInterfaceFactory
      */
-    private Json $serializer;
+    private VaultPaymentSourceDetailsInterfaceFactory $vaultPaymentSourceDetailsFactory;
+
+    /**
+     * @var VaultCardDetailsInterfaceFactory
+     */
+    private VaultCardDetailsInterfaceFactory $vaultCardDetailsFactory;
+
+    /**
+     * @var VaultCardBillingAddressInterfaceFactory
+     */
+    private VaultCardBillingAddressInterfaceFactory $vaultCardBillingAddressFactory;
 
     /**
      * @var LoggerInterface
      */
-    private $logger;
+    private LoggerInterface $logger;
 
     /**
-     * @param PaymentTokenFactoryInterface $paymentTokenFactory
+     * @param VaultTokenProvider $vaultTokenProvider
      * @param OrderPaymentExtensionInterfaceFactory $paymentExtensionFactory
-     * @param Json $serializer
+     * @param VaultPaymentSourceDetailsInterfaceFactory $vaultPaymentSourceDetailsFactory
+     * @param VaultCardDetailsInterfaceFactory $vaultCardDetailsFactory
+     * @param VaultCardBillingAddressInterfaceFactory $vaultCardBillingAddressFactory
      * @param LoggerInterface $logger
      */
     public function __construct(
-        PaymentTokenFactoryInterface $paymentTokenFactory,
+        VaultTokenProvider $vaultTokenProvider,
         OrderPaymentExtensionInterfaceFactory $paymentExtensionFactory,
-        Json $serializer,
+        VaultPaymentSourceDetailsInterfaceFactory $vaultPaymentSourceDetailsFactory,
+        VaultCardDetailsInterfaceFactory $vaultCardDetailsFactory,
+        VaultCardBillingAddressInterfaceFactory $vaultCardBillingAddressFactory,
         LoggerInterface $logger
     ) {
-        $this->paymentTokenFactory = $paymentTokenFactory;
         $this->paymentExtensionFactory = $paymentExtensionFactory;
-        $this->serializer = $serializer;
+        $this->vaultTokenProvider = $vaultTokenProvider;
+        $this->vaultPaymentSourceDetailsFactory = $vaultPaymentSourceDetailsFactory;
+        $this->vaultCardDetailsFactory = $vaultCardDetailsFactory;
+        $this->vaultCardBillingAddressFactory = $vaultCardBillingAddressFactory;
         $this->logger = $logger;
     }
 
@@ -72,7 +92,7 @@ class VaultDetailsHandler implements HandlerInterface
      * @return void
      * @throws Exception
      */
-    public function handle(array $handlingSubject, array $response)
+    public function handle(array $handlingSubject, array $response): void
     {
         if (!isset($handlingSubject['payment'])
             || !$handlingSubject['payment'] instanceof PaymentDataObjectInterface
@@ -84,8 +104,17 @@ class VaultDetailsHandler implements HandlerInterface
             $vault = $response['mp-transaction']['vault'];
             $paymentDO = $handlingSubject['payment'];
             $payment = $paymentDO->getPayment();
+
             try {
-                $paymentToken = $this->createPaymentToken($vault);
+                $billingAddress = $paymentDO->getOrder()->getBillingAddress();
+                $vaultData = $this->buildVaultCardDetails($vault['provider-vault-details'], $billingAddress);
+
+                $paymentToken = $this->vaultTokenProvider->createPaymentToken(
+                    $vaultData,
+                    $vault['vault-token-id'],
+                    (int) $paymentDO->getOrder()->getCustomerId(),
+                    (int) $paymentDO->getOrder()->getStoreId(),
+                );
 
                 $extensionAttributes = $this->getExtensionAttributes($payment);
                 $extensionAttributes->setVaultPaymentToken($paymentToken);
@@ -93,68 +122,6 @@ class VaultDetailsHandler implements HandlerInterface
                 $this->logger->error($e->getMessage());
             }
         }
-    }
-    /**
-     * Creates vault payment token.
-     *
-     * @param array $vault
-     * @return PaymentTokenInterface
-     * @throws Exception
-     */
-    private function createPaymentToken(array $vault): PaymentTokenInterface
-    {
-        $vaultId = $vault['vault-token-id'];
-        $vaultDetails = $vault['provider-vault-details'];
-        $paymentToken = $this->paymentTokenFactory->create(PaymentTokenFactoryInterface::TOKEN_TYPE_CREDIT_CARD);
-        $paymentToken->setGatewayToken($vaultId);
-        $exp = explode('-', $vaultDetails['expiry']);
-        $expYear = $exp[0];
-        $expMonth = $exp[1];
-        $paymentToken->setExpiresAt($this->getExpiryDate($expYear, $expMonth));
-        $paymentToken->setTokenDetails($this->convertDetailsToJSON([
-            'type' => $vaultDetails['type'],
-            'brand' => $vaultDetails['brand'],
-            'maskedCC' => $vaultDetails['last_digits'],
-            'expirationDate' => $expMonth . '/' . $expYear
-        ]));
-
-        return $paymentToken;
-    }
-
-    /**
-     * Convert payment token details to JSON
-     *
-     * @param array $details
-     * @return string
-     */
-    private function convertDetailsToJSON(array $details): string
-    {
-        $json = $this->serializer->serialize($details);
-        return $json ?: '{}';
-    }
-
-    /**
-     * Generates CC expiration date by year and month provided in payment.
-     *
-     * @param string $expYear
-     * @param string $expMonth
-     * @return string
-     * @throws Exception
-     */
-    private function getExpiryDate(string $expYear, string $expMonth): string
-    {
-        $expDate = new DateTime(
-            $expYear
-            . '-'
-            . $expMonth
-            . '-'
-            . '01'
-            . ' '
-            . '00:00:00',
-            new DateTimeZone('UTC')
-        );
-        $expDate->add(new DateInterval('P1M'));
-        return $expDate->format('Y-m-d 00:00:00');
     }
 
     /**
@@ -171,5 +138,44 @@ class VaultDetailsHandler implements HandlerInterface
             $payment->setExtensionAttributes($extensionAttributes);
         }
         return $extensionAttributes;
+    }
+
+    /**
+     * Build a VaultPaymentSourceDetailsInterface object
+     *
+     * @param array $vaultDetails
+     * @param AddressAdapterInterface $billingAddress
+     *
+     * @return VaultPaymentSourceDetailsInterface
+     */
+    public function buildVaultCardDetails(
+        array $vaultDetails,
+        AddressAdapterInterface $billingAddress
+    ): VaultPaymentSourceDetailsInterface {
+        /** @var VaultCardBillingAddressInterface $vaultBillingAddress */
+        $vaultBillingAddress = $this->vaultCardBillingAddressFactory->create();
+        $vaultBillingAddress->setAddressLine1($billingAddress->getStreetLine1() ?? '');
+        $vaultBillingAddress->setAddressLine2($billingAddress->getStreetLine2() ?? '');
+        $vaultBillingAddress->setRegion($billingAddress->getRegionCode() ?? '');
+        $vaultBillingAddress->setCity($billingAddress->getCity() ?? '');
+        $vaultBillingAddress->setPostalCode($billingAddress->getPostcode() ?? '');
+        $vaultBillingAddress->setCountryCode($billingAddress->getCountryId() ?? '');
+
+        /** @var VaultCardDetailsInterface $cardDetails */
+        $cardDetails = $this->vaultCardDetailsFactory->create();
+        $cardDetails->setCardholderName(
+            sprintf("%s %s", $billingAddress->getFirstname(), $billingAddress->getLastname())
+        );
+        $cardDetails->setBrand($vaultDetails['brand']);
+        $cardDetails->setType($vaultDetails['type'] ?? self::UNKNOWN_TYPE);
+        $cardDetails->setLastDigits($vaultDetails['last_digits']);
+        $cardDetails->setExpiry($vaultDetails['expiry']);
+        $cardDetails->setBillingAddress($vaultBillingAddress);
+
+        /** @var VaultPaymentSourceDetailsInterface $paymentSource */
+        $paymentSource = $this->vaultPaymentSourceDetailsFactory->create();
+        $paymentSource->setCard($cardDetails);
+
+        return $paymentSource;
     }
 }

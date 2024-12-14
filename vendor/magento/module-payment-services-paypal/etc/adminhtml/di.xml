@@ -49,6 +49,7 @@
                     <item name="payment_services_paypal_apple_pay_debug" xsi:type="string">payment/payment_services_paypal_apple_pay/debug</item>
                     <item name="payment_services_paypal_google_pay_title" xsi:type="string">payment/payment_services_paypal_google_pay/title</item>
                     <item name="payment_services_paypal_google_pay_payment_action" xsi:type="string">payment/payment_services_paypal_google_pay/payment_action</item>
+                    <item name="payment_services_paypal_google_pay_three_ds" xsi:type="string">payment/payment_services_paypal_google_pay/three_ds</item>
                     <item name="payment_services_paypal_google_pay_display_product_detail" xsi:type="string">payment/payment_services_paypal_google_pay/display_product_detail</item>
                     <item name="payment_services_paypal_google_pay_display_minicart" xsi:type="string">payment/payment_services_paypal_google_pay/display_minicart</item>
                     <item name="payment_services_paypal_google_pay_display_cart" xsi:type="string">payment/payment_services_paypal_google_pay/display_cart</item>

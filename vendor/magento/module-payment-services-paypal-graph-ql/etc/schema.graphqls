@@ -23,6 +23,7 @@ type Query {
         cartId: String! @doc(description: "The customer cart ID")
         id: String! @doc(description: "PayPal order ID")
     ): PaymentOrderOutput @resolver(class: "\\Magento\\PaymentServicesPaypalGraphQl\\Model\\Resolver\\GetPaymentOrder") @doc(description: "Retrieves the payment details for the order")
+    getVaultConfig: VaultConfigOutput @resolver(class: "\\Magento\\PaymentServicesPaypalGraphQl\\Model\\Resolver\\GetVaultConfig") @doc(description: "Retrieves the vault configuration")
 }
 
 type Mutation {
@@ -32,6 +33,12 @@ type Mutation {
     syncPaymentOrder(
         input: SyncPaymentOrderInput @doc(description: "Describes the variables needed to synchronize the payment order details")
     ): Boolean @resolver(class: "\\Magento\\PaymentServicesPaypalGraphQl\\Model\\Resolver\\SyncPaymentOrder") @doc(description:"Synchronizes the payment order details for further payment processing")
+    createVaultCardSetupToken(
+        input: CreateVaultCardSetupTokenInput! @doc(description: "Describe the variables needed to create a vault card setup token")
+    ): CreateVaultCardSetupTokenOutput @resolver(class: "\\Magento\\PaymentServicesPaypalGraphQl\\Model\\Resolver\\CreateVaultCardSetupToken") @doc(description:"Creates a vault card setup token")
+    createVaultCardPaymentToken(
+        input: CreateVaultCardPaymentTokenInput! @doc(description: "Describe the variables needed to create a vault card payment token")
+    ): CreateVaultCardPaymentTokenOutput @resolver(class: "\\Magento\\PaymentServicesPaypalGraphQl\\Model\\Resolver\\CreateVaultCardPaymentToken") @doc(description:"Creates a vault payment token")
 }
 
 type GetPaymentSDKOutput @doc(description: "Gets the payment SDK URLs and values") {
@@ -115,10 +122,21 @@ type PaymentCommonConfig implements PaymentConfigItem {}
 
 type HostedFieldsConfig implements PaymentConfigItem {
     payment_source: String @doc(description: "The payment source for the payment method")
-    three_ds: Boolean @doc(description: "3DS mode")
+    three_ds: Boolean
+        @doc(description: "Whether 3DS is activated; true if 3DS mode is not OFF.")
+        @deprecated(reason: "Use 'three_ds_mode' instead.")
+    three_ds_mode: ThreeDSMode
+        @doc(description: "3DS mode")
+        @resolver(class: "\\Magento\\PaymentServicesPaypalGraphQl\\Model\\Resolver\\ThreeDSModeResolver")
     cc_vault_code: String @doc(description: "Vault payment method code")
     is_vault_enabled: Boolean @doc(description: "Card vault enabled")
     requires_card_details: Boolean @doc(description: "Card and bin details required")
+}
+
+enum ThreeDSMode @doc(description: "3D Secure mode.") {
+    OFF
+    SCA_WHEN_REQUIRED
+    SCA_ALWAYS
 }
 
 type SmartButtonsConfig implements PaymentConfigItem {
@@ -136,6 +154,7 @@ type ApplePayConfig implements PaymentConfigItem {
 type GooglePayConfig implements PaymentConfigItem {
     button_styles: GooglePayButtonStyles @resolver(class: "\\Magento\\PaymentServicesPaypalGraphQl\\Model\\Resolver\\PaymentConfigMethod") @doc(description: "The styles for the GooglePay Button configuration")
     payment_source: String @doc(description: "The payment source for the payment method")
+    three_ds_mode: ThreeDSMode @doc(description: "3DS mode") @resolver(class: "\\Magento\\PaymentServicesPaypalGraphQl\\Model\\Resolver\\ThreeDSModeResolver")
 }
 
 type ButtonStyles {
@@ -211,4 +230,64 @@ input HostedFieldsInput @doc(description: "Hosted Fields payment inputs") {
     cardExpiryYear: String @doc(description: "Expiration year of the card")
     cardLast4: String @doc(description: "Last four digits of the card")
     holderName: String @doc(description: "Name on the card")
+}
+
+input CreateVaultCardSetupTokenInput @doc(description: "Describe the variables needed to create a vault card setup token") {
+    setup_token: VaultSetupTokenInput! @doc(description: "The setup token information")
+    three_ds_mode: ThreeDSMode @doc(description: "The 3DS mode")
+}
+
+input VaultSetupTokenInput @doc(description: "The payment source information") {
+    payment_source: PaymentSourceInput! @doc(description: "The payment source information")
+}
+input PaymentSourceInput @doc(description: "The payment source information") {
+    card: CardPaymentSourceInput! @doc(description: "The card payment source information")
+}
+
+input CardPaymentSourceInput @doc(description: "The card payment source information") {
+    name: String @doc(description: "The name on the cardholder")
+    billing_address: BillingAddressPaymentSourceInput! @doc(description: "The billing address of the card")
+}
+
+input BillingAddressPaymentSourceInput @doc(description: "The billing address information") {
+    address_line_1: String @doc(description: "The first line of the address")
+    address_line_2: String @doc(description: "The second line of the address")
+    region: String @doc(description: "The region of the address")
+    city: String @doc(description: "The city of the address")
+    postal_code: String @doc(description: "The postal code of the address")
+    country_code: String! @doc(description: "The country of the address")
+}
+
+type CreateVaultCardSetupTokenOutput @doc(description: "The setup token id information") {
+    setup_token: String! @doc(description: "The setup token id")
+}
+
+input CreateVaultCardPaymentTokenInput @doc(description: "Describe the variables needed to create a vault payment token") {
+    setup_token_id: String! @doc(description: "The setup token obtained by the createVaultCardSetupToken endpoint")
+    card_description: String @doc(description: "Description of the vaulted card")
+}
+
+type CreateVaultCardPaymentTokenOutput @doc(description: "The vault token id and information about the payment source") {
+    vault_token_id: String! @doc(description: "The vault payment token information")
+    payment_source: PaymentSourceOutput! @doc(description: "The payment source information")
+}
+
+type PaymentSourceOutput @doc(description: "The payment source information") {
+    card: CardPaymentSourceOutput! @doc(description: "The card payment source information")
+}
+
+type CardPaymentSourceOutput @doc(description: "The card payment source information") {
+    brand: String @doc(description: "The brand of the card")
+    last_digits: String @doc(description: "The last digits of the card")
+    expiry: String @doc(description: "The expiry of the card")
+}
+
+type VaultConfigOutput @doc(description: "Retrieves the vault configuration") {
+    credit_card: VaultCreditCardConfig @resolver(class: "\\Magento\\PaymentServicesPaypalGraphQl\\Model\\Resolver\\PaymentConfigMethod") @doc(description: "Credit card vault method configuration")
+}
+
+type VaultCreditCardConfig {
+    three_ds_mode: ThreeDSMode @doc(description: "3DS mode") @resolver(class: "\\Magento\\PaymentServicesPaypalGraphQl\\Model\\Resolver\\ThreeDSModeResolver")
+    is_vault_enabled: Boolean @doc(description: "Is vault enabled")
+    sdk_params: [SDKParams] @resolver(class: "\\Magento\\PaymentServicesPaypalGraphQl\\Model\\Resolver\\SdkParams") @doc(description: "The parameters required to load the Paypal JS SDK")
 }

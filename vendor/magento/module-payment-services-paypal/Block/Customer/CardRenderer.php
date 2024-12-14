@@ -120,4 +120,14 @@ class CardRenderer extends AbstractCardRenderer
 
         return '';
     }
+
+    /**
+     * Get card description
+     *
+     * @return string
+     */
+    public function getDescription(): string
+    {
+        return $this->getTokenDetails()['description'] ?? '...';
+    }
 }

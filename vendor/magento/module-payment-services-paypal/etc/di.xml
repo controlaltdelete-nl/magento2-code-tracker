@@ -18,6 +18,7 @@
     <preference for="Magento\PaymentServicesPaypal\Api\PaymentConfigResponseInterface" type="Magento\PaymentServicesPaypal\Model\Api\PaymentConfigResponse" />
     <preference for="Magento\PaymentServicesPaypal\Api\PaymentSdkManagementInterface" type="Magento\PaymentServicesPaypal\Model\Api\PaymentSdkManagement" />
     <preference for="Magento\PaymentServicesPaypal\Api\PaymentConfigManagementInterface" type="Magento\PaymentServicesPaypal\Model\Api\PaymentConfigManagement" />
+    <preference for="Magento\PaymentServicesPaypal\Api\VaultConfigManagementInterface" type="Magento\PaymentServicesPaypal\Model\Api\VaultConfigManagement" />
     <preference for="Magento\PaymentServicesPaypal\Api\Data\PaymentConfigItemInterface" type="Magento\PaymentServicesPaypal\Model\Api\Data\PaymentConfigItem" />
     <preference for="Magento\PaymentServicesPaypal\Api\Data\PaymentConfigSmartButtonsInterface" type="Magento\PaymentServicesPaypal\Model\Api\Data\PaymentConfigSmartButtons" />
     <preference for="Magento\PaymentServicesPaypal\Api\Data\PaymentConfigHostedFieldsInterface" type="Magento\PaymentServicesPaypal\Model\Api\Data\PaymentConfigHostedFields" />
@@ -30,7 +31,9 @@
     <preference for="Magento\PaymentServicesPaypal\Api\Data\PaymentConfigSdkParamsInterface" type="Magento\PaymentServicesPaypal\Model\Api\Data\PaymentConfigSdkParams" />
     <preference for="Magento\PaymentServicesPaypal\Api\PaymentSdkRequestInterface" type="Magento\PaymentServicesPaypal\Model\Api\PaymentSdkRequest" />
     <preference for="Magento\PaymentServicesPaypal\Api\Data\PaymentSdkParamsInterface" type="Magento\PaymentServicesPaypal\Model\Api\Data\PaymentSdkParams" />
-
+    <preference for="Magento\PaymentServicesPaypal\Api\Data\VaultCardBillingAddressInterface" type="Magento\PaymentServicesPaypal\Model\Api\Data\VaultCardBillingAddress" />
+    <preference for="Magento\PaymentServicesPaypal\Api\Data\VaultCardDetailsInterface" type="Magento\PaymentServicesPaypal\Model\Api\Data\VaultCardDetails" />
+    <preference for="Magento\PaymentServicesPaypal\Api\Data\VaultPaymentSourceDetailsInterface" type="Magento\PaymentServicesPaypal\Model\Api\Data\VaultPaymentSourceDetails" />
 
     <type name="Magento\PaymentServicesPaypal\Plugin\OrderUpdate">
         <arguments>
@@ -862,6 +865,13 @@
                 <item name="hosted_fields" xsi:type="string">payment_services_paypal_hosted_fields</item>
                 <item name="apple_pay" xsi:type="string">payment_services_paypal_apple_pay</item>
                 <item name="google_pay" xsi:type="string">payment_services_paypal_google_pay</item>
+            </argument>
+        </arguments>
+    </type>
+    <type name="Magento\PaymentServicesPaypal\Model\Vault\ConfigProviderPool">
+        <arguments>
+            <argument name="configProviders" xsi:type="array">
+                <item name="credit_card" xsi:type="object">Magento\PaymentServicesPaypal\Model\Vault\CreditCardConfigProvider</item>
             </argument>
         </arguments>
     </type>

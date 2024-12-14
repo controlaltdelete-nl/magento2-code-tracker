@@ -66,7 +66,9 @@ define([
                 shippingAddressRequired: !this.isVirtual,
                 styles: this.styles,
                 onCancel: this.onCancel,
-                mode: this.googlePayMode
+                mode: this.googlePayMode,
+                getOrderDetailsUrl: this.getOrderDetailsUrl,
+                threeDSMode: this.threeDSMode,
             });
 
             this.googlePayButton.sdkLoaded
