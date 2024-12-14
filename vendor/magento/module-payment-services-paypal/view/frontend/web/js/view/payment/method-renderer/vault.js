@@ -6,12 +6,14 @@ define([
     'mage/translate',
     'Magento_Vault/js/view/payment/method-renderer/vault',
     'Magento_Checkout/js/model/full-screen-loader',
-    'Magento_PaymentServicesPaypal/js/view/errors/response-error'
+    'Magento_PaymentServicesPaypal/js/view/errors/response-error',
+    'escaper'
 ], function (
     $t,
     VaultComponent,
     loader,
-    ResponseError
+    ResponseError,
+    escaper
 ) {
    'use strict';
 
@@ -22,7 +24,8 @@ define([
            paypalOrderId: null,
            paymentsOrderId: null,
            generalErrorMessage: $t('An error occurred. Refresh the page and try again.'),
-           paymentMethodValidationError: $t('Your payment was not successful. Try again.')
+           paymentMethodValidationError: $t('Your payment was not successful. Try again.'),
+           allowedTags: ['br']
        },
 
        /**
@@ -61,6 +64,62 @@ define([
         */
        getMaskedCard: function () {
            return this.details.maskedCC;
+       },
+
+       /**
+        * Get card Description
+        * @returns {String}
+        */
+       getCardDescription: function () {
+           return this.details.description;
+       },
+
+       /**
+        * Get formatted card billing address
+        * @returns {String}
+        */
+       getFormattedCardBillingAddress: function () {
+           let billingAddress = this.details.billingAddress;
+
+           if (!billingAddress) {
+               return '';
+           }
+
+           let street1 = billingAddress.address_line_1 || '';
+           let street2 = billingAddress.address_line_2 || '';
+           let region = billingAddress.region || '';
+           let city = billingAddress.city || '';
+           let postalCode = billingAddress.postal_code || '';
+           let countryCode = billingAddress.country_code || '';
+
+           let formattedAddress = street1 + '<br/>';
+
+           if (street2 !== '') {
+               formattedAddress += street2 + '<br/>';
+           }
+
+           formattedAddress += region + ' ' + city + ' ' + postalCode + '<br/>' +
+               countryCode;
+
+           return this.getSafeHtml(formattedAddress);
+       },
+
+       /**
+        * Get card holder name
+        * @returns {String}
+        */
+       getCardHolderName: function () {
+           return this.details.cardholderName;
+       },
+
+       /**
+        * Sanitize text
+        *
+        * @param {String} html
+        * @returns {String}
+        */
+       getSafeHtml: function (html) {
+           return escaper.escapeHtml(html, this.allowedTags);
        },
 
        /**
@@ -141,6 +200,6 @@ define([
                message: message
            });
            console.log(error['debug_id'] ? 'Error' + JSON.stringify(error) : error.toString());
-       }
+       },
    });
 });

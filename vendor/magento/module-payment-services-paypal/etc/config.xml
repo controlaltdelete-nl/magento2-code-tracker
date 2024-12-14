@@ -12,6 +12,7 @@
                 <legacy_admin_enabled>1</legacy_admin_enabled>
                 <soft_descriptor/>
                 <async_status_updates>0</async_status_updates>
+                <sdk_url>https://payments-sdk.live.commerce-payment-services.com/v0/1/PaymentSDK.js</sdk_url>
             </payment_services>
             <payment_services_paypal_hosted_fields>
                 <payment_action>authorize</payment_action>
@@ -142,6 +143,7 @@
                 <button_color>default</button_color>
                 <button_type>buy</button_type>
                 <can_review_payment>0</can_review_payment>
+                <three_ds>0</three_ds>
             </payment_services_paypal_google_pay>
             <payment_services_paypal_l2_l3>
                 <send_data>0</send_data>

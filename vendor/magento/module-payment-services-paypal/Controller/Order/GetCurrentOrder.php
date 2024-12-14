@@ -15,6 +15,8 @@ use Magento\PaymentServicesPaypal\Model\OrderService;
 use Magento\PaymentServicesBase\Model\HttpException;
 use Magento\Framework\Webapi\Exception as WebapiException;
 use Magento\Framework\Webapi\Rest\Response as WebapiResponse;
+use Magento\Framework\Session\Generic as PaypalSession;
+use Magento\Quote\Model\QuoteRepository;
 
 class GetCurrentOrder implements HttpGetActionInterface
 {
@@ -22,11 +24,15 @@ class GetCurrentOrder implements HttpGetActionInterface
      * @param CheckoutSession $checkoutSession
      * @param OrderService $orderService
      * @param ResultFactory $resultFactory
+     * @param PaypalSession $paypalSession
+     * @param QuoteRepository $quoteRepository
      */
     public function __construct(
         private CheckoutSession $checkoutSession,
         private OrderService $orderService,
-        private ResultFactory $resultFactory
+        private ResultFactory $resultFactory,
+        private PayPalSession $paypalSession,
+        private QuoteRepository $quoteRepository,
     ) {
     }
 
@@ -41,6 +47,11 @@ class GetCurrentOrder implements HttpGetActionInterface
 
         try {
             $quote = $this->checkoutSession->getQuote();
+
+            if ($this->paypalSession->getQuoteId()) {
+                $quote = $this->quoteRepository->getActive($this->paypalSession->getQuoteId());
+            }
+
             $paypalOrderId = $quote->getPayment()->getAdditionalInformation('paypal_order_id');
 
             if (!$paypalOrderId) {

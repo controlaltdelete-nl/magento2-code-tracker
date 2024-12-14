@@ -26,7 +26,8 @@ class PaymentSdkManagement implements PaymentSdkManagementInterface
         'PRODUCT_DETAIL',
         'MINICART',
         'CART',
-        'CHECKOUT'
+        'CHECKOUT',
+        'VAULT'
     ];
 
     private const BUTTONS_LOCATIONS = [
@@ -37,7 +38,8 @@ class PaymentSdkManagement implements PaymentSdkManagementInterface
     ];
 
     private const CC_LOCATIONS = [
-        'CHECKOUT'
+        'CHECKOUT',
+        'VAULT'
     ];
 
     /**
@@ -169,7 +171,6 @@ class PaymentSdkManagement implements PaymentSdkManagementInterface
         if (count($cachedParams) > 0) {
             return $cachedParams;
         }
-
         $paymentOptions = $this->getPaymentOptions($location, $code, $store);
 
         try {
@@ -215,7 +216,7 @@ class PaymentSdkManagement implements PaymentSdkManagementInterface
             return $this->getGooglePayOptions($location, $store);
         }
         if ($code === HostedFieldsConfigProvider::CODE) {
-            return $this->getCCOptions($store);
+            return $this->getCCOptions($location, $store);
         }
         return [];
     }
@@ -297,16 +298,28 @@ class PaymentSdkManagement implements PaymentSdkManagementInterface
     /**
      * Get script option for Apple Pay sdk.
      *
+     * @param string $location
      * @param int $store
      * @return array
+     * @throws NoSuchEntityException
      */
-    private function getCCOptions(int $store): array
+    private function getCCOptions(string $location, int $store): array
     {
         if (!$this->config->isHostedFieldsEnabled($store)) {
             return [];
         }
+
         $paymentOptionsBuilder = $this->paymentOptionsBuilderFactory->create();
         $paymentOptionsBuilder->setIsCreditCardEnabled(true);
+
+        // For Vault, use card-field component
+        // For Checkout, use hosted fields component
+        if (strtoupper($location) === VaultConfigManagement::LOCATION) {
+            $paymentOptionsBuilder->useCardFieldsForCreditCard();
+        } else {
+            $paymentOptionsBuilder->useHostedFieldsForCreditCard();
+        }
+
         return $paymentOptionsBuilder->build();
     }
 }

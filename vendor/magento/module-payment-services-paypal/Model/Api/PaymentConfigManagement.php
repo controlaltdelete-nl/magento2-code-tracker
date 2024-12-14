@@ -368,6 +368,8 @@ class PaymentConfigManagement implements PaymentConfigManagementInterface
         $googlePayConfig = $this->paymentConfigGooglePayFactory->create();
         $googlePayConfig->setHasIsVisible($this->config->isGooglePayLocationEnabled(strtolower($location), $store));
         $buttonStyles = $this->getGooglePayButtonStyles($store);
+        $threeDS = $this->config->getGooglePayThreeDS($store);
+        $googlePayConfig->setThreeDS($threeDS);
         $googlePayConfig->setButtonStyles($buttonStyles);
         $googlePayConfig->setPaymentSource(GooglePayConfigProvider::PAYMENT_SOURCE);
 

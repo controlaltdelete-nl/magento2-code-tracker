@@ -40,6 +40,7 @@ interface PaymentOrderRequestInterface
      * @param string $location
      * @param int $customerId
      * @param bool $vaultIntent
+     * @param string | null $threeDSMode
      *
      * @throws InvalidArgumentException
      * @throws LocalizedException
@@ -54,6 +55,7 @@ interface PaymentOrderRequestInterface
         string $location,
         int $customerId,
         bool $vaultIntent = false,
+        string $threeDSMode = null,
     );
 
     /**
@@ -64,6 +66,7 @@ interface PaymentOrderRequestInterface
      * @param string $cartId
      * @param string $location
      * @param bool $vaultIntent
+     * @param string | null $threeDSMode
      *
      * @throws InvalidArgumentException
      * @throws LocalizedException
@@ -76,7 +79,8 @@ interface PaymentOrderRequestInterface
         string $paymentSource,
         string $cartId,
         string $location,
-        bool $vaultIntent = false
+        bool $vaultIntent = false,
+        string $threeDSMode = null,
     );
 
     /**

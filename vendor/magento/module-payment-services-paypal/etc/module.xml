@@ -18,6 +18,9 @@
             <module name="Magento_InstantPurchase"/>
             <module name="Magento_Webapi" />
             <module name="Magento_QueryXml"/>
+            <module name="Magento_GraphQl"/>
+            <module name="Magento_Integration"/>
+            <module name="Magento_Authorization"/>
         </sequence>
     </module>
 </config>

@@ -36,6 +36,7 @@ interface PaymentOrderManagementInterface
      * @param string $location
      * @param bool $vaultIntent
      * @param int|null $customerId
+     * @param string|null $threeDSMode
      *
      * @return PaymentOrderInterface
      * @throws NoSuchEntityException
@@ -47,7 +48,8 @@ interface PaymentOrderManagementInterface
         int $cartId,
         string $location,
         bool $vaultIntent = false,
-        int $customerId = null
+        int $customerId = null,
+        string $threeDSMode = null
     );
 
     /**

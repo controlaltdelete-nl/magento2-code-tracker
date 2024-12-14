@@ -82,6 +82,7 @@ class SdkParams extends DataObject
         $paymentOptionsBuilder->setIsPayPalCreditEnabled($this->config->isFundingSourceEnabledByName('paypal_credit'));
         $paymentOptionsBuilder->setIsVenmoEnabled($this->config->isFundingSourceEnabledByName('venmo'));
         $paymentOptionsBuilder->setIsCreditCardEnabled(true);
+        $paymentOptionsBuilder->useHostedFieldsForCreditCard();
         $paymentOptionsBuilder->setIsPaylaterMessageEnabled(false);
         $paymentOptions = $paymentOptionsBuilder->build();
         try {

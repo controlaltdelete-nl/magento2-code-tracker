@@ -61,6 +61,7 @@ class CreatePaypalOrder implements HttpPostActionInterface, CsrfAwareActionInter
         $result = $this->resultFactory->create(ResultFactory::TYPE_JSON);
         try {
             $paymentSource = $this->request->getPost('payment_source');
+            $threeDSMode = $this->request->getPost('three_ds_mode');
             $location = $this->request->getParam('location');
             $this->checkout->setLocation($location);
             if ($location !== $this->checkout::LOCATION_PRODUCT_PAGE) {
@@ -68,7 +69,7 @@ class CreatePaypalOrder implements HttpPostActionInterface, CsrfAwareActionInter
             }
             $this->checkout->validateQuote();
             try {
-                $response = $this->checkout->createPayPalOrder($paymentSource);
+                $response = $this->checkout->createPayPalOrder($paymentSource, $threeDSMode);
                 if (!$response['is_successful']) {
                     throw new HttpException('Failed to create an order.');
                 }

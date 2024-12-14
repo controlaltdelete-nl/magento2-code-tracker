@@ -26,6 +26,10 @@
                             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                             <config_path>payment/payment_services_paypal_l2_l3/send_data</config_path>
                         </field>
+                        <field id="payments_sdk_url" translate="label" sortOrder="4" type="select" showInDefault="0" showInWebsite="0" showInStore="0">
+                            <label>Url of the Payment Services SDK</label>
+                            <config_path>payment/payment_services/sdk_url</config_path>
+                        </field>
                     </group>
                     <group id="hosted_fields" translate="label" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label>Credit Card Fields</label>
@@ -156,6 +160,12 @@
                             <label>Show Google Pay on cart page</label>
                             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                             <config_path>payment/payment_services_paypal_google_pay/display_cart</config_path>
+                        </field>
+                        <field id="three_ds" translate="label comment" sortOrder="84" type="select" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>3D Secure authentication</label>
+                            <source_model>Magento\PaymentServicesPaypal\Model\Adminhtml\Source\ThreeDS</source_model>
+                            <config_path>payment/payment_services_paypal_google_pay/three_ds</config_path>
+                            <comment><![CDATA[Use <b>When Required</b> to comply with EU regulations. Use <b>Always</b> for extra fraud protection. <a href="https://experienceleague.adobe.com/docs/commerce-merchant-services/payment-services/security.html#3ds" target="_blank">More information</a>]]></comment>
                         </field>
                         <field id="debug" translate="label" sortOrder="85" type="select" showInDefault="1" showInWebsite="1" showInStore="0">
                             <label>Debug Mode</label>

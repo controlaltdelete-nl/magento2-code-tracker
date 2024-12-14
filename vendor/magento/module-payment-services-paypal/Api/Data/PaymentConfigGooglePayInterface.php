@@ -24,6 +24,7 @@ interface PaymentConfigGooglePayInterface extends PaymentConfigItemInterface
     public const BUTTON_STYLES = 'button_styles';
 
     public const PAYMENT_SOURCE = 'payment_source';
+    public const THREE_DS = 'three_ds';
 
     /**
      * Get buttonStyles
@@ -54,4 +55,19 @@ interface PaymentConfigGooglePayInterface extends PaymentConfigItemInterface
      * @return void
      */
     public function setPaymentSource($paymentSource);
+
+    /**
+     * Get threeDS
+     *
+     * @return string
+     */
+    public function getThreeDS();
+
+    /**
+     * Set threeDS
+     *
+     * @param string $threeDS
+     * @return void
+     */
+    public function setThreeDS($threeDS);
 }

@@ -133,6 +133,7 @@ class HostedFieldsConfigProvider implements ConfigProviderInterface
     {
         $paymentOptionsBuilder = $this->configProvider->getPaymentOptions();
         $paymentOptionsBuilder->setIsCreditCardEnabled($this->config->isHostedFieldsEnabled());
+        $paymentOptionsBuilder->useHostedFieldsForCreditCard();
         return $paymentOptionsBuilder;
     }
 
