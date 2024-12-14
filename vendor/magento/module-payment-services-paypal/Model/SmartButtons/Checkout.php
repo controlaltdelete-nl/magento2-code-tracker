@@ -194,7 +194,7 @@ class Checkout
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    public function createPayPalOrder(string $paymentSource = '') : array
+    public function createPayPalOrder(string $paymentSource = '', string $threeDSMode = null) : array
     {
         $quote = $this->getQuote();
         $quote->reserveOrderId();
@@ -217,6 +217,7 @@ class Checkout
                 'is_digital' => $quote->getIsVirtual(),
                 'website_id' => $quote->getStore()->getWebsiteId(),
                 'payment_source' => $paymentSource,
+                'three_ds_mode' => $threeDSMode ?: null,
                 'quote_id' => $quoteId,
                 'order_increment_id' => $this->orderHelper->reserveAndGetOrderIncrementId($quote),
                 'line_items' => $this->orderHelper->getLineItems($quote, $quote->getReservedOrderId()),

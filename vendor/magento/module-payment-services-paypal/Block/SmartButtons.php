@@ -114,6 +114,8 @@ class SmartButtons extends Template implements ShortcutInterface
             'countriesUrl' => $this->getUrl('rest/V1/directory/countries/:countryCode'),
             'setQuoteAsInactiveUrl' => $this->getUrl('paymentservicespaypal/smartbuttons/setquoteasinactive'),
             'placeOrderUrl' => $this->getUrl('paymentservicespaypal/smartbuttons/placeorder/'),
+            'getOrderDetailsUrl' => $this->getUrl('paymentservicespaypal/order/getcurrentorder'),
+            'threeDSMode' => $this->config->getGooglePayThreeDS() !== "0" ? $this->config->getGooglePayThreeDS() : false,
             'styles' => $this->getStyles(),
             'isVirtual' => $this->session->getQuote()->isVirtual(),
             'googlePayMode' => $this->config->getGooglePayMode(),

@@ -95,7 +95,9 @@ define([
                 onApprove: this.placeOrder,
                 styles: window.checkoutConfig.payment[this.getCode()].styles,
                 mode: window.checkoutConfig.payment[this.getCode()].mode,
-                shippingAddressRequired: false
+                shippingAddressRequired: false,
+                getOrderDetailsUrl: window.checkoutConfig.payment[this.getCode()].getOrderDetailsUrl,
+                threeDSMode: window.checkoutConfig.payment[this.getCode()].threeDSMode,
             });
 
             if (!this.isPlaceOrderActionAllowed()) {

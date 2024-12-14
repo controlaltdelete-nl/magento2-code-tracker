@@ -57,4 +57,20 @@ class PaymentConfigGooglePay extends PaymentConfigItem implements PaymentConfigG
     {
         return $this->setData(self::BUTTON_STYLES, $buttonStyles);
     }
+
+    /**
+     * @inheritdoc
+     */
+    public function getThreeDS()
+    {
+        return $this->getData(self::THREE_DS);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function setThreeDS($threeDS)
+    {
+        return $this->setData(self::THREE_DS, $threeDS);
+    }
 }

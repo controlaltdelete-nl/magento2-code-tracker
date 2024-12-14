@@ -32,12 +32,18 @@ define([
      * @param {String} url
      * @param {Object} payPalOrderData
      * @param {FormData} orderData
+     * @param {String | false} threeDSMode
      * @return {Object}
      */
-    var performCreateOrder = function (url, payPalOrderData, orderData) {
+    var performCreateOrder = function (url, payPalOrderData, orderData, threeDSMode) {
+
             orderData = orderData || new FormData();
             orderData.append('form_key', $.mage.cookies.get('form_key'));
             orderData.append('payment_source', payPalOrderData['paymentSource']);
+
+            if (threeDSMode) {
+                orderData.append('three_ds_mode', threeDSMode);
+            }
 
             let xhr = new XMLHttpRequest();
             xhr.open('POST', url, false);
@@ -86,7 +92,9 @@ define([
             paypalOrderId: null,
             eligible: false,
             mode: 'TEST',
-            shippingAddressRequired: true
+            shippingAddressRequired: true,
+            getOrderDetailsUrl: '',
+            threeDSMode: '',
         },
 
         /** @inheritdoc */
@@ -138,7 +146,7 @@ define([
             if (this.instance === null) {
                 this.instance = new google.payments.api.PaymentsClient({
                     environment: this.mode,
-                     paymentDataCallbacks: {
+                    paymentDataCallbacks: {
                         onPaymentAuthorized: this.performAuthorization
                     }
                 });
@@ -152,7 +160,7 @@ define([
                     this.getGooglePaymentsClient()
                         .loadPaymentData(data)
                         .catch(this.onCancel);
-                }).catch(this.onError);
+                }).catch((error) => this.onError(error));
         },
 
         onCancel: function () {
@@ -161,7 +169,7 @@ define([
 
         getGooglePaymentDataRequest: async function (transactionInfo) {
             const paymentDataRequest = Object.assign({}, baseRequest),
-                { allowedPaymentMethods, merchantInfo } = await this.getGooglePayConfig();
+                {allowedPaymentMethods, merchantInfo} = await this.getGooglePayConfig();
 
             paymentDataRequest.allowedPaymentMethods = allowedPaymentMethods;
             paymentDataRequest.transactionInfo = transactionInfo;
@@ -226,14 +234,14 @@ define([
                     .then(resolve)
                     .catch(function () {
                         this.onError(new Error('couldn\'t process payment'));
-                        resolve({ transactionState: 'ERROR' });
+                        resolve({transactionState: 'ERROR'});
                     }.bind(this));
             }.bind(this));
         },
 
         processPayment: async function (paymentData) {
             try {
-                const { status } = await this.paypal.Googlepay().confirmOrder({
+                const {status} = await this.paypal.Googlepay().confirmOrder({
                     orderId: this.paypalOrderId,
                     paymentMethodData: paymentData.paymentMethodData,
                     shippingAddress: paymentData.shippingAddress,
@@ -242,11 +250,46 @@ define([
 
                 if (status === 'APPROVED') {
                     this.onApprove(paymentData);
-                    return { transactionState: 'SUCCESS' };
+                    return {transactionState: 'SUCCESS'};
+                }
+
+                if (status === 'PAYER_ACTION_REQUIRED') {
+                    this.paypal.Googlepay().initiatePayerAction({orderId: this.paypalOrderId}).then(
+                        async () => {
+                            return fetch(`${this.getOrderDetailsUrl}`, {
+                                method: 'GET'
+                            }).then((res) => {
+                                return res.json();
+                            }).then((data) => {
+                                if (data.response['is_successful'] && data.response['paypal-order']) {
+                                    const order = data.response['paypal-order'];
+                                    let authenticationResult = order.payment_source_details.card.authentication_result;
+                                    if (authenticationResult
+                                        && (
+                                            authenticationResult.liability_shift === 'POSSIBLE'
+                                            || authenticationResult.liability_shift === "YES"
+                                            || authenticationResult.liability_shift === undefined
+                                        )
+                                    ) {
+                                        this.onApprove(paymentData);
+                                        return {transactionState: 'SUCCESS'};
+                                    } else {
+                                        this.onError(new Error('couldn\'t approve order'));
+                                        return {transactionState: 'ERROR'};
+                                    }
+                                }
+                            }).catch((error) => {
+                                console.log("ERROR: ", error)
+                            })
+                        }
+                    ).catch((error) => {
+                        console.log("ERROR: ", error)
+                    });
+                    return;
                 }
 
                 this.onError(new Error('couldn\'t approve order'));
-                return { transactionState: 'ERROR' };
+                return {transactionState: 'ERROR'};
             } catch (err) {
                 this.onError(err);
                 return {
@@ -258,12 +301,14 @@ define([
             }
         },
 
-        onClick: function () {},
+        onClick: function () {
+        },
 
         /**
          * Calls before create order.
          */
-        beforeCreateOrder: function () {},
+        beforeCreateOrder: function () {
+        },
 
         /**
          * Create order.
@@ -275,7 +320,7 @@ define([
 
             try {
                 this.beforeCreateOrder();
-                let orderData = performCreateOrder(this.createOrderUrl, data, null);
+                let orderData = performCreateOrder(this.createOrderUrl, data, null, this.threeDSMode);
                 this.paypalOrderId = this.afterCreateOrder(orderData);
                 return this.paypalOrderId;
             } catch (error) {
@@ -311,7 +356,8 @@ define([
         /**
          * Catch error on order creation.
          */
-        catchCreateOrder: function () {},
+        catchCreateOrder: function () {
+        },
 
         /**
          * On payment approve.

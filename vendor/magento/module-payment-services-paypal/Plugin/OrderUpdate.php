@@ -133,7 +133,8 @@ class OrderUpdate
      */
     private function doesRequirePriceUpdate(\Magento\Quote\Api\Data\CartInterface $quote) : bool
     {
-        if (!str_starts_with($quote->getPayment()->getMethod(), Config::PAYMENTS_SERVICES_PREFIX)) {
+        $paymentMethod = (string) $quote->getPayment()?->getMethod();
+        if (!$paymentMethod || !str_starts_with($paymentMethod, Config::PAYMENTS_SERVICES_PREFIX)) {
             return false;
         }
 

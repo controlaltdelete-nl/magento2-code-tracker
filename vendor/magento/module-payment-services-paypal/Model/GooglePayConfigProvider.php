@@ -73,6 +73,8 @@ class GooglePayConfigProvider implements ConfigProviderInterface
         $config['payment'][self::CODE]['mode'] = $this->config->getGooglePayMode();
         $config['payment'][self::CODE]['isVisible'] = true;
         $config['payment'][self::CODE]['createOrderUrl'] = $this->url->getUrl('paymentservicespaypal/order/create');
+        $config['payment'][self::CODE]['getOrderDetailsUrl'] = $this->url->getUrl('paymentservicespaypal/order/getcurrentorder');
+        $config['payment'][self::CODE]['threeDSMode'] = $this->config->getGooglePayThreeDS() !== "0" ? $this->config->getGooglePayThreeDS() : false;
         $config['payment'][self::CODE]['sdkParams'] = $this->configProvider->getScriptParams(
             self::CODE,
             self::LOCATION,

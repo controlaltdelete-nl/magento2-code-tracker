@@ -87,6 +87,7 @@ class OrderService
                 'website_id' => $data['website_id'],
                 'payment_source' => $data['payment_source'] ?? '',
                 'vault' => $data['vault'] ?? false,
+                'three_ds_mode' => $data['three_ds_mode'] ?? null,
             ]
         ];
         $order[self::PAYPAL_ORDER]['shipping-address'] = $data['shipping_address'] ?? null;

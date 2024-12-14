@@ -148,6 +148,23 @@ class Config
     }
 
     /**
+     * Get 3DS config value
+     *
+     * @param string|null $storeCode
+     * @return mixed
+     * @throws NoSuchEntityException
+     */
+    public function getGooglePayThreeDS($storeCode = null)
+    {
+        $storeCode = $this->storeManager->getStore($storeCode)->getCode();
+        return $this->scopeConfig->getValue(
+            'payment/payment_services_paypal_google_pay/three_ds',
+            ScopeInterface::SCOPE_STORE,
+            $storeCode
+        );
+    }
+
+    /**
      * Get the merchant ID
      *
      * @param string $environment
@@ -528,5 +545,15 @@ class Config
             ScopeInterface::SCOPE_STORE,
             $storeCode
         );
+    }
+
+    /**
+     * Return the Payment Services SDK url
+     *
+     * @return string
+     */
+    public function getPaymentsSDKUrl() : string
+    {
+        return $this->scopeConfig->getValue('payment/payment_services/sdk_url');
     }
 }

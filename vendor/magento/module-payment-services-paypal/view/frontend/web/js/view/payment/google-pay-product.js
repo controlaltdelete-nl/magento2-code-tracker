@@ -78,7 +78,9 @@ define([
                 styles: this.styles,
                 afterOnAuthorize: this.afterOnAuthorize,
                 onCancel: this.onCancel,
-                mode: this.googlePayMode
+                mode: this.googlePayMode,
+                getOrderDetailsUrl: this.getOrderDetailsUrl,
+                threeDSMode: this.threeDSMode,
             });
 
             this.googlePayButton.sdkLoaded

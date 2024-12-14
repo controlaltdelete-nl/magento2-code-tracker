@@ -26,8 +26,8 @@
         <referenceContainer name="content">
             <block class="Magento\PaymentServicesPaypal\Block\SmartButtons\Review" name="paymentservicespaypal.smartbuttons.review" template="Magento_PaymentServicesPaypal::smart_buttons/review.phtml">
                 <block class="Magento\PaymentServicesPaypal\Block\SmartButtons\Review" name="paymentservicespaypal.smartbuttons.review.shipping.method" as="shipping_method" template="Magento_PaymentServicesPaypal::smart_buttons/review/shipping/method.phtml"/>
-                <block class="Magento\Framework\View\Element\Text\ListText" name="paypal.additional.actions">
-                    <block class="Magento\Checkout\Block\Cart\Coupon" name="paypal.cart.coupon" as="coupon" template="Magento_Checkout::cart/coupon.phtml"/>
+                <block class="Magento\Framework\View\Element\Text\ListText" name="paymentservicespaypal.additional.actions">
+                    <block class="Magento\Checkout\Block\Cart\Coupon" name="paymentservicespaypal.cart.coupon" as="coupon" template="Magento_PaymentServicesPaypal::smart_buttons/review/coupon.phtml"/>
                 </block>
                 <block class="Magento\PaymentServicesPaypal\Block\SmartButtons\Review\Details" name="paymentservicespaypal.smartbuttons.review.details" as="details" template="Magento_PaymentServicesPaypal::smart_buttons/review/details.phtml">
                     <block class="Magento\Framework\View\Element\RendererList" name="checkout.onepage.review.item.renderers" as="renderer.list"/>
