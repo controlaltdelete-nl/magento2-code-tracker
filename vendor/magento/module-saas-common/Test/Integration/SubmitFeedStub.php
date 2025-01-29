@@ -31,7 +31,7 @@ class SubmitFeedStub extends SubmitFeed
      * @param int|null $timeout
      * @return FeedExportStatus
      */
-    public function execute(string $feedName, array $data, int $timeout = null) : FeedExportStatus
+    public function execute(string $feedName, array $data, ?int $timeout = null) : FeedExportStatus
     {
 
         $feedExportStatusBuilder = Bootstrap::getObjectManager()->create(FeedExportStatusBuilder::class);
