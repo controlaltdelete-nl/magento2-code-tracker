@@ -31,6 +31,7 @@ use Magento\SaaSCommon\Model\Http\Converter\Factory;
 use Magento\SaaSCommon\Model\Http\ConverterInterface;
 use Magento\SaaSCommon\Model\Metadata\RequestMetadataHeaderProvider;
 use Magento\ServicesConnector\Api\ClientResolverInterface;
+use Magento\ServicesId\Model\ServicesConfig;
 use Magento\ServicesId\Model\ServicesConfigInterface;
 use Magento\SaaSCommon\Model\Logging\SaaSExportLoggerInterface as LoggerInterface;
 use Magento\DataExporter\Model\FeedExportStatusBuilder;
@@ -177,7 +178,7 @@ class SubmitFeed
      * @param int|null $timeout
      * @return FeedExportStatus
      */
-    public function execute(string $feedName, array $data, int $timeout = null) : FeedExportStatus
+    public function execute(string $feedName, array $data, ?int $timeout = null) : FeedExportStatus
     {
         if (true === $this->indexerConfig->isDryRun()) {
             $this->logFeedData($feedName, $data);
