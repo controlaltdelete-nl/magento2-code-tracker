@@ -97,10 +97,10 @@ class SubmitFeed implements SubmitFeedInterface
      * @param LoggerInterface $logger
      * @param ScopeConfigInterface $config
      * @param OnboardingStatus $onboardingStatus
-     * @param ?Config $baseConfig
      * @param string $feedName
      * @param string $feedSyncFlag
      * @param string $environment
+     * @param ?Config $baseConfig
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
@@ -113,10 +113,10 @@ class SubmitFeed implements SubmitFeedInterface
         LoggerInterface $logger,
         ScopeConfigInterface $config,
         OnboardingStatus $onboardingStatus,
-        Config $baseConfig = null,
         string $feedName,
         string $feedSyncFlag,
-        string $environment
+        string $environment,
+        ?Config $baseConfig = null,
     ) {
         $this->feedPool = $feedPool;
         $this->submitFeed = $submitFeed;

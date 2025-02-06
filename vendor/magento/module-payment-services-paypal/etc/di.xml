@@ -875,4 +875,7 @@
             </argument>
         </arguments>
     </type>
+    <type name="Magento\Quote\Model\CustomerManagement">
+        <plugin name="payment_services_skip_address_validation" type="Magento\PaymentServicesPaypal\Plugin\CustomerManagementPlugin" sortOrder="2"/>
+    </type>
 </config>

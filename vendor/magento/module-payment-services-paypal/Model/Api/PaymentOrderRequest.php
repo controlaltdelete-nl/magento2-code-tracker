@@ -63,7 +63,7 @@ class PaymentOrderRequest implements PaymentOrderRequestInterface
         string $location,
         int $customerId,
         bool $vaultIntent = false,
-        string $threeDSMode = null
+        ?string $threeDSMode = null
     ) {
         return $this->paymentOrderManagement->create(
             $methodCode,
@@ -85,7 +85,7 @@ class PaymentOrderRequest implements PaymentOrderRequestInterface
         string $cartId,
         string $location,
         bool $vaultIntent = false,
-        string $threeDSMode = null
+        ?string $threeDSMode = null
     ) {
         $cartId = $this->maskedQuoteIdToQuoteId->execute($cartId);
         return $this->paymentOrderManagement->create($methodCode, $paymentSource, $cartId, $location, $vaultIntent, null, $threeDSMode);

@@ -83,7 +83,7 @@ class PaymentSdkManagement implements PaymentSdkManagementInterface
     /**
      * @inheritdoc
      */
-    public function getParams(string $location, int $store = null, string $methodCode = null): array
+    public function getParams(string $location, ?int $store = null, ?string $methodCode = null): array
     {
         $params = [];
         $store = $store ?? (int)$this->storeManager->getStore()->getId();

@@ -57,7 +57,7 @@ class OrderCancellation
         CartManagementInterface $subject,
         Closure $proceed,
         int $cartId,
-        PaymentInterface $payment = null
+        ?PaymentInterface $payment = null
     ): int {
         try {
             return (int)$proceed($cartId, $payment);

@@ -95,7 +95,7 @@ class OrderUpdate
     public function beforePlaceOrder(
         CartManagementInterface $subject,
         int $cartId,
-        PaymentInterface $payment = null
+        ?PaymentInterface $payment = null
     ) : void {
         $quote = $this->quoteRepository->get($cartId);
         $location = $quote->getPayment()->getAdditionalInformation('location');

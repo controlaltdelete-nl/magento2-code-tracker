@@ -194,7 +194,7 @@ class Config
      * @return bool
      * @throws NoSuchEntityException
      */
-    public function isLocationEnabled(string $location, int $store = null): bool
+    public function isLocationEnabled(string $location, ?int $store = null): bool
     {
         $storeCode = $this->storeManager->getStore($store)->getCode();
         return (bool) $this->scopeConfig->getValue(
@@ -212,7 +212,7 @@ class Config
      * @return bool
      * @throws NoSuchEntityException
      */
-    public function isApplePayLocationEnabled(string $location, int $store = null): bool
+    public function isApplePayLocationEnabled(string $location, ?int $store = null): bool
     {
         $storeCode = $this->storeManager->getStore($store)->getCode();
         return (bool) $this->scopeConfig->getValue(
@@ -230,7 +230,7 @@ class Config
      * @return bool
      * @throws NoSuchEntityException
      */
-    public function isGooglePayLocationEnabled(string $location, int $store = null): bool
+    public function isGooglePayLocationEnabled(string $location, ?int $store = null): bool
     {
         $storeCode = $this->storeManager->getStore($store)->getCode();
         return (bool) $this->scopeConfig->getValue(
@@ -247,7 +247,7 @@ class Config
      * @return bool
      * @throws NoSuchEntityException
      */
-    public function isHostedFieldsEnabled(int $store = null): bool
+    public function isHostedFieldsEnabled(?int $store = null): bool
     {
         $storeCode = $this->storeManager->getStore($store)->getCode();
         return (bool) $this->scopeConfig->getValue(
@@ -288,7 +288,7 @@ class Config
      * @return string
      * @throws NoSuchEntityException
      */
-    public function getPaymentTitle(string $code, int $store = null): string
+    public function getPaymentTitle(string $code, ?int $store = null): string
     {
         $storeCode = $this->storeManager->getStore($store)->getCode();
         $configPath = 'payment/' . $code . '/title';
@@ -309,7 +309,7 @@ class Config
      * @return string
      * @throws NoSuchEntityException
      */
-    public function getSortOrder(string $code, int $store = null): string
+    public function getSortOrder(string $code, ?int $store = null): string
     {
         $storeCode = $this->storeManager->getStore($store)->getCode();
         $configPath = 'payment/' . $code . '/sort_order';
@@ -329,7 +329,7 @@ class Config
      * @return bool
      * @throws NoSuchEntityException
      */
-    public function canDisplayPayLaterMessage(int $store = null) : bool
+    public function canDisplayPayLaterMessage(?int $store = null) : bool
     {
         $storeCode = $this->storeManager->getStore($store)->getCode();
         return (bool) $this->scopeConfig->getValue(
@@ -346,7 +346,7 @@ class Config
      * @return bool
      * @throws NoSuchEntityException
      */
-    public function isVaultEnabled(int $store = null) : bool
+    public function isVaultEnabled(?int $store = null) : bool
     {
         $storeCode = $this->storeManager->getStore($store)->getCode();
         return (bool) $this->scopeConfig->getValue(
@@ -364,7 +364,7 @@ class Config
      * @return bool
      * @throws NoSuchEntityException
      */
-    public function isFundingSourceEnabledByName(string $funding = '', int $store = null) : bool
+    public function isFundingSourceEnabledByName(string $funding = '', ?int $store = null) : bool
     {
         $storeCode = $this->storeManager->getStore($store)->getCode();
 
@@ -384,7 +384,7 @@ class Config
      * @return array
      * @throws NoSuchEntityException
      */
-    public function getButtonConfiguration(int $store = null) : array
+    public function getButtonConfiguration(?int $store = null) : array
     {
         $buttonConfig = [];
         $storeCode = $this->storeManager->getStore($store)->getCode();
@@ -465,7 +465,7 @@ class Config
      * @return array
      * @throws NoSuchEntityException
      */
-    public function getGooglePayStyles(int $store = null) : array
+    public function getGooglePayStyles(?int $store = null) : array
     {
         $storeCode = $this->storeManager->getStore($store)->getCode();
         $genericStyles = $this->getButtonConfiguration($store);
@@ -513,7 +513,7 @@ class Config
      * @param string|null $storeCode
      * @return bool
      */
-    public function isAsyncPaymentStatusUpdatesEnabled($storeCode = null) : bool
+    public function isAsyncPaymentStatusUpdatesEnabled(?string $storeCode = null) : bool
     {
         return (bool) $this->scopeConfig->getValue(
             'payment/payment_services/async_status_updates',
@@ -538,7 +538,7 @@ class Config
      * @param string|null $storeCode
      * @return bool
      */
-    public function isL2L3SendDataEnabled(string $storeCode = null) : bool
+    public function isL2L3SendDataEnabled(?string $storeCode = null) : bool
     {
         return (bool) $this->scopeConfig->getValue(
             'payment/payment_services_paypal_l2_l3/send_data',
