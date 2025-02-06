@@ -110,7 +110,7 @@ class SubmitFeed
         OnboardingStatus $onboardingStatus,
         Config $paymentsConfig,
         string $environment,
-        string $feedRoute = null,
+        ?string $feedRoute = null,
         ?FeedRouteResolverInterface $feedRouteResolver = null
     ) {
         $this->clientResolver = $clientResolver;

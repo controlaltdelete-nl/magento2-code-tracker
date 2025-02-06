@@ -48,8 +48,8 @@ interface PaymentOrderManagementInterface
         int $cartId,
         string $location,
         bool $vaultIntent = false,
-        int $customerId = null,
-        string $threeDSMode = null
+        ?int $customerId = null,
+        ?string $threeDSMode = null
     );
 
     /**
@@ -66,7 +66,7 @@ interface PaymentOrderManagementInterface
     public function get(
         int $cartId,
         string $id,
-        int $customerId = null
+        ?int $customerId = null
     );
 
     /**
@@ -83,6 +83,6 @@ interface PaymentOrderManagementInterface
     public function sync(
         int $cartId,
         string $id,
-        int $customerId = null
+        ?int $customerId = null
     );
 }

@@ -58,8 +58,8 @@ class PaymentConfig implements ResolverInterface
         Field $field,
         $context,
         ResolveInfo $info,
-        array $value = null,
-        array $args = null
+        ?array $value = null,
+        ?array $args = null
     ) {
         $location = $args['location'];
         $storeId = (int)$context->getExtensionAttributes()->getStore()->getId();

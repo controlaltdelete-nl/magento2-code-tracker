@@ -99,7 +99,7 @@ class SdkService
         array $paymentOptions,
         bool $isReviewPaymentEnabled,
         string $paymentAction,
-        string $websiteId = null
+        ?string $websiteId = null
     ) {
         $currency = $this->storeManager->getStore()->getBaseCurrencyCode();
         $sdkParams = [

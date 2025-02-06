@@ -146,8 +146,8 @@ class PaymentOrderManagement implements PaymentOrderManagementInterface
         int    $cartId,
         string $location,
         bool   $vaultIntent = false,
-        int    $customerId = null,
-        string $threeDSMode = null
+        ?int    $customerId = null,
+        ?string $threeDSMode = null
     ) {
         if (!in_array($methodCode, $this->validMethodCodes)) {
             throw new InvalidArgumentException(__('Invalid methodCode'));
@@ -220,7 +220,7 @@ class PaymentOrderManagement implements PaymentOrderManagementInterface
     public function get(
         int $cartId,
         string $id,
-        int $customerId = null
+        ?int $customerId = null
     ) {
         $quote = $this->quoteRepository->getActive($cartId);
         $orderId = $quote->getPayment()->getAdditionalInformation('paypal_order_id');
@@ -260,7 +260,7 @@ class PaymentOrderManagement implements PaymentOrderManagementInterface
     public function sync(
         int $cartId,
         string $id,
-        int $customerId = null
+        ?int $customerId = null
     ) {
         $quote = $this->quoteRepository->getActive($cartId);
         $orderId = $quote->getPayment()->getAdditionalInformation('paypal_order_id');

@@ -72,7 +72,7 @@ class OrdersWithPaymentReview
      * @return array
      * @throws \Zend_Db_Statement_Exception
      */
-    public function get(int $count = null): array
+    public function get(?int $count = null): array
     {
         $ids = $this->getIdsForPaymentReviewOrders();
 

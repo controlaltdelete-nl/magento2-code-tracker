@@ -81,7 +81,7 @@ class CancellationService
      * @return bool
      * @throws NoSuchEntityException
      */
-    public function executeForAdmin(int $cartId, string $incrementId = null): bool
+    public function executeForAdmin(int $cartId, ?string $incrementId = null): bool
     {
         $quote = $this->quoteRepository->get($cartId);
         if (!$this->isCancelable($quote)) {
