@@ -187,7 +187,7 @@ class SendTrackingInformationTest extends TestCase
      * @param OrderInterface|null $order
      * @return Shipment
      */
-    private function createShipment(OrderInterface $order = null): Shipment
+    private function createShipment(?OrderInterface $order = null): Shipment
     {
         if (!$order) {
             $order = $this->createOrder();
@@ -248,7 +248,7 @@ class SendTrackingInformationTest extends TestCase
      * @param Payment|null $payment
      * @return OrderInterface
      */
-    private function createOrder(Payment $payment = null): OrderInterface
+    private function createOrder(?Payment $payment = null): OrderInterface
     {
         if (!$payment) {
             $payment = $this->createPayment();

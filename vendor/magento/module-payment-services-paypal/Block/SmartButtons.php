@@ -67,8 +67,8 @@ class SmartButtons extends Template implements ShortcutInterface
         string $pageType = 'minicart',
         array $componentConfig = [],
         array $data = [],
-        Json $serializer = null,
-        CompositeConfigProvider $compositeConfigProvider = null
+        ?Json $serializer = null,
+        ?CompositeConfigProvider $compositeConfigProvider = null
     ) {
         $this->config = $config;
         $this->componentConfig = $componentConfig;

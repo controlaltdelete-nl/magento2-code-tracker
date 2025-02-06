@@ -85,7 +85,7 @@ class PaymentSdkRequest implements PaymentSdkRequestInterface
      * @param string|null $methodCode
      * @return \Magento\PaymentServicesPaypal\Api\Data\PaymentSdkParamsInterface[]
      */
-    private function get(string $location, string $methodCode = null)
+    private function get(string $location, ?string $methodCode = null)
     {
         // Get sdk params from cache or service
         $sdkManagementParams = $this->paymentSdkManagement->getParams($location, null, $methodCode);

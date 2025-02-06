@@ -38,7 +38,7 @@ class OrdersFeedQuery extends FeedQuery
         FeedIndexMetadata $metadata,
         string $modifiedAt,
         int $offset,
-        array $ignoredExportStatus = null
+        ?array $ignoredExportStatus = null
     ): Select {
         return parent::getLimitSelect($metadata, $modifiedAt, $offset, $ignoredExportStatus)
             ->where('t.mode = ?', $this->environment);
@@ -51,7 +51,7 @@ class OrdersFeedQuery extends FeedQuery
         FeedIndexMetadata $metadata,
         string $modifiedAt,
         ?string $limit,
-        array $ignoredExportStatus = null
+        ?array $ignoredExportStatus = null
     ): Select {
         return parent::getDataSelect($metadata, $modifiedAt, $limit, $ignoredExportStatus)
             ->where('t.mode = ?', $this->environment);
