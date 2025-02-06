@@ -98,7 +98,7 @@ class Config
      * @param int|null $storeId
      * @return string
      */
-    public function getMerchantId(string $environment = '', int $storeId = null) : string
+    public function getMerchantId(string $environment = '', ?int $storeId = null) : string
     {
         $environment = $environment ?: $this->getEnvironmentType($storeId);
         return (string) $this->scopeConfig->getValue(
@@ -207,7 +207,7 @@ class Config
      * @param int|null $store
      * @return bool
      */
-    public function isConfigured(string $environment = '', int $store = null) : bool
+    public function isConfigured(string $environment = '', ?int $store = null) : bool
     {
         return $this->isMagentoServicesConfigured($environment)
             && $this->isEnabled($store)

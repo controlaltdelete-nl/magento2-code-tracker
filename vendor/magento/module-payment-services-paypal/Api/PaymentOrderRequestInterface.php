@@ -55,7 +55,7 @@ interface PaymentOrderRequestInterface
         string $location,
         int $customerId,
         bool $vaultIntent = false,
-        string $threeDSMode = null,
+        ?string $threeDSMode = null,
     );
 
     /**
@@ -80,7 +80,7 @@ interface PaymentOrderRequestInterface
         string $cartId,
         string $location,
         bool $vaultIntent = false,
-        string $threeDSMode = null,
+        ?string $threeDSMode = null,
     );
 
     /**
