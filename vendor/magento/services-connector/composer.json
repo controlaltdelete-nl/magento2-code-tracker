@@ -2,7 +2,7 @@
   "name": "magento/services-connector",
   "description": "Saas utilities module",
   "require": {
-    "php": "~7.2.0||~7.3.0||~7.4.0||~8.1.0||~8.2.0||~8.3.0",
+    "php": "~7.2.0||~7.3.0||~7.4.0||~8.1.0||~8.2.0||~8.3.0||~8.4.0",
     "guzzlehttp/guzzle": "^6.0.0||^7.3.0",
     "firebase/php-jwt": "^6.0.0",
     "magento/framework": ">=101.0.0"
@@ -20,5 +20,5 @@
       "Magento\\ServicesConnector\\": ""
     }
   },
-  "version": "1.3.5"
+  "version": "1.3.6"
 }

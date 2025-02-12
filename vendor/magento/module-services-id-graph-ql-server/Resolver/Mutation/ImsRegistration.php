@@ -75,7 +75,7 @@ class ImsRegistration implements ResolverInterface
     /**
      * @inheritDoc
      */
-    public function resolve(Field $field, $context, ResolveInfo $info, array $value = null, array $args = null)
+    public function resolve(Field $field, $context, ResolveInfo $info, ?array $value = null, ?array $args = null)
     {
         $serviceUri = $this->scopeConfig->getValue(self::CONFIG_PATH_REGISTRATION_API_PATH);
         $redirectUri = $this->urlInterface->getUrl('services_id/index/index');

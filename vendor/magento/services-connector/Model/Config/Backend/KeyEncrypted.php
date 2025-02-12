@@ -39,8 +39,8 @@ class KeyEncrypted extends \Magento\Framework\App\Config\Value implements
      * @param TypeListInterface $cacheTypeList
      * @param EncryptorInterface $encryptor
      * @param LoggerInterface $logger
-     * @param AbstractResource $resource
-     * @param AbstractDb $resourceCollection
+     * @param AbstractResource|null $resource
+     * @param AbstractDb|null $resourceCollection
      * @param array $data
      */
     public function __construct(
@@ -50,8 +50,8 @@ class KeyEncrypted extends \Magento\Framework\App\Config\Value implements
         TypeListInterface $cacheTypeList,
         EncryptorInterface $encryptor,
         LoggerInterface $logger,
-        AbstractResource $resource = null,
-        AbstractDb $resourceCollection = null,
+        ?AbstractResource $resource = null,
+        ?AbstractDb $resourceCollection = null,
         array $data = []
     ) {
         $this->encryptor = $encryptor;
