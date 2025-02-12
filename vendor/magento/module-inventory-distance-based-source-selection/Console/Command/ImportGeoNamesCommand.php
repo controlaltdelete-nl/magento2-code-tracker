@@ -73,9 +73,11 @@ class ImportGeoNamesCommand extends Command
                 $output->writeln('OK');
             } catch (\Exception $e) {
                 $output->writeln($e->getMessage());
+                return Command::FAILURE;
             }
         }
 
         $output->writeln('Done.');
+        return Command::SUCCESS;
     }
 }
