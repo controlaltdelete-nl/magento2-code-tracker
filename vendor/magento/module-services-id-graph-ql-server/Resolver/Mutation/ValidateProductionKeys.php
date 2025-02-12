@@ -34,7 +34,7 @@ class ValidateProductionKeys implements ResolverInterface
     /**
      * @inheritDoc
      */
-    public function resolve(Field $field, $context, ResolveInfo $info, array $value = null, array $args = null)
+    public function resolve(Field $field, $context, ResolveInfo $info, ?array $value = null, ?array $args = null)
     {
         return ['message' => $this->connectionValidator->validate('production')];
     }
