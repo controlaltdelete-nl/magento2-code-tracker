@@ -118,7 +118,7 @@
                             click="placeOrderClick"
                             attr="title: placeOrderTitle"
                             css="disabled: !isPlaceOrderActionAllowed()"
-                            ko-disabled="getCode() !== isChecked() || !isFormValid()">
+                            ko-disabled="getCode() !== isChecked() || !isFormValid() || isInProgress()">
                         <span translate="placeOrderTitle"></span>
                     </button>
                 </div>

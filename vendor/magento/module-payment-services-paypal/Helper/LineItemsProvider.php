@@ -114,7 +114,9 @@ class LineItemsProvider
         return array_merge(...array_map(
             function (QuoteItem $item) use ($quote, $withL3Data) {
                 $product = $this->productRepository->getById($item->getProduct()->getId());
-                $qty = (int)$item->getQty();
+
+                // If QTY is decimal, we calculate line item QTY as a single item as PayPal allows only whole numbers
+                $qty = $this->isDecimal($item->getQty()) ? 1 : (int)$item->getQty();
                 $lineItems = [];
 
                 $taxAmountCents = $this->toCents((float)$item->getBaseTaxAmount());
@@ -302,5 +304,17 @@ class LineItemsProvider
         }
 
         return $lineItem;
+    }
+
+    /**
+     * Check if $val value can be casted to decimal
+     * E.g: '1.11' => true, 1.11 => true, 1.00 => false, 1 => false
+     *
+     * @param mixed $val
+     * @return bool
+     */
+    private function isDecimal($val): bool
+    {
+        return is_numeric($val) && floor($val) != $val;
     }
 }
