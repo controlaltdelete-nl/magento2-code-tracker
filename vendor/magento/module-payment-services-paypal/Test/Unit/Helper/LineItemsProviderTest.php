@@ -700,6 +700,85 @@ class LineItemsProviderTest extends TestCase
         $this->assertEquals($expectedLineItems, $lineItems);
     }
 
+    public function testGetLineItemsWithOneDigitalAndOnePhysicalItemDecimalQty(): void
+    {
+        $productWithShortDescription = $this->createProduct(self::PRODUCT_ID_1);
+        $productWithDescription = $this->createProduct(self::PRODUCT_ID_2, false);
+
+        $this->productRepositoryWillReturn(
+            self::PRODUCT_ID_1,
+            self::PRODUCT_ID_2,
+            $productWithShortDescription,
+            $productWithDescription
+        );
+
+        $quoteItemPhysical = $this->createQuoteItem(
+            $productWithShortDescription,
+            15,
+            30,
+            4,
+            2.23
+        );
+        $quoteItemVirtual = $this->createQuoteItem(
+            $productWithDescription,
+            20,
+            40,
+            6.28,
+            2,
+            true
+        );
+
+        $quote = $this->createQuoteWithItems([$quoteItemPhysical, $quoteItemVirtual]);
+
+        $lineItems = $this->lineItemsProvider->getLineItems($quote);
+
+        $url = $this->getMagentoBaseUrl();
+        $expectedLineItems = [
+            [
+                'name' => 'name',
+                'quantity' => '1',
+                'sku' => 'sku',
+                'unit_amount' => [
+                    'value' => '30.00',
+                    'currency_code' => 'USD'
+                ],
+                'tax' => [
+                    'value' => '4.00',
+                    'currency_code' => 'USD'
+                ],
+                'upc' => [
+                    'type' => 'UPC-A',
+                    'code' => '000123'
+                ],
+                'description' => 'short description',
+                'url' => sprintf('%scatalog/product/view/id/%s/', $url, self::PRODUCT_ID_1),
+                'category' => 'PHYSICAL_GOODS',
+            ],
+            [
+                'name' => 'name',
+                'quantity' => '2',
+                'sku' => 'sku',
+                'unit_amount' => [
+                    'value' => '20.00',
+                    'currency_code' => 'USD'
+                ],
+                'tax' => [
+                    'value' => '3.14',
+                    'currency_code' => 'USD'
+                ],
+                'upc' => [
+                    'type' => 'UPC-A',
+                    'code' => '000456'
+                ],
+                'description' => 'description',
+                'url' => sprintf('%scatalog/product/view/id/%s/', $url, self::PRODUCT_ID_2),
+                'category' => 'DIGITAL_GOODS',
+            ]
+        ];
+
+        $this->assertEquals($expectedLineItems, $lineItems);
+    }
+
     /**
      * Create a product with id
      *
@@ -768,7 +847,7 @@ class LineItemsProviderTest extends TestCase
         float $unitPrice,
         float $rowTotal,
         float $taxAmount,
-        int $qty = 1,
+        float $qty = 1,
         bool $isVirtual = false,
     ): Quote\Item {
         $quoteItem = $this->getMockBuilder(Quote\Item::class)
