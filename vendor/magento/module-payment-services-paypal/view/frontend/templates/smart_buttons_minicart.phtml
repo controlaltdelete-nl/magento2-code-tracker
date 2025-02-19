@@ -13,11 +13,15 @@ declare(strict_types=1);
 /** @var \Magento\Framework\View\Helper\SecureHtmlRenderer $secureRenderer */
 ?>
 
-<?php $serializedCheckoutConfig = /* @noEscape */ $block->getSerializedCheckoutConfig();
-
-$scriptString = <<<script
+<?php
+if ($block->isEnabled() && $block->doesQuoteExist()) {
+    $serializedCheckoutConfig = /* @noEscape */ $block->getSerializedCheckoutConfig();
+    $scriptString = <<<script
             window.checkoutConfig = {$serializedCheckoutConfig};
+            window.customerData = window.checkoutConfig.customerData;
+            window.isCustomerLoggedIn = window.checkoutConfig.isCustomerLoggedIn;
 script;
+}
 ?>
 
 <?php if ($block->isLocationEnabled('minicart')): ?>
@@ -39,4 +43,8 @@ script;
     </div>
 <?php endif ?>
 
-<?= /* @noEscape */ $secureRenderer->renderTag('script', [], $scriptString, false) ?>
+<?php /* @noEscape */
+if ($block->isEnabled() && $block->doesQuoteExist()) {
+    echo $secureRenderer->renderTag('script', [], $scriptString, false);
+}
+?>
