@@ -190,6 +190,7 @@ class Checkout
      * Create an order in paypal
      *
      * @param String $paymentSource
+     * @param String|null $threeDSMode
      * @return array
      * @throws LocalizedException
      * @throws NoSuchEntityException
@@ -206,7 +207,6 @@ class Checkout
             $paymentMethod = GooglePayConfigProvider::CODE;
         }
         $quote->getPayment()->setMethod($paymentMethod);
-        $this->quoteRepository->save($quote);
         $totalAmount = $quote->getBaseGrandTotal();
         $currencyCode = $quote->getCurrency()->getBaseCurrencyCode();
         $quoteId = $quote->getId();
@@ -230,8 +230,9 @@ class Checkout
             && isset($saasResponse["paypal-order"]['id'])
         ) {
             $quote->getPayment()->setAdditionalInformation('paypal_order_id', $saasResponse["paypal-order"]['id']);
-            $this->quoteRepository->save($quote);
         }
+
+        $this->quoteRepository->save($quote);
 
         return array_merge_recursive(
             $saasResponse,
@@ -502,7 +503,8 @@ class Checkout
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    private function updateQuoteCustomerData(QuoteEntity $quote): void {
+    private function updateQuoteCustomerData(QuoteEntity $quote): void
+    {
         if ($this->customerSession->isLoggedIn()) {
             $customerData = $this->customerSession->getCustomerData();
             $quote->setCustomerFirstname($customerData->getFirstname());
