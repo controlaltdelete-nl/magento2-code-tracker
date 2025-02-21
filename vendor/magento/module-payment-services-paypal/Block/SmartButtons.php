@@ -14,7 +14,6 @@ use Magento\Framework\View\Element\Template\Context;
 use Magento\PaymentServicesPaypal\Model\Config;
 use Magento\Catalog\Block\ShortcutInterface;
 use Magento\Framework\View\Element\Template;
-use Magento\Checkout\Model\Session as CheckoutSession;
 
 /**
  * @api
@@ -52,11 +51,6 @@ class SmartButtons extends Template implements ShortcutInterface
     private $serializer;
 
     /**
-     * @var CheckoutSession
-     */
-    private $checkoutSession;
-
-    /**
      * @param Context $context
      * @param Config $config
      * @param Session $session
@@ -65,9 +59,6 @@ class SmartButtons extends Template implements ShortcutInterface
      * @param array $data
      * @param Json|null $serializer
      * @param CompositeConfigProvider|null $compositeConfigProvider
-     * @param CheckoutSession|null $checkoutSession
-     *
-     * @SuppressWarnings(Magento.TypeDuplication)
      */
     public function __construct(
         Context $context,
@@ -77,8 +68,7 @@ class SmartButtons extends Template implements ShortcutInterface
         array $componentConfig = [],
         array $data = [],
         ?Json $serializer = null,
-        ?CompositeConfigProvider $compositeConfigProvider = null,
-        ?CheckoutSession $checkoutSession = null
+        ?CompositeConfigProvider $compositeConfigProvider = null
     ) {
         $this->config = $config;
         $this->componentConfig = $componentConfig;
@@ -92,7 +82,6 @@ class SmartButtons extends Template implements ShortcutInterface
         $this->setTemplate($data['template'] ?? $componentConfig[$this->pageType]['template']);
         $this->serializer = $serializer ?: ObjectManager::getInstance()->get(Json::class);
         $this->configProvider = $compositeConfigProvider ?: ObjectManager::getInstance()->get(CompositeConfigProvider::class);
-        $this->checkoutSession = $checkoutSession ?: ObjectManager::getInstance()->get(CheckoutSession::class);
     }
 
     /**
@@ -195,20 +184,5 @@ class SmartButtons extends Template implements ShortcutInterface
     public function getSerializedCheckoutConfig()
     {
         return $this->serializer->serialize($this->configProvider->getConfig());
-    }
-
-    /**
-     * Check if quote exists
-     *
-     * @return bool
-     * @throws \Magento\Framework\Exception\LocalizedException
-     */
-    public function doesQuoteExist(): bool
-    {
-        try {
-            return $this->checkoutSession->getQuote()->getId() != null;
-        } catch (\Magento\Framework\Exception\NoSuchEntityException $e) {
-            return false;
-        }
     }
 }
