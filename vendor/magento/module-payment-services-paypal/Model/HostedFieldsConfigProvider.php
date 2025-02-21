@@ -7,7 +7,6 @@ declare(strict_types=1);
 namespace Magento\PaymentServicesPaypal\Model;
 
 use Magento\Checkout\Model\ConfigProviderInterface;
-use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Customer\Model\Session as CustomerSession;
 use Magento\Framework\UrlInterface;
 use Magento\Payment\Model\CcConfigProvider;
@@ -15,8 +14,6 @@ use Magento\Payment\Model\CcConfig;
 use Magento\PaymentServicesPaypal\Model\SdkService\PaymentOptionsBuilder;
 use Magento\PaymentServicesPaypal\Model\SdkService\PaymentOptionsBuilderFactory;
 use Magento\PaymentServicesBase\Model\Config as BaseConfig;
-use Magento\Quote\Model\QuoteIdMaskFactory;
-use Magento\PaymentServicesPaypal\Model\PaymentsSDKConfigProvider;
 
 /**
  * @SuppressWarnings(PHPMD.CookieAndSessionMisuse)
@@ -69,21 +66,6 @@ class HostedFieldsConfigProvider implements ConfigProviderInterface
     private $configProvider;
 
     /**
-     * @var CheckoutSession
-     */
-    private $checkoutSession;
-
-    /**
-     * @var QuoteIdMaskFactory
-     */
-    private $quoteIdMaskFactory;
-
-    /**
-     * @var PaymentsSDKConfigProvider
-     */
-    private $paymentsSDKConfigProvider;
-
-    /**
      *
      * @param Config $config
      * @param CcConfig $ccConfig
@@ -92,10 +74,6 @@ class HostedFieldsConfigProvider implements ConfigProviderInterface
      * @param UrlInterface $url
      * @param BaseConfig $baseConfig
      * @param ConfigProvider $configProvider
-     * @param CheckoutSession $checkoutSession
-     * @param QuoteIdMaskFactory $quoteIdMaskFactory
-     * @param PaymentsSDKConfigProvider $paymentsSDKConfigProvider
-     * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
         Config $config,
@@ -104,10 +82,7 @@ class HostedFieldsConfigProvider implements ConfigProviderInterface
         CustomerSession $customerSession,
         UrlInterface $url,
         BaseConfig $baseConfig,
-        ConfigProvider $configProvider,
-        CheckoutSession $checkoutSession,
-        QuoteIdMaskFactory $quoteIdMaskFactory,
-        PaymentsSDKConfigProvider $paymentsSDKConfigProvider
+        ConfigProvider $configProvider
     ) {
         $this->config = $config;
         $this->baseConfig = $baseConfig;
@@ -116,9 +91,6 @@ class HostedFieldsConfigProvider implements ConfigProviderInterface
         $this->customerSession = $customerSession;
         $this->url = $url;
         $this->configProvider = $configProvider;
-        $this->checkoutSession = $checkoutSession;
-        $this->quoteIdMaskFactory = $quoteIdMaskFactory;
-        $this->paymentsSDKConfigProvider = $paymentsSDKConfigProvider;
     }
 
     /**
@@ -151,14 +123,6 @@ class HostedFieldsConfigProvider implements ConfigProviderInterface
         $config['payment'][self::CODE]['isCommerceVaultEnabled'] = $this->config->isVaultEnabled()
             && $this->customerSession->isLoggedIn();
         $config['payment'][self::CODE]['ccVaultCode'] = self::CC_VAULT_CODE;
-        $config['payment'][self::CODE]['quoteMaskedId'] = $this->getQuoteMaskId();
-
-        $paymentsSDKParams = $this->paymentsSDKConfigProvider->getPaymentsSDKParams();
-        $config['payment'][self::CODE]['paymentsSDKUrl'] = $paymentsSDKParams[PaymentsSDKConfigProvider::KEY_SDK_URL];
-        $config['payment'][self::CODE]['storeViewCode'] = $paymentsSDKParams[PaymentsSDKConfigProvider::KEY_STORE_VIEW_CODE];
-        $config['payment'][self::CODE]['oauthToken'] = $paymentsSDKParams[PaymentsSDKConfigProvider::KEY_OAUTH_TOKEN];
-        $config['payment'][self::CODE]['graphQLEndpointUrl'] = $paymentsSDKParams[PaymentsSDKConfigProvider::KEY_GRAPHQL_ENDPOINT_URL];
-
         return $config;
     }
 
@@ -183,22 +147,5 @@ class HostedFieldsConfigProvider implements ConfigProviderInterface
     private function decideIfCardDetailsAreRequired() : bool
     {
         return $this->config->isSignifydEnabled();
-    }
-
-    /**
-     * Return quote id mask
-     *
-     * @return string
-     */
-    private function getQuoteMaskId()
-    {
-        /** @var $quoteIdMask \Magento\Quote\Model\QuoteIdMask */
-        $quoteIdMask = $this->quoteIdMaskFactory->create();
-        $quoteId = $this->checkoutSession->getQuoteId();
-        $quoteIdMask->load($quoteId, 'quote_id');
-        if (!$quoteIdMask->getMaskedId()) {
-            $quoteIdMask->setQuoteId($quoteId)->save();
-        }
-        return $quoteIdMask->getMaskedId();
     }
 }

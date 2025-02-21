@@ -11,13 +11,12 @@ define([
     'Magento_Checkout/js/view/payment/default',
     'Magento_Checkout/js/model/quote',
     'Magento_Checkout/js/model/full-screen-loader',
+    'Magento_PaymentServicesPaypal/js/view/payment/methods/hosted-fields',
     'Magento_PaymentServicesPaypal/js/view/errors/response-error',
     'Magento_Checkout/js/action/set-billing-address',
     'Magento_Ui/js/model/messageList',
     'Magento_Vault/js/view/payment/vault-enabler',
     'Magento_Checkout/js/model/payment/additional-validators',
-    'Magento_PaymentServicesPaypal/js/lib/script-loader',
-    'ko'
 ], function (
     $,
     _,
@@ -25,13 +24,12 @@ define([
     Component,
     quote,
     loader,
+    HostedFields,
     ResponseError,
     setBillingAddressAction,
     globalMessageList,
     VaultEnabler,
-    additionalValidators,
-    scriptLoader,
-    ko
+    additionalValidators
 ) {
     'use strict';
 
@@ -71,14 +69,9 @@ define([
                     placeholder: ''
                 }
             },
-            cardsByCode: {
-                "amex": "AE",
-                "discover": "DI",
-                "elo": "ELO",
-                "hiper": "HC",
-                "jcb": "JCB",
-                "mastercard": "MC",
-                "visa": "VI",
+            fieldsLayout: {
+                first: ['number'],
+                second: ['expirationDate', 'cvv']
             },
             cards: {
                 AE: {
@@ -110,17 +103,16 @@ define([
                     typeCode: 'visa'
                 }
             },
-            orderCreateErrorMessage: {
-                default: $t('Failed to place order. Try again or refresh the page if that does not resolve the issue.'), // eslint-disable-line max-len,
-                'POSTAL_CODE_REQUIRED': $t('Postal code is required.'),
-                'CITY_REQUIRED': $t('City is required.')
-            },
             availableCards: [],
+            threeDSMode: window.checkoutConfig.payment['payment_services_paypal_hosted_fields'].threeDS,
+            createOrderUrl: window.checkoutConfig.payment['payment_services_paypal_hosted_fields'].createOrderUrl,
             getOrderDetailsUrl: window.checkoutConfig.payment['payment_services_paypal_hosted_fields'].getOrderDetailsUrl, // eslint-disable-line max-len
             requiresCardDetails: window.checkoutConfig.payment['payment_services_paypal_hosted_fields'].requiresCardDetails, // eslint-disable-line max-len
             ccIcons: window.checkoutConfig.payment['payment_services_paypal_hosted_fields'].ccIcons,
             paymentSource: window.checkoutConfig.payment['payment_services_paypal_hosted_fields'].paymentSource,
             cvvImgUrl:  window.checkoutConfig.payment['payment_services_paypal_hosted_fields'].cvvImageUrl,
+            scriptParams:  window.checkoutConfig.payment['payment_services_paypal_hosted_fields'].sdkParams,
+            sdkNamespace: 'paypalCheckoutHostedFields',
             isCommerceVaultEnabled: window.checkoutConfig.payment['payment_services_paypal_hosted_fields'].isCommerceVaultEnabled, // eslint-disable-line max-len
             emptyErrorMessage: $t('This is a required field.'),
             paymentTypeIconUrl:  window.checkoutConfig.payment['payment_services_paypal_hosted_fields'].paymentTypeIconUrl, // eslint-disable-line max-len
@@ -143,65 +135,46 @@ define([
             cardExpiryMonth: null,
             cardExpiryYear: null,
             hostedFields: null,
-            shouldCardBeVaulted: false,
-
-            paymentsSdk: null,
-            paymentsSdkInitPromise: null,
-            isInProgress: ko.observable(false),
+            shouldCardBeVaulted: false
         },
 
         /** @inheritdoc */
         initialize: function () {
+            // config
+
             _.bindAll(
                 this,
+                'onSuccess',
                 'onError',
+                'afterHostedFieldsRender',
+                'onOrderSuccess',
+                'beforeCreateOrder',
                 'getOrderCardDetails'
             );
             this._super();
-            this.initPaymentsSDK();
-            this.initVaulting();
+            this.initHostedFields();
+            this.vaultEnabler = new VaultEnabler();
+            this.vaultEnabler.isActivePaymentTokenEnabler(false);
+            this.vaultEnabler.setPaymentCode(window.checkoutConfig.payment[this.getCode()].ccVaultCode);
 
             return this;
         },
 
         /**
-         * Initialize Payments SDK
-         * Load js script and initialize SDK
+         * Initialize Hosted Fields.
          */
-        initPaymentsSDK: function () {
-            this.paymentsSdkInitPromise = new Promise(
-                function (resolve, reject) {
-                    scriptLoader.loadCustom({url: this.getPaymentsSDKUrl()})
-                        .then(function () {
-                            const sdkConfig = {
-                                storeViewCode: this.getGraphQLStoreCode()
-                            }
-
-                            if (this.getGraphQLToken()) {
-                                sdkConfig.getCustomerToken = () => this.getGraphQLToken();
-                            }
-
-                            if (this.getGraphQLUrl()) {
-                                sdkConfig.apiUrl = this.getGraphQLUrl();
-                            }
-
-                            this.paymentsSdk = new window.PaymentServicesSDK(sdkConfig);
-
-                            this.paymentsSdk.Payment.init({location: "CHECKOUT"})
-                                .then(() => {resolve()})
-                                .catch((e) => {reject(e)});
-                        }.bind(this)).catch((e) => {reject(e)});
-                }.bind(this)
-            );
-        },
-
-        /**
-         * Initialize vaulting
-         */
-        initVaulting: function () {
-            this.vaultEnabler = new VaultEnabler();
-            this.vaultEnabler.isActivePaymentTokenEnabler(false);
-            this.vaultEnabler.setPaymentCode(window.checkoutConfig.payment[this.getCode()].ccVaultCode);
+        initHostedFields: function () {
+            this.hostedFields = new HostedFields({
+                formId: this.formId,
+                fields: this.fields,
+                sdkNamespace: this.sdkNamespace,
+                scriptParams: this.scriptParams,
+                beforeCreateOrder: this.beforeCreateOrder,
+                onOrderSuccess: this.onOrderSuccess,
+                createOrderUrl: this.createOrderUrl,
+                shouldCardBeVaulted: this.shouldCardBeVaulted,
+                paymentSource: this.paymentSource
+            });
         },
 
         /** @inheritdoc */
@@ -253,180 +226,91 @@ define([
             return data;
         },
 
+        /**
+         * Get payment related data.
+         *
+         * @return {Object}
+         */
+        getPaymentData: function () {
+            const paymentData = {
+                vault: this.isCommerceVaultEnabled && this.checkShouldCardBeVaulted(),
+                cardholderName: this.billingAddress().firstname + ' ' + this.billingAddress().lastname,
+                billingAddress: {
+                    streetAddress: this.billingAddress().street[0],
+                    extendedAddress: this.billingAddress().street[1],
+                    region: this.billingAddress().region,
+                    locality: this.billingAddress().city,
+                    postalCode: this.billingAddress().postcode,
+                    countryCodeAlpha2: this.billingAddress().countryId
+                }
+            };
+
+            if (this.threeDSMode) {
+                paymentData.contingencies = [this.threeDSMode];
+            }
+
+            return paymentData;
+        },
+
         /** @inheritdoc */
         afterRender: function () {
             this.$form = $('#' + this.formId);
 
-            this.paymentsSdkInitPromise.then(function () {
-                this.isAvailable(this.paymentsSdk.Payment.CreditCard.isAvailable())
+            this.hostedFields.sdkLoaded.then(function () {
+                this.isAvailable(this.hostedFields.isEligible());
 
-                if (!this.isAvailable()) {
-                    return;
+                if (this.isAvailable()) {
+                    this.hostedFields.render()
+                        .then(this.afterHostedFieldsRender.bind(this));
                 }
-
-                this.paymentsSdk.Payment.CreditCard.render({
-                    fields: {
-                        number: {
-                            selector: this.fields.number.selector,
-                            label: this.fields.number.label,
-                            class: this.fields.number.class,
-                        },
-                        expirationDate: {
-                            selector: this.fields.expirationDate.selector,
-                            label: this.fields.expirationDate.label,
-                            class: this.fields.expirationDate.class,
-                        },
-                        cvv: {
-                            selector: this.fields.cvv.selector,
-                            label: this.fields.cvv.label,
-                            class: this.fields.cvv.class,
-                        },
-                    },
-                    styles: {
-                        input: {
-                            color: '#ccc',
-                            'font-family': '"Open Sans","Helvetica Neue",Helvetica,Arial,sans-serif',
-                            'font-size': '16px',
-                            'font-weight': '400'
-                        },
-                        ':focus': {
-                            color: '#333'
-                        },
-                        '.valid': {
-                            color: '#333'
-                        }
-                    },
-                    onRender: this.onRender.bind(this),
-                    getCartId: this.getMaskedCardId,
-                    onStart: this.onStart.bind(this),
-                    onSuccess: this.onSuccess.bind(this),
-                    getBillingAddress: this.getBillingAddress.bind(this),
-                    getShouldVaultCard: () => this.isCommerceVaultEnabled && this.checkShouldCardBeVaulted(),
-                    onValidityChange: this.onValidityChange.bind(this),
-                    onCardTypeChange: this.onCardTypeChange.bind(this),
-                    onError: this.onError.bind(this),
-                    getShouldSetPaymentMethodOnCard: () => false,
-                });
-            }.bind(this))
-                .catch((e) => {
-                    console.log('Error initializing Payments SDK', e);
-                    this.isFormRendered(true);
-                    this.isAvailable(false);
-                });
+            }.bind(this)).catch(function () {
+                this.isAvailable(false);
+            }.bind(this)).finally(function () {
+                this.isFormRendered(true);
+            }.bind(this));
         },
 
         /**
-         * Get masked cart id
-         */
-        getMaskedCardId: function () {
-            return window.checkoutConfig.payment['payment_services_paypal_hosted_fields'].quoteMaskedId;
-        },
-
-        /**
-         * Get Payments SDK URL to load JS script
-         */
-        getPaymentsSDKUrl: function () {
-            return window.checkoutConfig.payment['payment_services_paypal_hosted_fields'].paymentsSDKUrl;
-        },
-
-        /**
-         * Get GraphQL store code to use in GraphQL requests
-         */
-        getGraphQLStoreCode: function () {
-            return window.checkoutConfig.payment['payment_services_paypal_hosted_fields'].storeViewCode;
-        },
-
-        /**
-         * Get GraphQL edpoint
-         */
-        getGraphQLUrl: function () {
-            return window.checkoutConfig.payment['payment_services_paypal_hosted_fields'].graphQLEndpointUrl;
-        },
-
-        /**
-         * Get GraphQL token for authentication
-         */
-        getGraphQLToken: function () {
-            return window.checkoutConfig.payment['payment_services_paypal_hosted_fields'].oauthToken;
-        },
-
-        /**
-         * Provide billing address for the order
-         */
-        getBillingAddress: function () {
-            return {
-                firstName: this.billingAddress().firstname,
-                lastName: this.billingAddress().lastname,
-                streetAddress: this.billingAddress().street[0],
-                extendedAddress: this.billingAddress().street[1],
-                region: this.billingAddress().region,
-                locality: this.billingAddress().city,
-                postalCode: this.billingAddress().postcode,
-                countryCodeAlpha2: this.billingAddress().countryId,
-            };
-        },
-
-        /**
-         * Start callback for Hosted Fields
-         * Called when the form is submitted
+         * Bind events after hostedFields rendered.
          *
-         * @param preventCheckout
-         * @returns {Promise<void>}
+         * @param {Object} hostedFields
          */
-        onStart: async function (preventCheckout) {
-            if (!this.canProceedWithOrder()) {
-                preventCheckout("invalid form");
-            }
-
-            loader.startLoader();
-
-            await setBillingAddressAction(globalMessageList);
-        },
-
-        /**
-         * Success callback for Hosted Fields
-         * Called when PP order is created and card details are collected
-         *
-         * @param data
-         */
-        onSuccess: function (data) {
-            this.paymentsOrderId(data.mpOrderId);
-            this.paypalOrderId(data.payPalOrderId);
-
-            this.getOrderCardDetails()
-                .then(this.placeOrder.bind(this))
-                .catch(this.onError.bind(this));
-        },
-
-        /**
-         * Called after Hosted Fields are rendered
-         *
-         * @param hostedFields
-         */
-        onRender: function (hostedFields)  {
-            this.isFormValid(false);
-            this.ccType('');
-            this.invalidFields([]);
-
-            var cards = hostedFields.getEligibleCards()
-                .filter(card => this.cardsByCode[card.code] !== undefined)
-                .map(card => this.cardsByCode[card.code]);
-
-            this.availableCards(cards);
-
+        afterHostedFieldsRender: function (hostedFields) {
+            this.processAvailableCards(hostedFields.getCardTypes());
+            hostedFields.on('cardTypeChange', this.onCardTypeChange.bind(this, hostedFields));
+            hostedFields.on('validityChange', this.onValidityChange.bind(this, hostedFields));
+            hostedFields.on('blur', this.validateField.bind(this, hostedFields));
+            hostedFields.on('inputSubmitRequest', function (e) {
+                this.validateField(hostedFields, e);
+                this.submitForm(hostedFields);
+            }.bind(this));
             this.$form.off('submit');
             this.$form.on('submit', function (e) {
                 e.preventDefault();
-                this.isInProgress(true);
-                hostedFields.submit()
-                    .catch(this.onError.bind(this))
-                    .finally(function () {
-                        loader.stopLoader();
-                        this.isInProgress(false);
-                    }.bind(this));
-            }.bind(this));
 
-            this.isFormRendered(true);
+                this.submitForm(hostedFields);
+            }.bind(this));
+        },
+
+        /**
+         * Filter eligible cards, convert to internal codes and set to available cards.
+         *
+         * @param {Object} cardTypes
+         */
+        processAvailableCards: function (cardTypes) {
+            const cards = _.keys(cardTypes).sort(),
+                eligibleCards  = _.chain(cards)
+                    .filter(function (ccCode) {
+                        return cardTypes[ccCode].eligible;
+                    })
+                    .map(function (ccCode) {
+                        return _.findKey(this.cards, function (val) {
+                            return val.eligibilityCode === ccCode;
+                        }) || ccCode;
+                    }, this)
+                    .value();
+
+            this.availableCards(eligibleCards);
         },
 
         /**
@@ -435,21 +319,12 @@ define([
          * @param {Object} hostedFields
          * @param {Object} event
          */
-        onValidityChange: function (fields, emittedBy) {
-            var valid = _.every(fields, function (field) {return field.isValid});
-            var invalidFields = this.invalidFields().filter(field => field.name !== emittedBy);
+        onValidityChange: function (hostedFields, event) {
+            const invalidFields = _.where(event.fields, {
+                isValid: false
+            });
 
-            if (!valid) {
-                if (fields[emittedBy] && !fields[emittedBy].isValid) {
-                    invalidFields.push({
-                        name: emittedBy,
-                        message: fields[emittedBy].isEmpty ? this.emptyErrorMessage : this.fields[emittedBy].errorMessage
-                    });
-                }
-                this.invalidFields(invalidFields)
-            }
-
-            this.isFormValid(valid);
+            this.isFormValid(!invalidFields.length);
             this.isFormValid() && this.invalidFields([]);
         },
 
@@ -478,27 +353,72 @@ define([
         },
 
         /**
+         * Validate credit card field.
+         *
+         * @param {Object} hostedFields
+         * @param {Object} event
+         */
+        validateField: function (hostedFields, event) {
+            var fieldName = event.emittedBy,
+                fieldValid = event.fields[fieldName].isValid,
+                isEmpty = event.fields[fieldName].isEmpty,
+                invalidFields = _.filter(this.invalidFields(), function (field) {
+                    return field.name !== fieldName;
+                });
+
+            if (!fieldValid) {
+                invalidFields.push({
+                    name: fieldName,
+                    message: isEmpty ? this.emptyErrorMessage : this.fields[fieldName].errorMessage
+                });
+            }
+
+            this.invalidFields(invalidFields);
+        },
+
+        /**
          * Card type changes handler.
          *
-         * @param {Array} a list of cards
+         * @param {Object} hostedFields
+         * @param {Object} event
          */
-        onCardTypeChange: function (cards) {
+        onCardTypeChange: function (hostedFields, event) {
             var code = '';
 
-            if (cards.length === 1 && this.cardsByCode[cards[0].code]) {
-                code = this.cardsByCode[cards[0].code]
+            if (event.cards.length === 1) {
+                code = _.findKey(this.cards, function (val) {
+                    return val.typeCode === event.cards[0].type;
+                });
             }
 
             this.ccType(code);
         },
 
         /**
-         * Get order card details
-         * Used when Signifyd is enabled and requires card details
+         * Form submit handler
          *
-         * @param response
-         * @returns {Promise<any>|Promise<Awaited<unknown>>}
+         * @param {Object} hostedFields
          */
+        submitForm: function (hostedFields) {
+            if (this.canProceedWithOrder()) {
+                loader.startLoader();
+                hostedFields.submit(
+                    this.getPaymentData()
+                ).then(this.getOrderCardDetails).then(this.onSuccess).catch(this.onError).finally(loader.stopLoader);
+            }
+        },
+
+        /**
+         * Before order created.
+         *
+         * @return {Promise}
+         */
+        beforeCreateOrder: function () {
+            return new Promise(function (resolve, reject) {
+                return setBillingAddressAction(globalMessageList).done(resolve).fail(reject);
+            });
+        },
+
         getOrderCardDetails: function (response) {
             if (!this.requiresCardDetails) {
                 return Promise.resolve(response);
@@ -530,20 +450,44 @@ define([
         },
 
         /**
+         * Success callback for transaction.
+         *
+         * @param {Object} response
+         */
+        onSuccess: function (response) {
+            if (!this.threeDSMode) {
+                this.placeOrder();
+                return;
+            }
+
+            if (response.liabilityShift === 'POSSIBLE' || response.liabilityShift === undefined) {
+                this.placeOrder();
+            } else {
+                this.onError(new ResponseError(this.paymentMethodValidationError));
+            }
+        },
+
+        /**
+         * On PayPal order creation success.
+         *
+         * @param {Object} order
+         */
+        onOrderSuccess: function (order) {
+            this.paymentsOrderId(order['mp_order_id']);
+            this.paypalOrderId(order.id);
+        },
+
+        /**
          * Error callback for transaction.
          */
         onError: function (error) {
-            loader.stopLoader();
             var message = this.generalErrorMessage;
 
             if (error instanceof ResponseError) {
                 message = error.message;
+                this.reRender();
             } else if (error['debug_id']) {
                 message = this.paymentMethodValidationError;
-            }
-
-            if (this.isOrderCreateError(error)) {
-                message = this.parseOrderCreateError(error);
             }
 
             this.messageContainer.addErrorMessage({
@@ -558,8 +502,21 @@ define([
         },
 
         /**
+         * Re-render hosted fields in case of order creation error.
+         */
+        reRender: function () {
+            this.hostedFields.instance.teardown().then(function () {
+                this.hostedFields.destroy();
+                this.isFormValid(false);
+                this.ccType('');
+                this.invalidFields([]);
+                this.initHostedFields();
+                this.afterRender();
+            }.bind(this));
+        },
+
+        /**
          * Place order
-         * Click event handler for place order button
          */
         placeOrderClick: function () {
             if (this.isPlaceOrderActionAllowed() === true) {
@@ -579,39 +536,8 @@ define([
             return checked;
         },
 
-        /**
-         * Check if the form is valid and the order can be placed
-         *
-         * @returns {*}
-         */
         canProceedWithOrder: function () {
-            return this.validate()
-                && additionalValidators.validate()
-                && this.isFormValid()
-                && this.isPlaceOrderActionAllowed();
-        },
-
-        isOrderCreateError: function (error) {
-            return error?.cause?.graphQLErrors
-                ?.find(e => e?.path?.join("").indexOf("createPaymentOrder") > -1) !== undefined;
-        },
-
-        parseOrderCreateError: function (error) {
-            if (this.isErrorCode(error, 'POSTAL_CODE_REQUIRED')) {
-                return this.orderCreateErrorMessage.POSTAL_CODE_REQUIRED;
-            }
-
-            if (this.isErrorCode(error, 'CITY_REQUIRED')) {
-                return this.orderCreateErrorMessage.CITY_REQUIRED;
-            }
-
-            return this.orderCreateErrorMessage.default;
-        },
-
-        isErrorCode: function (error, code) {
-            return error?.cause?.graphQLErrors
-                ?.find(e => e?.path?.join("").indexOf("createPaymentOrder") > -1)
-                ?.extensions?.debugMessage?.indexOf(code) > -1;
+            return this.validate() && additionalValidators.validate() && this.isFormValid() && this.isPlaceOrderActionAllowed();
         }
 
     });

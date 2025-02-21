@@ -101,13 +101,13 @@ class SendTrackingInformation implements ObserverInterface
 
             $paypalOrderId = $payment->getAdditionalInformation('paypal_order_id');
             if (!$paypalOrderId) {
-                $this->logger->debug("Order doesn't have a paypal_order_id", [$order->getIncrementId()]);
+                $this->logger->error("Order doesn't have a paypal_order_id", [$order->getIncrementId()]);
                 return;
             }
 
             $paypalTransactionId = $payment->getAdditionalInformation('paypal_txn_id');
             if (!$paypalTransactionId) {
-                $this->logger->warning("Order doesn't have a paypal_txn_id", [$order->getIncrementId()]);
+                $this->logger->error("Order doesn't have a paypal_txn_id", [$order->getIncrementId()]);
                 return;
             }
 

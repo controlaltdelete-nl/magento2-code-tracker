@@ -14,13 +14,13 @@ use Magento\PaymentServicesPaypal\Block\Customer\Vault\AddCardButton;
 ?>
 
 <?php if ($block->isButtonEnabled()): ?>
-    <button type="button" role="add-card" title="<?= $escaper->escapeHtmlAttr(__('Add New Card')) ?>" class="action primary add add-card-btn" style="margin-top: 2em">
+    <button type="button" role="add-card" title="<?= $escaper->escapeHtmlAttr(__('Add New Card')) ?>" class="action primary add" style="margin-top: 2em">
         <span><?= $escaper->escapeHtml(__('Add New Card')) ?></span>
     </button>
 
     <script type="text/x-magento-init">
         {
-            ".add-card-btn": {
+            ".action": {
                 "Magento_PaymentServicesPaypal/js/view/customer_account/vault/add-card-button": {
                     "addCard": "button[role='add-card']",
                     "addCardLocation": "<?= $escaper->escapeUrl($block->getAddCardUrl()); ?>"
