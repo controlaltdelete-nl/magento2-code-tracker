@@ -209,9 +209,9 @@ class Config
      */
     public function isConfigured(string $environment = '', ?int $store = null) : bool
     {
-        return $this->isEnabled($store)
-            && $this->getMerchantId($environment, $store)
-            && $this->isMagentoServicesConfigured($environment);
+        return $this->isMagentoServicesConfigured($environment)
+            && $this->isEnabled($store)
+            && $this->getMerchantId($environment, $store);
     }
 
     /**
