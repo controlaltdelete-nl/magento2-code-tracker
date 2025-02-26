@@ -291,7 +291,7 @@ class SubmitFeed
             'feed' => $feedName,
             'reason' => $feedExportStatus->getReasonPhrase(),
             'route' => $this->feedRouteResolver->getRoute($feedName),
-            'base_uri' => $clientConfig['base_uri']
+            'base_uri' => isset($clientConfig['base_uri'])
                 ? $clientConfig['base_uri']->__toString() : 'base uri wasn\'t set',
             'failedItems' => $feedExportStatus->getFailedItems()
         ];
