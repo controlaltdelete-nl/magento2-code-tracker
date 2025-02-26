@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace Magento\SaaSCommon\Model\Http;
 
+use Magento\DataExporter\Status\ExportStatusCodeProvider;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\SaaSCommon\Model\Logging\SaaSExportLoggerInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -27,15 +28,19 @@ class ResponseParser
 {
     private SerializerInterface $serializer;
     private SaaSExportLoggerInterface $logger;
+    private string $errorItemsField;
 
     /**
      * @param SerializerInterface $serializer
      * @param SaaSExportLoggerInterface $logger
      */
-    public function __construct(SerializerInterface $serializer, SaaSExportLoggerInterface $logger)
-    {
+    public function __construct(
+        SerializerInterface $serializer,
+        SaaSExportLoggerInterface $logger,
+        string $errorItemsField = 'invalidFeedItems') {
         $this->serializer = $serializer;
         $this->logger = $logger;
+        $this->errorItemsField = $errorItemsField;
     }
 
     /**
@@ -50,17 +55,21 @@ class ResponseParser
         try {
             $responseText = $response->getBody()->getContents();
             $json = $this->serializer->unserialize($responseText);
-            if (isset($json['invalidFeedItems'])) {
-                foreach ($json['invalidFeedItems'] as $item) {
+            if (isset($json[$this->errorItemsField])) {
+                foreach ($json[$this->errorItemsField] as $item) {
                     $parsedItem = $this->parseItem($item);
                     if (!$parsedItem) {
                         return  [];
                     }
                     [$index, $field, $message] = $parsedItem;
-                    $failedItems[$index] = [
-                        'message' => $message,
-                        'field' => $field
-                    ];
+                    //  TODO: combine in message all errors for each item
+                    if (!isset($failedItems[$index])) {
+                        $failedItems[$index] = [
+                            'message' => $message,
+                            'field' => $field,
+                            'status' => ExportStatusCodeProvider::FAILED_ITEM_ERROR
+                        ];
+                    }
                 }
             }
         } catch (\Throwable $e) {
