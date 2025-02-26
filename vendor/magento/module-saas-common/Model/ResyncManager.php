@@ -168,6 +168,7 @@ class ResyncManager
     public function executeFullResync(): void
     {
         $this->checkLock(function () {
+            $this->ensureNoRunningIndexer();
             if ($this->indexerConfig->isCleanUpFeed()) {
                 $this->truncateIndexTable();
             }
@@ -189,6 +190,7 @@ class ResyncManager
     public function executeResubmitOnly(): void
     {
         $this->checkLock(function () {
+            $this->ensureNoRunningIndexer();
             if ($this->isImmediateExport()) {
                 // index will not be truncated
                 $this->regenerateFeedData();
@@ -237,6 +239,19 @@ class ResyncManager
     {
         $indexer = $this->indexerRegistry->get($this->indexerName);
         $indexer->reindexAll();
+    }
+
+    /**
+     * @return void
+     */
+    private function ensureNoRunningIndexer(): void
+    {
+        if ($this->indexerRegistry->get($this->indexerName)->isWorking()) {
+            throw new \RuntimeException(sprintf(
+                'Feed sync skipped, indexer "%1$s" is in progress. You can check status with "bin/magento indexer:status %1$s"',
+                $this->indexerName
+            ));
+        }
     }
 
     /**
