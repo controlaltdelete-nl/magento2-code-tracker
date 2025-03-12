@@ -21,11 +21,13 @@ use Magento\DataExporter\Model\Batch\BatchGeneratorInterface;
 use Magento\DataExporter\Model\Batch\Feed\Generator as FeedBatchGenerator;
 use Magento\DataExporter\Model\FeedInterface;
 use Magento\DataExporter\Model\Indexer\Config as IndexerConfig;
+use Magento\DataExporter\Model\Indexer\FeedIndexMetadata;
 use Magento\DataExporter\Model\Logging\CommerceDataExportLoggerInterface;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\FlagManager;
 use Magento\Framework\Indexer\IndexerRegistry;
+use Magento\SaaSCommon\Console\ProgressBarManager;
 use Magento\SaaSCommon\Cron\SubmitFeedInterface;
 use Magento\SaaSCommon\Model\Exception\UnableSendData;
 use Magento\Framework\Indexer\ActionInterface as IndexerActionFeed;
@@ -40,6 +42,7 @@ use Magento\DataExporter\Lock\FeedLockManager;
  */
 class ResyncManager
 {
+    public const DEFAULT_RESYNC_ENTITY_TYPE = 'default';
     /**
      * @var ResourceConnection
      */
@@ -105,6 +108,8 @@ class ResyncManager
      */
     private ?CommerceDataExportLoggerInterface $logger;
 
+    private ?ProgressBarManager $progressBarManager;
+
     /**
      * @param IndexerActionFeed $feedIndexer
      * @param FlagManager $flagManager
@@ -120,6 +125,7 @@ class ResyncManager
      * @param FeedLockManager|null $feedLockManager
      * @param IndexerConfig|null $indexerConfig
      * @param CommerceDataExportLoggerInterface|null $logger
+     * @param ProgressBarManager|null $progressBarManager
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
@@ -137,7 +143,8 @@ class ResyncManager
         ?ProcessManagerFactory $processManagerFactory = null,
         ?FeedLockManager $feedLockManager = null,
         ?IndexerConfig $indexerConfig = null,
-        ?CommerceDataExportLoggerInterface $logger = null
+        ?CommerceDataExportLoggerInterface $logger = null,
+        ?ProgressBarManager $progressBarManager = null
     ) {
         $this->flagManager = $flagManager;
         $this->indexerRegistry = $indexerRegistry;
@@ -157,6 +164,8 @@ class ResyncManager
             ObjectManager::getInstance()->get(IndexerConfig::class);
         $this->logger = $logger ??
             ObjectManager::getInstance()->get(CommerceDataExportLoggerInterface::class);
+        $this->progressBarManager = $progressBarManager ??
+            ObjectManager::getInstance()->get(ProgressBarManager::class);
     }
 
     /**
@@ -204,6 +213,7 @@ class ResyncManager
 
     /**
      * Reset SaaS indexed feed data in order to re-generate
+     *
      * @deprecated
      * @phpcs:disable Magento2.Functions.DiscouragedFunction
      * @throws \Zend_Db_Statement_Exception
@@ -248,7 +258,8 @@ class ResyncManager
     {
         if ($this->indexerRegistry->get($this->indexerName)->isWorking()) {
             throw new \RuntimeException(sprintf(
-                'Feed sync skipped, indexer "%1$s" is in progress. You can check status with "bin/magento indexer:status %1$s"',
+                'Feed sync skipped, indexer "%1$s" is in progress. '
+                . 'You can check status with "bin/magento indexer:status %1$s"',
                 $this->indexerName
             ));
         }
@@ -264,6 +275,64 @@ class ResyncManager
     {
         $indexer = $this->indexerRegistry->get($this->indexerName);
         $indexer->reindexList($ids);
+    }
+
+    /**
+     * Make partial re-sync by list of provided IDs
+     *
+     * @param array $identifiers
+     * @param string $identifierType
+     * @return void
+     */
+    public function partialResyncByIds(array $identifiers = [], string $identifierType = "default"): void
+    {
+        $metadata = $this->feedInterface->getFeedMetadata();
+        $mappedIdentifierType = $metadata->getIdentifierMap($identifierType);
+        if (null === $mappedIdentifierType) {
+            $message = 'The \'' . $metadata->getFeedName() . '\' feed does not support partial resync by IDs'
+                . ' or wrong identifier type specified';
+            $this->logger->warning($message);
+            throw new \RuntimeException($message);
+        }
+        $this->checkLock(function () use ($identifiers, $mappedIdentifierType, $metadata) {
+            $this->ensureNoRunningIndexer();
+            $connection = $this->resourceConnection->getConnection();
+            $idField = $mappedIdentifierType;
+            $sourceIdentifier = $metadata->getSourceTableIdentityField();
+            if ($idField !== null) {
+                $tableName = $this->resourceConnection->getTableName($metadata->getSourceTableName());
+                $select = $connection->select()
+                    ->from($tableName, [$sourceIdentifier])
+                    ->where($idField . ' IN (?)', $identifiers);
+                $idsToReindex = $connection->fetchCol($select);
+                if (empty($idsToReindex)) {
+                    $message = 'There are no ' . $idField . 's found to reindex for provided identifiers list: '
+                        . implode(', ', $identifiers);
+                    $this->logger->warning($message);
+                    throw new \RuntimeException($message);
+                }
+
+                $this->logger->initSyncLog($metadata, 'partial resync by ids');
+                //Partial reindex by IDs supports only single thread reindex
+                $this->progressBarManager->start(count($idsToReindex), 1);
+                //Set feed hash to null for the entities that needs to be re-synchronized
+                $connection->update(
+                    $this->resourceConnection->getTableName($metadata->getFeedTableName()),
+                    [FeedIndexMetadata::FEED_TABLE_FIELD_FEED_HASH => null],
+                    [
+                        $connection->quoteInto(
+                            FeedIndexMetadata::FEED_TABLE_FIELD_SOURCE_ENTITY_ID . ' IN (?)',
+                            $idsToReindex
+                        )
+                    ]
+                );
+                $this->regenerateFeedDataByIds($idsToReindex);
+                $this->progressBarManager->finish();
+                $this->logger->complete();
+            } else {
+                $this->logger->info("Provided identifier is not available for partial reindex");
+            }
+        });
     }
 
     /**

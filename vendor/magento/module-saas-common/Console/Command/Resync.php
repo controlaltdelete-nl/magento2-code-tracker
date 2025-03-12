@@ -172,11 +172,25 @@ class Resync extends Command
             } else {
                 try {
                     $startTime = microtime(true);
-                    $output->writeln('<info>Executing full re-sync of ' . $feedName . ' feed data...</info>');
-                    $this->resyncManager->executeFullResync();
+                    if ($values = $input->getOption(ResyncOptions::PARTIAL_RESYNC)) {
+                        $resyncType = 'partial';
+                        $identifierType = $input->getOption(ResyncOptions::PARTIAL_RESYNC_IDENTIFIER_TYPE)
+                            ?? ResyncManager::DEFAULT_RESYNC_ENTITY_TYPE;
+                        $ids = array_filter(array_map('trim', explode(',', $values)));
+                        $output->writeln(
+                            '<info>Executing partial re-sync of ' . $feedName . ' feed data...</info>'
+                        );
+                        $this->resyncManager->partialResyncByIds($ids, $identifierType);
+                    } else {
+                        $resyncType = 'full';
+                        $output->writeln('<info>Executing full re-sync of ' . $feedName . ' feed data...</info>');
+                        $this->resyncManager->executeFullResync();
+                    }
                     $time = $this->formatTime((int)(microtime(true) - $startTime));
                     $output->writeln('');
-                    $output->writeln('<info>' . $feedName . ' feed data full re-sync complete in ' . $time .'</info>');
+                    $output->writeln(
+                        '<info>' . $feedName . ' feed data ' . $resyncType . ' re-sync complete in ' . $time .'</info>'
+                    );
                     $returnStatus = Cli::RETURN_SUCCESS;
                 } catch (\Exception $ex) {
                     $output->writeln('<error>An error occurred re-syncing ' . $feedName
