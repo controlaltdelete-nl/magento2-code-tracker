@@ -31,6 +31,8 @@ class ResyncOptions
     public const THREAD_COUNT = 'thread-count';
     public const BATCH_SIZE = 'batch-size';
     public const CONTINUE_RESYNC = 'continue-resync';
+    public const PARTIAL_RESYNC = 'by-ids';
+    public const PARTIAL_RESYNC_IDENTIFIER_TYPE = 'id-type';
 
     /**
      * List of options
