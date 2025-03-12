@@ -108,6 +108,16 @@
                     <item name="mode" xsi:type="const">\Symfony\Component\Console\Input\InputOption::VALUE_NONE</item>
                     <item name="description" xsi:type="string">Continue resync from the last stored position (This option is applicable to the products, productoverrides, prices feeds)</item>
                 </item>
+                <item name="partialResync" xsi:type="array">
+                    <item name="name" xsi:type="const">\Magento\SaaSCommon\Model\ResyncOptions::PARTIAL_RESYNC</item>
+                    <item name="mode" xsi:type="const">\Symfony\Component\Console\Input\InputOption::VALUE_REQUIRED</item>
+                    <item name="description" xsi:type="string">Resync partially by list of provided identifiers. (This option is applicable to the products, product overrides and prices feeds)</item>
+                </item>
+                <item name="partialResyncIdentifierType" xsi:type="array">
+                    <item name="name" xsi:type="const">\Magento\SaaSCommon\Model\ResyncOptions::PARTIAL_RESYNC_IDENTIFIER_TYPE</item>
+                    <item name="mode" xsi:type="const">\Symfony\Component\Console\Input\InputOption::VALUE_REQUIRED</item>
+                    <item name="description" xsi:type="string">Type of identifiers for partial resync (for example: sku, productId, etc)</item>
+                </item>
             </argument>
         </arguments>
     </type>
