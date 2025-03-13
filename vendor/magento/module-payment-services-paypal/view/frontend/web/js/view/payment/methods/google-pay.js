@@ -320,7 +320,12 @@ define([
 
             try {
                 this.beforeCreateOrder();
-                let orderData = performCreateOrder(this.createOrderUrl, data, null, this.threeDSMode);
+
+                // add location to the order create request
+                let formData = new FormData();
+                formData.append('location', this.location);
+
+                let orderData = performCreateOrder(this.createOrderUrl, data, formData, this.threeDSMode);
                 this.paypalOrderId = this.afterCreateOrder(orderData);
                 return this.paypalOrderId;
             } catch (error) {

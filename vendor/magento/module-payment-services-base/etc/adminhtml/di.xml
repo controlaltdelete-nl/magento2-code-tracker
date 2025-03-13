@@ -30,6 +30,7 @@
                     <item name="payment_methods_sandbox_merchant_id" xsi:type="string">payment/payment_methods/sandbox_merchant_id</item>
                     <item name="payment_methods_production_merchant_id" xsi:type="string">payment/payment_methods/production_merchant_id</item>
                     <item name="general_locale_timezone" xsi:type="const">Magento\Directory\Helper\Data::XML_PATH_DEFAULT_TIMEZONE</item>
+                    <item name="payment_services_mba_scoping_level" xsi:type="string">payment/payment_services/mba_scoping_level</item>
                 </item>
             </argument>
         </arguments>

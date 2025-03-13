@@ -11,22 +11,26 @@
             <group id="recommended_solutions">
                 <group id="magento_payments_legacy">
                     <group id="general_configuration">
-                        <field id="soft_descriptor" type="text" translate="label" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <field id="paypal_merchant_id" type="text" translate="label" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>Paypal Merchant ID</label>
+                            <frontend_model>Magento\PaymentServicesPaypal\Model\Adminhtml\Source\PaypalMerchant</frontend_model>
+                        </field>
+                        <field id="soft_descriptor" type="text" translate="label" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
                             <label>Soft Descriptor</label>
                             <config_path>payment/payment_services/soft_descriptor</config_path>
                             <validate>validate-length maximum-length-22</validate>
                         </field>
-                        <field id="async_status_updates" translate="label" sortOrder="2" type="select" showInDefault="0" showInWebsite="0" showInStore="0">
+                        <field id="async_status_updates" translate="label" sortOrder="3" type="select" showInDefault="0" showInWebsite="0" showInStore="0">
                             <label>Enable asynchronous status updates</label>
                             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                             <config_path>payment/payment_services/async_status_updates</config_path>
                         </field>
-                        <field id="paypal_l2_l3_send_data" translate="label" sortOrder="3" type="select" showInDefault="0" showInWebsite="0" showInStore="0">
+                        <field id="paypal_l2_l3_send_data" translate="label" sortOrder="4" type="select" showInDefault="0" showInWebsite="0" showInStore="0">
                             <label>Enable sending L2 L3 Data to Payments Service (Not visible in Admin UI)</label>
                             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                             <config_path>payment/payment_services_paypal_l2_l3/send_data</config_path>
                         </field>
-                        <field id="payments_sdk_url" translate="label" sortOrder="4" type="select" showInDefault="0" showInWebsite="0" showInStore="0">
+                        <field id="payments_sdk_url" translate="label" sortOrder="5" type="select" showInDefault="0" showInWebsite="0" showInStore="0">
                             <label>Url of the Payment Services SDK</label>
                             <config_path>payment/payment_services/sdk_url</config_path>
                         </field>

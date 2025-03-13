@@ -25,6 +25,7 @@ use Magento\Framework\App\Request\Http;
 class MerchantService
 {
     public const ADMIN_MERCHANT_URL = '/admin/merchant';
+    private const SCOPES_MERCHANT_URL = '/config/scopes/merchant/%s';
 
     /**
      * @var ServiceClientInterface
@@ -47,21 +48,29 @@ class MerchantService
     private $cacheTypeList;
 
     /**
+     * @var MerchantCacheService
+     */
+    private $cache;
+
+    /**
      * @param Config $config
      * @param ServiceClientInterface $serviceClient
      * @param WriterInterface $configWriter
      * @param TypeListInterface $cacheTypeList
+     * @param MerchantCacheService $cache
      */
     public function __construct(
         Config $config,
         ServiceClientInterface $serviceClient,
         WriterInterface $configWriter,
-        TypeListInterface $cacheTypeList
+        TypeListInterface $cacheTypeList,
+        MerchantCacheService $cache
     ) {
         $this->config = $config;
         $this->serviceClient = $serviceClient;
         $this->configWriter = $configWriter;
         $this->cacheTypeList = $cacheTypeList;
+        $this->cache = $cache;
     }
 
     /**
@@ -95,6 +104,47 @@ class MerchantService
         }
 
         return $response;
+    }
+
+    /**
+     * Get a list of all scopes for a merchant
+     *
+     * @return array
+     */
+    public function getAllScopesForMerchant(): array
+    {
+        $environment = $this->config->getEnvironmentType();
+        $merchantId = $this->config->getMerchantId($environment);
+
+        // merchant id not empty
+        if (empty($merchantId)) {
+            return [];
+        }
+
+        // Check in cache first
+        $scopes = $this->cache->loadScopesFromCache($environment);
+        if (!empty($scopes)) {
+            return $scopes;
+        }
+
+        $response =  $this->serviceClient->request(
+            ['Content-Type' => 'application/json', 'x-mp-merchant-id' => $merchantId],
+            sprintf(self::SCOPES_MERCHANT_URL, $merchantId),
+            Http::METHOD_GET,
+            '',
+            'json',
+            $environment,
+        );
+
+        $scopes = [];
+
+        if (isset($response['is_successful']) && $response['is_successful'] === true
+            && isset($response['mp-merchant']['merchant-scope'])) {
+            $scopes = $response['mp-merchant']['merchant-scope'];
+            $this->cache->saveScopesToCache($scopes, $environment);
+        }
+
+        return $scopes;
     }
 
     /**

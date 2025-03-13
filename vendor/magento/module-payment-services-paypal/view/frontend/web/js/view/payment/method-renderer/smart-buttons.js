@@ -111,7 +111,8 @@ define([
                 onApprove: function () {
                     this.placeOrder();
                 }.bind(this),
-                onError: this.catchError
+                onError: this.catchError,
+                location: window.checkoutConfig.payment[this.getCode()].location,
             });
         },
 

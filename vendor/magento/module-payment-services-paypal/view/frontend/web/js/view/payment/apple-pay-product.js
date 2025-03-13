@@ -88,7 +88,7 @@ define([
                 styles: this.styles,
                 afterOnAuthorize: this.afterOnAuthorize,
                 onCancel: this.onCancel,
-                pageType: this.pageType,
+                location: this.pageType,
             });
 
             $('#' + this.buttonContainerId).on('click', this.onClick);
@@ -151,7 +151,6 @@ define([
             // See https://developer.apple.com/documentation/apple_pay_on_the_web/applepaysession
             this.applePaySession = new ApplePaySession(this.applePayButton.applePayVersionNumber, paymentRequest);
             this.applePayButton.onApplePayValidateMerchant(this.applePaySession);
-            this.applePayButton.onApplePayPaymentMethodSelected(this.applePaySession, paymentRequest.total);
             this.applePayButton.onApplePayCancel(this.applePaySession, this.setQuoteInactive.bind(this));
             this.applePayButton.onApplePayShippingContactSelected(this.applePaySession, this.quoteIdForRest, paymentRequest.total, null);
             this.applePayButton.onApplePayShippingMethodSelected(this.applePaySession, this.quoteId, this.quoteIdForRest, this.paypalOrderId);
@@ -221,14 +220,24 @@ define([
 
             this.applePayButton.showLoaderAsync(true)
                 .then(() => {
-                    $.ajax({
-                        type: 'POST',
-                        url: this.placeOrderUrl,
+                    fetch(this.placeOrderUrl, {
+                        method: 'POST'
+                    }).then(response => {
+                        if (response.redirected && response.url.includes("review")) {
+                            throw new Error();
+                        }
+                        return response.text();
                     }).then(result => {
-                        customerData.invalidate(['cart']);
-                        document.open();
-                        document.write(result);
-                        document.close();
+                        if (result) {
+                            customerData.invalidate(['cart']);
+                            document.open();
+                            document.write(result);
+                            document.close();
+                        }
+                    })
+                    .catch(error => {
+                        this.applePayButton.showLoader(false);
+                        this.applePayButton.catchError(error);
                     });
                 })
                 .catch(error => {

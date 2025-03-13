@@ -13,6 +13,7 @@
             </payment_methods>
             <payment_services>
                 <active>0</active>
+                <mba_scoping_level>website</mba_scoping_level>
             </payment_services>
         </payment>
     </default>

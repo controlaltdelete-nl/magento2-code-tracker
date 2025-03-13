@@ -7,12 +7,12 @@ declare(strict_types=1);
 
 namespace Magento\PaymentServicesPaypal\Gateway\Request;
 
+use Magento\PaymentServicesBase\Model\ScopeHeadersBuilder;
 use Magento\PaymentServicesPaypal\Helper\OrderHelper;
 use Magento\PaymentServicesPaypal\Model\Config;
 use Magento\Payment\Gateway\Data\PaymentDataObjectInterface;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
-use Magento\Store\Model\StoreManagerInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
 
 class CaptureRequest implements BuilderInterface
@@ -23,9 +23,9 @@ class CaptureRequest implements BuilderInterface
     private $config;
 
     /**
-     * @var StoreManagerInterface
+     * @var ScopeHeadersBuilder
      */
-    private $storeManager;
+    private $scopeHeaderBuilder;
 
     /**
      * @var OrderHelper
@@ -34,16 +34,16 @@ class CaptureRequest implements BuilderInterface
 
     /**
      * @param Config $config
-     * @param StoreManagerInterface $storeManager
+     * @param ScopeHeadersBuilder $scopeHeaderBuilder
      * @param OrderHelper $orderHelper
      */
     public function __construct(
         Config $config,
-        StoreManagerInterface $storeManager,
+        ScopeHeadersBuilder $scopeHeaderBuilder,
         OrderHelper $orderHelper
     ) {
         $this->config = $config;
-        $this->storeManager = $storeManager;
+        $this->scopeHeaderBuilder = $scopeHeaderBuilder;
         $this->orderHelper = $orderHelper;
     }
 
@@ -67,7 +67,11 @@ class CaptureRequest implements BuilderInterface
             . '/payment/'
             . $payment->getAuthorizationTransaction()->getTxnId()
             . '/capture';
-        $websiteId = $this->storeManager->getStore($payment->getOrder()->getStoreId())->getWebsiteId();
+
+        $headers = array_merge(
+            ['Content-Type' => 'application/json'],
+            $this->scopeHeaderBuilder->buildScopeHeaders($payment->getOrder()->getStoreId()),
+        );
 
         return [
             'uri' => $uri,
@@ -80,10 +84,7 @@ class CaptureRequest implements BuilderInterface
                     ]
                 ]
             ],
-            'headers' => [
-                'Content-Type' => 'application/json',
-                'x-scope-id' => $websiteId
-            ],
+            'headers' => $headers,
             'clientConfig' => [
                 'environment' => $paymentsMode
             ]

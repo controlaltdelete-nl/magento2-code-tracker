@@ -159,6 +159,7 @@ class Checkout
      * @param string $orderId
      * @param string $payerId
      * @param string $paymentsOrderId
+     * @param string $location
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
@@ -167,7 +168,8 @@ class Checkout
         array $billingAddress,
         string $orderId,
         string $payerId,
-        string $paymentsOrderId
+        string $paymentsOrderId,
+        string $location
     ) : void {
         $this->getQuote()
             ->getShippingAddress()
@@ -181,7 +183,8 @@ class Checkout
             ->setAdditionalInformation('paypal_payer_id', $payerId)
             ->setAdditionalInformation('paypal_order_id', $orderId)
             ->setAdditionalInformation('payments_order_id', $paymentsOrderId)
-            ->setAdditionalInformation('payments_mode', $this->config->getEnvironmentType());
+            ->setAdditionalInformation('payments_mode', $this->config->getEnvironmentType())
+            ->setAdditionalInformation('location', $this->orderHelper->validateCheckoutLocation($location));
         $this->getQuote()->collectTotals();
         $this->quoteRepository->save($this->getQuote());
     }
@@ -190,6 +193,7 @@ class Checkout
      * Create an order in paypal
      *
      * @param String $paymentSource
+     * @param String|null $threeDSMode
      * @return array
      * @throws LocalizedException
      * @throws NoSuchEntityException
@@ -206,22 +210,21 @@ class Checkout
             $paymentMethod = GooglePayConfigProvider::CODE;
         }
         $quote->getPayment()->setMethod($paymentMethod);
-        $this->quoteRepository->save($quote);
         $totalAmount = $quote->getBaseGrandTotal();
         $currencyCode = $quote->getCurrency()->getBaseCurrencyCode();
-        $quoteId = $quote->getId();
         $saasResponse = $this->orderService->create(
+            $quote->getStore(),
             [
                 'amount' => $this->orderHelper->formatAmount((float)$totalAmount),
                 'currency_code' => $currencyCode,
                 'is_digital' => $quote->getIsVirtual(),
-                'website_id' => $quote->getStore()->getWebsiteId(),
                 'payment_source' => $paymentSource,
                 'three_ds_mode' => $threeDSMode ?: null,
-                'quote_id' => $quoteId,
+                'quote_id' => $quote->getId(),
                 'order_increment_id' => $this->orderHelper->reserveAndGetOrderIncrementId($quote),
                 'line_items' => $this->orderHelper->getLineItems($quote, $quote->getReservedOrderId()),
                 'amount_breakdown' => $this->orderHelper->getAmountBreakdown($quote, $quote->getReservedOrderId()),
+                'location' => $this->orderHelper->validateCheckoutLocation($this->getLocation())
             ]
         );
 
@@ -230,8 +233,9 @@ class Checkout
             && isset($saasResponse["paypal-order"]['id'])
         ) {
             $quote->getPayment()->setAdditionalInformation('paypal_order_id', $saasResponse["paypal-order"]['id']);
-            $this->quoteRepository->save($quote);
         }
+
+        $this->quoteRepository->save($quote);
 
         return array_merge_recursive(
             $saasResponse,
@@ -481,6 +485,7 @@ class Checkout
 
         try {
             $this->orderService->update(
+                (string) $quote->getStoreId(),
                 (string) $paypalOrderId,
                 [
                     'amount' => $this->orderHelper->formatAmount((float)$totalAmount),
@@ -502,7 +507,8 @@ class Checkout
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    private function updateQuoteCustomerData(QuoteEntity $quote): void {
+    private function updateQuoteCustomerData(QuoteEntity $quote): void
+    {
         if ($this->customerSession->isLoggedIn()) {
             $customerData = $this->customerSession->getCustomerData();
             $quote->setCustomerFirstname($customerData->getFirstname());

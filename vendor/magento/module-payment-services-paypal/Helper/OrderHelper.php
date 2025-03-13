@@ -332,4 +332,38 @@ class OrderHelper
 
         return false;
     }
+
+    /**
+     * Validate the checkout location
+     *
+     * In GraphQL, the product page location is represented as PRODUCT_DETAIL,
+     * while in frontend files, it is referred to as PRODUCT.
+     *
+     * Since we cannot change this value without risking compatibility issues
+     * for merchants with custom implementations, we need to support both.
+     *
+     * To maintain consistency, we map PRODUCT to PRODUCT_DETAIL before sending it to SaaS.
+     *
+     * @param ?string $location
+     * @return ?string
+     */
+    public function validateCheckoutLocation(?string $location) : ?string
+    {
+        if (!$location) {
+            return null;
+        }
+
+        $location = mb_strtoupper($location);
+
+        // Map "product" to "product_detail" for consistency
+        if ($location === Config::PRODUCT_CHECKOUT_LOCATION) {
+            return Config::PRODUCT_DETAIL_CHECKOUT_LOCATION;
+        }
+
+        if (in_array($location, Config::CHECKOUT_LOCATIONS)) {
+            return $location;
+        }
+
+        return null;
+    }
 }

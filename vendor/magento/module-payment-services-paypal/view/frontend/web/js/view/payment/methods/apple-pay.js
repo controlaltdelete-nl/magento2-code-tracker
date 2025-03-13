@@ -194,14 +194,6 @@ define([
             };
         },
 
-        onApplePayPaymentMethodSelected: function (applePaySession, total) {
-            applePaySession.onpaymentmethodselected = (event) => {
-                applePaySession.completePaymentMethodSelection({
-                    newTotal: total,
-                });
-            };
-        },
-
         onApplePayShippingContactSelected: function (applePaySession, quoteId, total, isVirtual) {
             applePaySession.onshippingcontactselected = (event) => {
 
@@ -211,7 +203,7 @@ define([
                     ? this.estimateShippingMethodsWhenLoggedInUrl
                     : this.estimateShippingMethodsWhenGuestUrl.replace(':cartId', quoteId);
 
-                if (this.pageType === 'product') {
+                if (this.location === 'product') {
                     // Product Page: we need to use guest cart quote because it is created outside the checkout process
                     estimateShippingMethodURL = this.estimateShippingMethodsWhenGuestUrl.replace(':cartId', quoteId);
                 }
@@ -286,7 +278,7 @@ define([
                     ? this.shippingInformationWhenLoggedInUrl
                     : this.shippingInformationWhenGuestUrl.replace(':quoteId', quoteId);
 
-                if (this.pageType === 'product') {
+                if (this.location === 'product') {
                     // Product Page: we need to use quoteMaskedId as the quote is created outside the checkout process
                     shippingInformationURL = this.shippingInformationWhenGuestUrl.replace(':quoteId', quoteMaskedId);
                 }
@@ -340,7 +332,7 @@ define([
                         },
                     });
 
-                    if (this.pageType === 'product') {
+                    if (this.location === 'product') {
                         // In the product page, the paypal order has been created on the onClick handler
                         // so we just need to update the amount with the shipping selected
                         this.updatePaypalOrder();
@@ -508,9 +500,13 @@ define([
         createOrder: function () {
             let data = {'paymentSource': this.paymentSource};
 
+            // add location to the order create request
+            let createOrderData = new FormData();
+            createOrderData.append('location', this.location);
+
             try {
                 this.beforeCreateOrder();
-                let orderData = performCreateOrder(this.createOrderUrl, data, null);
+                let orderData = performCreateOrder(this.createOrderUrl, data, createOrderData);
                 this.paypalOrderId = this.afterCreateOrder(orderData);
                 return this.paypalOrderId;
             } catch (error) {

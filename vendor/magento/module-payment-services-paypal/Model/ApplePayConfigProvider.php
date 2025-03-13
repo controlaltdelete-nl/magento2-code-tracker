@@ -80,6 +80,7 @@ class ApplePayConfigProvider implements ConfigProviderInterface
             $config['payment'][self::CODE]['isVisible'] = false;
             return $config;
         }
+        $config['payment'][self::CODE]['location'] = Config::CHECKOUT_CHECKOUT_LOCATION;
         $config['payment'][self::CODE]['isVisible'] = true;
         $config['payment'][self::CODE]['createOrderUrl'] = $this->url->getUrl('paymentservicespaypal/order/create');
         $config['payment'][self::CODE]['sdkParams'] = $this->configProvider->getScriptParams(

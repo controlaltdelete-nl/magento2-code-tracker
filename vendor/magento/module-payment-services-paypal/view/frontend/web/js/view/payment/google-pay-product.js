@@ -81,6 +81,7 @@ define([
                 mode: this.googlePayMode,
                 getOrderDetailsUrl: this.getOrderDetailsUrl,
                 threeDSMode: this.threeDSMode,
+                location: this.pageType,
             });
 
             this.googlePayButton.sdkLoaded

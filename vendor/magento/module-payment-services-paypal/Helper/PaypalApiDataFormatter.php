@@ -36,11 +36,28 @@ class PaypalApiDataFormatter
     private const TYPE_PHYSICAL = 'PHYSICAL';
     private const TYPE_DIGITAL = 'DIGITAL';
 
+    private const EMPTY_NAME = 'not available';
+    private const EMPTY_DESCRIPTION = 'not available';
+
     public const LINE_ITEMS_CATEGORIES = [
         self::TYPE_DIGITAL  => 'DIGITAL_GOODS',
         self::TYPE_PHYSICAL   => 'PHYSICAL_GOODS',
         'DONATION' => 'DONATION',
     ];
+
+    /**
+     * @var TextSanitiser
+     */
+    private TextSanitiser $textSanitiser;
+
+    /**
+     * @param TextSanitiser $textSanitiser
+     */
+    public function __construct(
+        TextSanitiser $textSanitiser
+    ) {
+        $this->textSanitiser = $textSanitiser;
+    }
 
     /**
      * Format the amount with two decimal places
@@ -72,7 +89,8 @@ class PaypalApiDataFormatter
      */
     public function formatName(string $name): string
     {
-        return mb_substr($name, 0, self::MAX_NAME_LENGTH);
+        $name = mb_substr($this->textSanitiser->textOnly($name), 0, self::MAX_NAME_LENGTH);
+        return empty($name) ? self::EMPTY_NAME : $name;
     }
 
     /**
@@ -106,7 +124,10 @@ class PaypalApiDataFormatter
      */
     public function formatDescription(string $description): string
     {
-        return trim(mb_substr(strip_tags($description), 0, self::MAX_DESCRIPTION_LENGTH));
+        $description = trim(
+            mb_substr($this->textSanitiser->textOnly(strip_tags($description)), 0, self::MAX_DESCRIPTION_LENGTH)
+        );
+        return empty($description) ? self::EMPTY_DESCRIPTION : $description;
     }
 
     /**
