@@ -12,7 +12,7 @@
                 <legacy_admin_enabled>1</legacy_admin_enabled>
                 <soft_descriptor/>
                 <async_status_updates>0</async_status_updates>
-                <sdk_url>https://payments-sdk.live.commerce-payment-services.com/v0/1/PaymentSDK.js</sdk_url>
+                <sdk_url>https://payments-sdk.live.commerce-payment-services.com/v0/3/PaymentSDK.js</sdk_url>
             </payment_services>
             <payment_services_paypal_hosted_fields>
                 <payment_action>authorize</payment_action>

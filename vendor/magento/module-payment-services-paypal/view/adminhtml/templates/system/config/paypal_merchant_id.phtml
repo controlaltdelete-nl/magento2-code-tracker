@@ -1,0 +1,33 @@
+<?php
+/**
+ * ADOBE CONFIDENTIAL
+ *
+ * Copyright 2025 Adobe
+ * All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of Adobe and its suppliers, if any. The intellectual
+ * and technical concepts contained herein are proprietary to Adobe
+ * and its suppliers and are protected by all applicable intellectual
+ * property laws, including trade secret and copyright laws.
+ * Dissemination of this information or reproduction of this material
+ * is strictly forbidden unless prior written permission is obtained
+ * from Adobe.
+ */
+declare(strict_types=1);
+
+?>
+
+<?php
+/** @var \Magento\PaymentServicesPaypal\Model\Adminhtml\Source\PaypalMerchant $block */
+/** @var \Magento\Framework\Escaper $escaper */
+?>
+
+<?php if ($block->getPaypalMerchantId()): ?>
+    <span style="margin-right: 10px"><?= $escaper->escapeUrl($block->getPaypalMerchantId()) ?></span>
+<?php endif; ?>
+<div class="payments grid-severity-<?= $escaper->escapeUrl($block->getPaypalMerchantStatusStyle()) ?>"
+     style="display: inline-block; padding: 5px; border-radius: 5px;">
+    <?= $escaper->escapeUrl($block->getPaypalMerchantStatus()) ?>
+</div>
+<p class="note"><?= $block->getPaypalMerchantMessage() ?></p>

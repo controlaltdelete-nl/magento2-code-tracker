@@ -98,6 +98,7 @@ define([
                 shippingAddressRequired: false,
                 getOrderDetailsUrl: window.checkoutConfig.payment[this.getCode()].getOrderDetailsUrl,
                 threeDSMode: window.checkoutConfig.payment[this.getCode()].threeDSMode,
+                location: window.checkoutConfig.payment[this.getCode()].location,
             });
 
             if (!this.isPlaceOrderActionAllowed()) {

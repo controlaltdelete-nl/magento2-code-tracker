@@ -93,13 +93,16 @@ class UpdateQuote implements HttpPostActionInterface, CsrfAwareActionInterface
             }
             $this->checkout->validateQuote();
             try {
-                $order = $this->orderService->get($this->request->getParam('paypal_order_id'));
+                $storeId = $this->checkout->getQuote()->getStoreId();
+                $orderId = $this->request->getParam('paypal_order_id');
+                $order = $this->orderService->get((string) $storeId, $orderId);
                 $this->checkout->updateQuote(
                     $this->addressConverter->convertShippingAddress($order),
                     $this->addressConverter->convertBillingAddress($order),
                     $this->request->getParam('paypal_order_id'),
                     $this->request->getParam('paypal_payer_id', ''),
-                    $order['paypal-order']['mp_order_id']
+                    $order['paypal-order']['mp_order_id'],
+                    $location
                 );
             } catch (LocalizedException | Exception $e) {
                 $error = __('Can\'t update quote. Please try again.');

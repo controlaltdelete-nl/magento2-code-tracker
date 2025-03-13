@@ -15,7 +15,8 @@ define([
     'Magento_PaymentServicesPaypal/js/view/payment/methods/apple-pay',
     'Magento_Checkout/js/model/quote',
     'Magento_Checkout/js/model/cart/totals-processor/default',
-], function (_, $, utils, Component, $t, customerData, ResponseError, ApplePayButton, quote, totalsProcessor) {
+    'Magento_Customer/js/model/customer',
+], function (_, $, utils, Component, $t, customerData, ResponseError, ApplePayButton, quote, totalsProcessor, customer) {
     'use strict';
 
     return Component.extend({
@@ -41,12 +42,6 @@ define([
                 .then(this.initApplePayButton)
                 .catch(console.log);
 
-            // Reload quote totals in minicart to have the correct grand_total for the Apple Popup
-            if (this.pageType === 'minicart') {
-                totalsProcessor.estimateTotals().done(function (result) {
-                    quote.setTotals(result);
-                });
-            }
             return this;
         },
 
@@ -71,7 +66,7 @@ define([
                 afterOnAuthorize: this.afterOnAuthorize,
                 shippingAddressRequired: !this.isVirtual,
                 styles: this.styles,
-                pageType: this.pageType,
+                location: this.pageType,
             });
 
             $('#' + this.buttonContainerId).on('click', this.onClick);
@@ -84,15 +79,25 @@ define([
 
             this.applePayButton.showLoaderAsync(true)
             .then(() => {
-                $.ajax({
-                    type: 'POST',
-                    url: this.placeOrderUrl,
+                fetch(this.placeOrderUrl, {
+                    method: 'POST'
+                }).then(response => {
+                    if (response.redirected && response.url.includes("review")) {
+                        throw new Error();
+                    }
+                    return response.text();
                 }).then(result => {
-                    customerData.invalidate(['cart']);
-                    document.open();
-                    document.write(result);
-                    document.close();
-                });
+                    if (result) {
+                        customerData.invalidate(['cart']);
+                        document.open();
+                        document.write(result);
+                        document.close();
+                    }
+                })
+                    .catch(error => {
+                        this.applePayButton.showLoader(false);
+                        this.applePayButton.catchError(error);
+                    });
             })
             .catch(error => {
                 this.catchError(error);
@@ -100,19 +105,27 @@ define([
         },
 
         onClick: function () {
-            this.isErrorDisplayed = false;
+            // Reload customer data to use correct loggedin/guest urls in the applepay button
+            // See smart_buttons_minicart.phtml:21-22
+            if (this.location === 'minicart') {
+                this.fixCustomerData();
+            }
 
+            // Show popup with initial order amount from window.checkoutConfig
+            // See smart_buttons_minicart.phtml:20
             this.applePayButton.showLoaderAsync(true).then(() => {
                 const data = {
                     response: {
                         'paypal-order': {
-                            currency_code: String(quote.totals().quote_currency_code),
-                            amount: Number(quote.totals().grand_total).toString(),
+                            currency_code: window.checkoutConfig.quoteData.base_currency_code,
+                            amount: window.checkoutConfig.quoteData.grand_total.toString(),
                         }
                     }
                 }
                 this.applePayButton.showPopup(data);
             })
+
+            this.isErrorDisplayed = false;
         },
 
         /**
@@ -155,7 +168,6 @@ define([
             this.applePaySession = new ApplePaySession(this.applePayButton.applePayVersionNumber, paymentRequest);
 
             this.applePayButton.onApplePayValidateMerchant(this.applePaySession);
-            this.applePayButton.onApplePayPaymentMethodSelected(this.applePaySession, paymentRequest.total);
             this.applePayButton.onApplePayCancel(this.applePaySession, this.cancelApplePay);
             this.applePayButton.onApplePayShippingContactSelected(this.applePaySession, quote.getQuoteId() , paymentRequest.total, quote.isVirtual());
             this.applePayButton.onApplePayShippingMethodSelectedInCartPage(this.applePaySession, quote.getQuoteId());
@@ -163,5 +175,33 @@ define([
 
             this.applePaySession.begin();
         },
+
+        /**
+         * Fix customer data
+         *
+         * Why do we need this?
+         * See: src/app/code/Magento/Customer/view/frontend/web/js/model/customer.js:17
+         *
+         * When we initialise customer data on the page where the minicart was not rendered yet,
+         * the customer data in the "window" object is 'undefined' at first because . This makes this line
+         *      var isLoggedIn = ko.observable(window.isCustomerLoggedIn),
+         * to create an observable of undefined variable, that does not work in knockout.
+         * knockout expects an existing variable to create an observable.
+         *
+         * Later, when we render minicart and update "window" object with customer data,
+         * it's not being picked up by customer.js logic and when try to read the data, it's still undefined,
+         * even though it exists in the "window" object.
+         *
+         * This function forces the customer data to be updated from the "window" object.
+         */
+        fixCustomerData: function () {
+            if (customer.isLoggedIn() === undefined && window.isCustomerLoggedIn !== undefined) {
+                customer.setIsLoggedIn(window.isCustomerLoggedIn);
+            }
+
+            if (customer.isLoggedIn() && _.isEmpty(customer.customerData)) {
+                customer.customerData = window.customerData;
+            }
+        }
     });
 });

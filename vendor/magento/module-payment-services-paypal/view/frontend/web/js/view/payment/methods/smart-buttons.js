@@ -182,8 +182,12 @@ define([
         createOrder: function (data) {
             this.paymentSource = data['paymentSource'];
 
+            // add location to the order create request
+            let orderData = new FormData();
+            orderData.append('location', this.location);
+
             return this.beforeCreateOrder()
-                .then(performCreateOrder.bind(this, this.createOrderUrl, data))
+                .then(performCreateOrder.bind(this, this.createOrderUrl, data, orderData))
                 .then(function (orderData) {
                     return this.afterCreateOrder(orderData);
                 }.bind(this)).catch(function (error) {

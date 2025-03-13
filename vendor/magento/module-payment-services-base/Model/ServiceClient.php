@@ -12,12 +12,12 @@ use InvalidArgumentException;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\Request\Http;
 use Magento\Framework\App\State;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\PaymentServicesPaypal\Model\SdkService;
 use Magento\ServicesConnector\Api\ClientResolverInterface;
 use Magento\ServicesConnector\Exception\KeyNotFoundException;
 use Magento\ServicesConnector\Api\KeyValidationInterface;
-use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\ServicesConnector\Exception\PrivateKeySignException;
@@ -61,9 +61,9 @@ class ServiceClient implements ServiceClientInterface
     private $logger;
 
     /**
-     * @var StoreManagerInterface
+     * @var ScopeHeadersBuilder
      */
-    private $storeManager;
+    private $scopeHeaderBuilder;
 
     /**
      * @var CacheInterface
@@ -74,8 +74,6 @@ class ServiceClient implements ServiceClientInterface
      * @var State
      */
     private $appState;
-
-    private const SCOPE_TYPE = 'website';
 
     private const AUTH_REQUEST_EXCEPTION = 'error during authorize request';
 
@@ -97,7 +95,7 @@ class ServiceClient implements ServiceClientInterface
      * @param Config $config
      * @param Json $serializer
      * @param LoggerInterface $logger
-     * @param StoreManagerInterface $storeManager
+     * @param ScopeHeadersBuilder $scopeHeaderBuilder
      * @param CacheInterface $cache
      * @param State $appState
      * @param ?ServiceRouteResolverInterface $serviceRouteResolver
@@ -108,7 +106,7 @@ class ServiceClient implements ServiceClientInterface
         Config $config,
         Json $serializer,
         LoggerInterface $logger,
-        StoreManagerInterface $storeManager,
+        ScopeHeadersBuilder $scopeHeaderBuilder,
         CacheInterface $cache,
         State $appState,
         ?ServiceRouteResolverInterface $serviceRouteResolver = null
@@ -118,7 +116,7 @@ class ServiceClient implements ServiceClientInterface
         $this->config = $config;
         $this->serializer = $serializer;
         $this->logger = $logger;
-        $this->storeManager = $storeManager;
+        $this->scopeHeaderBuilder = $scopeHeaderBuilder;
         $this->cache = $cache;
         $this->appState = $appState;
         $this->serviceRouteResolver = $serviceRouteResolver ??
@@ -290,17 +288,31 @@ class ServiceClient implements ServiceClientInterface
      * @param array $headers
      * @param string $environment
      * @return array
-     * @throws NoSuchEntityException
+     * @throws NoSuchEntityException|LocalizedException
      */
     private function prepareHeaders(array $headers, string $environment): array
     {
-        return [
+        $preparedHeaders = [
             'x-mp-merchant-id' => $this->config->getMerchantId($environment),
             'x-saas-id' => $this->config->getServicesEnvironmentId(),
-            'x-scope-type' => self::SCOPE_TYPE,
-            'x-scope-id' => $headers['x-scope-id'] ?? $this->storeManager->getStore()->getWebsiteId(),
             'x-request-user-agent' => $headers['x-request-user-agent'] ??
-                    sprintf('PaymentServices/%s/%s', $this->appState->getAreaCode(), $this->config->getVersion())
+                sprintf('PaymentServices/%s/%s', $this->appState->getAreaCode(), $this->config->getVersion())
         ];
+
+        if (isset($headers[ScopeHeadersBuilder::SCOPE_TYPE]) && isset($headers[ScopeHeadersBuilder::SCOPE_ID])) {
+            // If the provided headers already include scope headers, take those
+            $preparedHeaders[ScopeHeadersBuilder::SCOPE_TYPE] = $headers[ScopeHeadersBuilder::SCOPE_TYPE];
+            $preparedHeaders[ScopeHeadersBuilder::SCOPE_ID] = $headers[ScopeHeadersBuilder::SCOPE_ID];
+        } elseif (isset($headers[ScopeHeadersBuilder::SCOPE_ID])) {
+            // If the provided headers contain a scope id but no scope type, assume website scope type
+            $preparedHeaders[ScopeHeadersBuilder::SCOPE_TYPE] = ScopeHeadersBuilder::WEBSITE_SCOPE_TYPE;
+            $preparedHeaders[ScopeHeadersBuilder::SCOPE_ID] = $headers[ScopeHeadersBuilder::SCOPE_ID];
+        } else {
+            // If no scope id header was provided, fall back to current store scope
+            $scopeHeaders = $this->scopeHeaderBuilder->buildScopeHeadersForCurrentStore();
+            $preparedHeaders = array_merge($preparedHeaders, $scopeHeaders);
+        }
+
+        return $preparedHeaders;
     }
 }

@@ -9,7 +9,6 @@ namespace Magento\PaymentServicesBase\Model;
 use Magento\Framework\App\CacheInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Composer\ComposerInformation;
-use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\ServicesConnector\Api\KeyValidationInterface;
 use Magento\ServicesConnector\Exception\KeyNotFoundException;
 use Magento\ServicesConnector\Exception\PrivateKeySignException;
@@ -17,6 +16,7 @@ use Magento\Store\Model\ScopeInterface;
 use Magento\ServicesId\Model\ServicesConfigInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Framework\App\Config as AppConfig;
+use Psr\Log\LoggerInterface;
 
 class Config
 {
@@ -29,6 +29,11 @@ class Config
     private const CONFIG_PATH_MERCHANT_ID = 'payment/payment_methods/%s_merchant_id';
 
     private const VERSION_CACHE_KEY = 'payment-services-version';
+
+    private const VALID_MBA_SCOPING_LEVELS = [
+        ScopeInterface::SCOPE_WEBSITE,
+        ScopeInterface::SCOPE_STORE,
+    ];
 
     /**
      * @var ScopeConfigInterface
@@ -68,12 +73,18 @@ class Config
     private $composerInformation;
 
     /**
+     * @var LoggerInterface
+     */
+    private $log;
+
+    /**
      * @param ScopeConfigInterface $scopeConfig
      * @param ServicesConfig $servicesConfig
      * @param KeyValidationInterface $keyValidator
      * @param StoreManagerInterface $storeManager
      * @param CacheInterface $cache
      * @param ComposerInformation $composerInformation
+     * @param LoggerInterface $log
      */
     public function __construct(
         ScopeConfigInterface $scopeConfig,
@@ -81,7 +92,8 @@ class Config
         KeyValidationInterface $keyValidator,
         StoreManagerInterface $storeManager,
         CacheInterface $cache,
-        ComposerInformation $composerInformation
+        ComposerInformation $composerInformation,
+        LoggerInterface $log,
     ) {
         $this->scopeConfig = $scopeConfig;
         $this->servicesConfig = $servicesConfig;
@@ -89,6 +101,7 @@ class Config
         $this->storeManager = $storeManager;
         $this->cache = $cache;
         $this->composerInformation = $composerInformation;
+        $this->log = $log;
     }
 
     /**
@@ -168,6 +181,28 @@ class Config
     }
 
     /**
+     * Returns the configured multi business account scoping level.
+     *
+     * Defaults to "website" in case of missing or invalid configuration.
+     *
+     * @return "website"|"store"
+     */
+    public function getMultiBusinessAccountScopingLevel(): string
+    {
+        $value = $this->scopeConfig->getValue('payment/payment_services/mba_scoping_level');
+        if (!in_array($value, self::VALID_MBA_SCOPING_LEVELS)) {
+            if (!empty($value)) {
+                $this->log->warning(
+                    'Invalid "payment/payment_services/mba_scoping_level" value: "' . $value . '".
+                    Falling back to "website".'
+                );
+            }
+            return ScopeInterface::SCOPE_WEBSITE;
+        }
+        return $value;
+    }
+
+    /**
      * Check is Magento Services configured.
      *
      * @param string $environment
@@ -209,9 +244,9 @@ class Config
      */
     public function isConfigured(string $environment = '', ?int $store = null) : bool
     {
-        return $this->isMagentoServicesConfigured($environment)
-            && $this->isEnabled($store)
-            && $this->getMerchantId($environment, $store);
+        return $this->isEnabled($store)
+            && $this->getMerchantId($environment, $store)
+            && $this->isMagentoServicesConfigured($environment);
     }
 
     /**

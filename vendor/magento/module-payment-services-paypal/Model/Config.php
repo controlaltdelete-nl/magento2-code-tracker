@@ -40,6 +40,21 @@ class Config
 
     public const PAYMENTS_SERVICES_PREFIX = 'payment_services_paypal_';
 
+    public const PRODUCT_DETAIL_CHECKOUT_LOCATION = 'PRODUCT_DETAIL';
+    public const PRODUCT_CHECKOUT_LOCATION = 'PRODUCT';
+    public const CART_CHECKOUT_LOCATION = 'CART';
+    public const MINICART_CHECKOUT_LOCATION = 'MINICART';
+    public const CHECKOUT_CHECKOUT_LOCATION = 'CHECKOUT';
+    public const ADMIN_CHECKOUT_LOCATION = 'ADMIN';
+
+    public const CHECKOUT_LOCATIONS = [
+        self::PRODUCT_DETAIL_CHECKOUT_LOCATION,
+        self::CART_CHECKOUT_LOCATION,
+        self::MINICART_CHECKOUT_LOCATION,
+        self::CHECKOUT_CHECKOUT_LOCATION,
+        self::ADMIN_CHECKOUT_LOCATION
+    ];
+
     /**
      * @var BaseConfig
      */

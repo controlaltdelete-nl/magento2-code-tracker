@@ -25,7 +25,7 @@ define([
            paymentsOrderId: null,
            generalErrorMessage: $t('An error occurred. Refresh the page and try again.'),
            paymentMethodValidationError: $t('Your payment was not successful. Try again.'),
-           allowedTags: ['br']
+           allowedTags: ['br'],
        },
 
        /**
@@ -159,6 +159,7 @@ define([
            var orderData = new FormData();
 
            orderData.append('payment_source', this.paymentSource);
+           orderData.append('location', this.location);
 
            return fetch(this.createOrderUrl, {
                method: 'POST',

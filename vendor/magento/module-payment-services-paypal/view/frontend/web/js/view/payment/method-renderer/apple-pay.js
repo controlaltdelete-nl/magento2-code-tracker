@@ -105,7 +105,8 @@ define([
                 onError: this.catchError,
                 buttonContainerId: this.buttonContainerId,
                 onApprove: this.placeOrder,
-                styles: window.checkoutConfig.payment[this.getCode()].buttonStyles
+                styles: window.checkoutConfig.payment[this.getCode()].buttonStyles,
+                location: window.checkoutConfig.payment[this.getCode()].location,
             });
         },
 
