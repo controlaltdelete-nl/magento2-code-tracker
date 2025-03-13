@@ -24,6 +24,7 @@ use Magento\Framework\GraphQl\Config\Element\Field;
 use Magento\Framework\GraphQl\Exception\GraphQlInputException;
 use Magento\Framework\GraphQl\Query\ResolverInterface;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
+use Magento\PaymentServicesPaypal\Helper\TextSanitiser;
 use Magento\PaymentServicesPaypal\Model\VaultService;
 use Magento\PaymentServicesPaypal\Model\Config;
 use Magento\Framework\UrlInterface;
@@ -50,18 +51,26 @@ class CreateVaultCardSetupToken implements ResolverInterface
     private UrlInterface $urlBuilder;
 
     /**
+     * @var TextSanitiser
+     */
+    private TextSanitiser $textSanitiser;
+
+    /**
      * @param VaultService $vaultService
      * @param Config $config
      * @param UrlInterface $urlBuilder
+     * @param TextSanitiser $textSanitiser
      */
     public function __construct(
         VaultService $vaultService,
         Config $config,
-        UrlInterface $urlBuilder
+        UrlInterface $urlBuilder,
+        TextSanitiser $textSanitiser
     ) {
         $this->vaultService = $vaultService;
         $this->config = $config;
         $this->urlBuilder = $urlBuilder;
+        $this->textSanitiser = $textSanitiser;
     }
 
     /**
@@ -102,18 +111,11 @@ class CreateVaultCardSetupToken implements ResolverInterface
             'setup_token' => [
                 'payment_source' => [
                     'card' => [
-                        'name' => $paymentSource['card']['name'],
+                        'name' => $this->textSanitiser->textOnly($paymentSource['card']['name'] ?? ''),
                         'three_ds_mode' => $this->resolve3DSMode($input['three_ds_mode'] ?? ''),
                         'return_url' => $this->urlBuilder->getUrl('vault/cards/listaction'),
                         'cancel_url' => $this->urlBuilder->getUrl('vault/cards/listaction'),
-                        'billing_address' => [
-                            'address_line_1' => $paymentSource['card']['billing_address']['address_line_1'],
-                            'address_line_2' => $paymentSource['card']['billing_address']['address_line_2'],
-                            'admin_area_1' => $paymentSource['card']['billing_address']['region'],
-                            'admin_area_2' => $paymentSource['card']['billing_address']['city'],
-                            'postal_code' => $paymentSource['card']['billing_address']['postal_code'],
-                            'country_code' => $paymentSource['card']['billing_address']['country_code']
-                        ]
+                        'billing_address' => $this->resolveAddress($paymentSource['card']['billing_address'] ?? [])
                     ]
                 ]
             ]
@@ -143,7 +145,7 @@ class CreateVaultCardSetupToken implements ResolverInterface
     private function resolve3DSMode(string $threeDSMode): string
     {
         if (!empty($threeDSMode)) {
-            return $threeDSMode;
+            return $this->textSanitiser->textOnly($threeDSMode);
         }
 
         $configThreeDS = $this->config->getThreeDS();
@@ -152,5 +154,23 @@ class CreateVaultCardSetupToken implements ResolverInterface
         }
 
         return $configThreeDS;
+    }
+
+    /**
+     * Resolve address
+     *
+     * @param array $billingAddress
+     * @return array
+     */
+    public function resolveAddress(array $billingAddress): array
+    {
+        return [
+            'address_line_1' => $this->textSanitiser->textOnly($billingAddress['address_line_1'] ?? ''),
+            'address_line_2' => $this->textSanitiser->textOnly($billingAddress['address_line_2'] ?? ''),
+            'admin_area_1' => $this->textSanitiser->textOnly($billingAddress['region'] ?? ''),
+            'admin_area_2' => $this->textSanitiser->textOnly($billingAddress['city'] ?? ''),
+            'postal_code' => $this->textSanitiser->textOnly($billingAddress['postal_code'] ?? ''),
+            'country_code' => $this->textSanitiser->textOnly($billingAddress['country_code'] ?? '')
+        ];
     }
 }

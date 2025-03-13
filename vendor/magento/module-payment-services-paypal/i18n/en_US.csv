@@ -164,3 +164,6 @@ PayLater,PayLater
 "payments_order_id","Payment Order ID"
 "paypal_order_id","Payment Provider Reference"
 "Show buttons on product detail page","Show buttons on product detail page"
+"Please finish onboarding by using your Adobe generated scope onboarding link.","Please finish onboarding by using your Adobe generated scope onboarding link."
+"There is an issue with your PayPal account. Please reach out to Adobe sales for assistance.","There is an issue with your PayPal account. Please reach out to Adobe sales for assistance."
+"Please confirm your email address on your <a href="https://www.paypal.com/businessprofile/settings" target="_blank">Paypal Profile Settings</a> in order to receive payments.", "Please confirm your email address on your <a href="https://www.paypal.com/businessprofile/settings" target="_blank">Paypal Profile Settings</a> in order to receive payments."

@@ -153,16 +153,21 @@ class PaymentOrderManagement implements PaymentOrderManagementInterface
             throw new InvalidArgumentException(__('Invalid methodCode'));
         }
         $quote = $this->quoteRepository->getActive($cartId);
-
         $isLoggedIn = (bool)$customerId;
         $paymentMethod = $quote->getPayment();
         $paymentMethod->setAdditionalInformation('payment_source', $paymentSource);
-        $paymentMethod->setAdditionalInformation('location', $location);
+
+        $location = $this->orderHelper->validateCheckoutLocation($location);
+        if (!empty($location)) {
+            $paymentMethod->setAdditionalInformation('location', $location);
+        }
+
         $paymentMethod->setMethod($methodCode);
         $this->quoteRepository->save($quote);
         $orderIncrementId = $this->orderHelper->reserveAndGetOrderIncrementId($quote);
 
         $orderServiceResponse = $this->orderService->create(
+            $quote->getStore(),
             [
                 'amount' => $this->orderHelper->formatAmount((float)$quote->getBaseGrandTotal()),
                 /** @phpstan-ignore-next-line */
@@ -171,10 +176,10 @@ class PaymentOrderManagement implements PaymentOrderManagementInterface
                 'l3_data' => $this->orderHelper->getL3Data($quote, $paymentSource ?? ''),
                 'currency_code' => $quote->getCurrency()->getBaseCurrencyCode(),
                 'is_digital' => $quote->isVirtual(),
-                'website_id' => $quote->getStore()->getWebsiteId(),
+                // TODO: Setting 'storeview_code' to storeview id (not code) seems incorrect.
+                'storeview_code' => $quote->getStoreId(),
                 'payment_source' => $paymentSource,
                 'quote_id' => $quote->getId(),
-                'store_code' => $quote->getStoreId(),
                 'payer' => $isLoggedIn
                     ? $this->orderService->buildPayer($quote, (string)$customerId)
                     : $this->orderService->buildGuestPayer($quote),
@@ -184,7 +189,8 @@ class PaymentOrderManagement implements PaymentOrderManagementInterface
                 'order_increment_id' => $orderIncrementId,
                 'line_items' => $this->orderHelper->getLineItems($quote, $orderIncrementId),
                 'amount_breakdown' => $this->orderHelper->getAmountBreakdown($quote, $orderIncrementId),
-                'three_ds_mode' => $threeDSMode
+                'three_ds_mode' => $threeDSMode,
+                'location' => $location
             ]
         );
 
@@ -232,7 +238,7 @@ class PaymentOrderManagement implements PaymentOrderManagementInterface
             throw new LocalizedException(__($message));
         }
 
-        $orderServiceResponse = $this->orderService->get($orderId);
+        $orderServiceResponse = $this->orderService->get((string) $quote->getStoreId(), $orderId);
         if (isset($orderServiceResponse['paypal-order'])) {
             $paypalOrder = $orderServiceResponse['paypal-order'];
             /** @var PaymentOrderDetailsInterface $response */
@@ -272,7 +278,7 @@ class PaymentOrderManagement implements PaymentOrderManagementInterface
             throw new LocalizedException(__($message));
         }
 
-        $orderServiceResponse = $this->orderService->get($orderId);
+        $orderServiceResponse = $this->orderService->get((string) $quote->getStoreId(), $orderId);
 
         if (isset($orderServiceResponse['paypal-order'])) {
             $shippingAddress = $this->addressConverter->convertShippingAddress($orderServiceResponse);

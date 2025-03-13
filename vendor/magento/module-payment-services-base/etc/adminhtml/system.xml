@@ -35,7 +35,7 @@
                         </field>
                         <field id="sandbox_merchant_id" type="text" translate="label comment tooltip" sortOrder="1" showInDefault="1">
                             <label>Payment Services Sandbox ID</label>
-                            <frontend_model>Magento\PaymentServicesBase\Model\Adminhtml\System\Config\Fieldset\EnvironmentMerchantId</frontend_model>
+                            <frontend_model>Magento\PaymentServicesBase\Block\Adminhtml\System\Config\Field\Disabled</frontend_model>
                             <config_path>payment/payment_methods/sandbox_merchant_id</config_path>
                             <comment>
                                 <model>Magento\PaymentServicesBase\Model\Config\Comment\MerchantIDComment</model>
@@ -49,7 +49,7 @@
                         </field>
                         <field id="production_merchant_id" type="text" translate="label comment tooltip" sortOrder="1" showInDefault="1">
                             <label>Payment Services Production ID</label>
-                            <frontend_model>Magento\PaymentServicesBase\Model\Adminhtml\System\Config\Fieldset\EnvironmentMerchantId</frontend_model>
+                            <frontend_model>Magento\PaymentServicesBase\Block\Adminhtml\System\Config\Field\Disabled</frontend_model>
                             <config_path>payment/payment_methods/production_merchant_id</config_path>
                             <comment>
                                 <model>Magento\PaymentServicesBase\Model\Config\Comment\MerchantIDComment</model>
@@ -60,6 +60,13 @@
                             <label/>
                             <button_label>Reset Payment Services Production ID</button_label>
                             <frontend_model>Magento\PaymentServicesBase\Block\Adminhtml\System\Config\ResetPaymentsMerchantIdButton</frontend_model>
+                        </field>
+                        <field id="mba_scoping_level" type="select" translate="label comment tooltip" sortOrder="1" showInDefault="1" showInWebsite="0" showInStore="0">
+                            <label>Multiple business account scoping level</label>
+                            <frontend_model>Magento\PaymentServicesBase\Block\Adminhtml\System\Config\Field\Hidden</frontend_model>
+                            <source_model>Magento\PaymentServicesBase\Model\Adminhtml\Source\MBAScopingLevel</source_model>
+                            <config_path>payment/payment_services/mba_scoping_level</config_path>
+                            <comment><![CDATA[Scope type to partition <a href="https://experienceleague.adobe.com/en/docs/commerce-merchant-services/payment-services/configure/settings#use-multiple-paypal-accounts" target="_blank">multiple PayPal business accounts</a> by: Website or Storeview. This configuration can only be updated from the terminal.]]></comment>
                         </field>
                         <depends>
                             <field id="legacy_admin_enabled">1</field>

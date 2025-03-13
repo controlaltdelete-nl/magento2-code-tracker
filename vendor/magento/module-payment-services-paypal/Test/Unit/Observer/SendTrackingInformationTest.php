@@ -29,6 +29,8 @@ use Magento\Sales\Api\Data\TransactionInterface;
 use Magento\Sales\Model\Order\Payment;
 use Magento\Sales\Model\Order\Payment\Transaction\Repository as TransactionRepository;
 use Magento\Sales\Model\Order\Shipment;
+use Magento\Store\Api\Data\StoreInterface;
+use Magento\Store\Model\StoreManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -39,6 +41,7 @@ class SendTrackingInformationTest extends TestCase
     private const ORDER_INCREMENT_ID = 'order_increment_id';
     private const PAYPAL_ORDER_ID = 'paypal_order_id';
     private const PAYMENT_ID = 'payment_id';
+    private const PAYMENT_METHOD = 'payment_services_paypal_hosted_fields';
 
     /**
      * @var MockObject|TransactionRepository
@@ -61,6 +64,11 @@ class SendTrackingInformationTest extends TestCase
     private $sendTrackingInformation;
 
     /**
+     * @var StoreInterface
+     */
+    private $store;
+
+    /**
      * Setup the test
      */
     protected function setUp(): void
@@ -69,10 +77,17 @@ class SendTrackingInformationTest extends TestCase
         $this->trackingInformationProvider = $this->createMock(TrackingInformationProvider::class);
         $this->orderService = $this->createMock(OrderService::class);
 
+        $this->store = $this->createMock(StoreInterface::class);
+        $this->store->method('getId')->willReturn(1);
+
+        $storeManager = $this->createMock(StoreManagerInterface::class);
+        $storeManager->method('getStore')->willReturn($this->store);
+
         $this->sendTrackingInformation = new SendTrackingInformation(
             $this->transactionRepository,
             $this->trackingInformationProvider,
             $this->orderService,
+            $storeManager,
             $this->createMock(LoggerInterface::class)
         );
     }
@@ -255,15 +270,9 @@ class SendTrackingInformationTest extends TestCase
         }
 
         $order = $this->createMock(OrderInterface::class);
-
-        $order->expects($this->any())
-            ->method('getIncrementId')
-            ->willReturn(self::ORDER_INCREMENT_ID);
-
-        $order->expects($this->once())
-             ->method('getPayment')
-             ->willReturn($payment);
-
+        $order->method('getIncrementId')->willReturn(self::ORDER_INCREMENT_ID);
+        $order->method('getPayment')->willReturn($payment);
+        $order->method('getStoreId')->willReturn($this->store->getId());
         return $order;
     }
 
@@ -278,10 +287,13 @@ class SendTrackingInformationTest extends TestCase
         $payment = $this->getMockBuilder(Payment::class)
             ->onlyMethods([
                 'getId',
-                'getAdditionalInformation'
+                'getAdditionalInformation',
+                'getMethod'
             ])
             ->disableOriginalConstructor()
             ->getMock();
+
+        $payment->method('getMethod')->willReturn(self::PAYMENT_METHOD);
 
         $payment->expects($this->once())
             ->method('getId')

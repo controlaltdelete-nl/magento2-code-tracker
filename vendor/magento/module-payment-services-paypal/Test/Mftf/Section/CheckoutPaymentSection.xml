@@ -6,7 +6,7 @@
   */
 -->
 <sections xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:noNamespaceSchemaLocation="urn:magento:mftf:Page/etc/SectionObject.xsd">
+          xsi:noNamespaceSchemaLocation="urn:magento:mftf:Page/etc/SectionObject.xsd">
     <section name="CheckoutPaymentSection">
         <element name="MagentoPaymentServicesHostedFieldsRadio" type="radio" selector="input#payment_services_paypal_hosted_fields" timeout="30"/>
         <element name="MagentoPaymentServicesHostedFieldsForm" type="block" selector="#hosted-fields-form"/>

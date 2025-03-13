@@ -100,7 +100,8 @@ class UpdatePaypalOrder implements HttpPostActionInterface
             $quote = $this->getQuote();
             $paypalOrderId = $quote->getPayment()->getAdditionalInformation('paypal_order_id');
             $this->orderService->update(
-                $paypalOrderId,
+                (string) $quote->getStoreId(),
+                (string) $paypalOrderId,
                 [
                     'amount' => $this->orderHelper->formatAmount((float)$quote->getBaseGrandTotal()),
                     'currency_code' => $quote->getBaseCurrencyCode(),

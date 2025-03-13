@@ -11,6 +11,7 @@ use Magento\Framework\Controller\ResultFactory;
 use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\App\Action\HttpGetActionInterface;
 use Magento\Checkout\Model\Session as CheckoutSession;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\PaymentServicesPaypal\Model\OrderService;
 use Magento\PaymentServicesBase\Model\HttpException;
 use Magento\Framework\Webapi\Exception as WebapiException;
@@ -59,10 +60,10 @@ class GetCurrentOrder implements HttpGetActionInterface
                 return $result;
             }
 
-            $response = $this->orderService->get($paypalOrderId);
+            $response = $this->orderService->get((string) $quote->getStoreId(), $paypalOrderId);
             $result->setHttpResponseCode(WebapiResponse::HTTP_OK)
                 ->setData(['response' => $response]);
-        } catch (HttpException $e) {
+        } catch (HttpException|NoSuchEntityException $e) {
             $result->setHttpResponseCode(WebapiException::HTTP_INTERNAL_ERROR);
         }
 

@@ -25,6 +25,7 @@ use Magento\Framework\GraphQl\Exception\GraphQlAuthorizationException;
 use Magento\Framework\GraphQl\Exception\GraphQlInputException;
 use Magento\Framework\GraphQl\Query\ResolverInterface;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
+use Magento\PaymentServicesPaypal\Helper\TextSanitiser;
 use Magento\PaymentServicesPaypal\Model\VaultService;
 
 /**
@@ -39,12 +40,20 @@ class CreateVaultCardPaymentToken implements ResolverInterface
     private VaultService $vaultService;
 
     /**
+     * @var TextSanitiser
+     */
+    private TextSanitiser $textSanitiser;
+
+    /**
      * @param VaultService $vaultService
+     * @param TextSanitiser $textSanitiser
      */
     public function __construct(
         VaultService $vaultService,
+        TextSanitiser $textSanitiser
     ) {
         $this->vaultService = $vaultService;
+        $this->textSanitiser = $textSanitiser;
     }
 
     /**
@@ -65,8 +74,8 @@ class CreateVaultCardPaymentToken implements ResolverInterface
             throw new GraphQlInputException(__('"input" value should be specified'));
         }
 
-        $setupTokenId = (string)$args['input']['setup_token_id'];
-        $cardDescription = htmlspecialchars((string)($args['input']['card_description'] ?? ''));
+        $setupTokenId = $this->textSanitiser->textOnly((string)$args['input']['setup_token_id']);
+        $cardDescription = $this->textSanitiser->textOnly((string)($args['input']['card_description'] ?? ''));
         $storeId = (int)$context->getExtensionAttributes()->getStore()->getId();
 
         $response = $this->vaultService->createVaultCardPaymentToken(

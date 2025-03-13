@@ -111,7 +111,8 @@ class OrderUpdate
 
             try {
                 $this->orderService->update(
-                    $paypalOrderId,
+                    (string) $quote->getStoreId(),
+                    (string) $paypalOrderId,
                     [
                         'amount' => $this->orderHelper->formatAmount((float)$quote->getBaseGrandTotal()),
                         'currency_code' => $quote->getCurrency()->getBaseCurrencyCode(),
