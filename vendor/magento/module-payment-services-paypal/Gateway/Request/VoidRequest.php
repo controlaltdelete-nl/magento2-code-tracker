@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace Magento\PaymentServicesPaypal\Gateway\Request;
 
 use Magento\Framework\App\Request\Http;
+use Magento\PaymentServicesBase\Model\ScopeHeadersBuilder;
 use Magento\PaymentServicesPaypal\Gateway\Response\TxnIdHandler;
 use Magento\PaymentServicesPaypal\Model\Config;
 use Magento\Payment\Gateway\Data\PaymentDataObjectInterface;
@@ -15,7 +16,6 @@ use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 use Magento\Quote\Model\Quote\Payment as QuotePayment;
 use Magento\Sales\Model\Order\Payment;
-use Magento\Store\Model\StoreManagerInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
 
 class VoidRequest implements BuilderInterface
@@ -26,20 +26,20 @@ class VoidRequest implements BuilderInterface
     private $config;
 
     /**
-     * @var StoreManagerInterface
+     * @var ScopeHeadersBuilder
      */
-    private $storeManager;
+    private $scopeHeaderBuilder;
 
     /**
      * @param Config $config
-     * @param StoreManagerInterface $storeManager
+     * @param ScopeHeadersBuilder $scopeHeaderBuilder
      */
     public function __construct(
         Config $config,
-        StoreManagerInterface $storeManager
+        ScopeHeadersBuilder $scopeHeaderBuilder,
     ) {
         $this->config = $config;
-        $this->storeManager = $storeManager;
+        $this->scopeHeaderBuilder = $scopeHeaderBuilder;
     }
 
     /**
@@ -72,16 +72,17 @@ class VoidRequest implements BuilderInterface
         } else {
             $storeId = $payment->getQuote()->getStoreId();
         }
-        $websiteId = $this->storeManager->getStore($storeId)->getWebsiteId();
+
+        $headers = array_merge(
+            ['Content-Type' => 'application/json'],
+            $this->scopeHeaderBuilder->buildScopeHeaders($storeId),
+        );
 
         return [
             'uri' => $uri,
             'method' => Http::METHOD_POST,
             'body' => [],
-            'headers' => [
-                'Content-Type' => 'application/json',
-                'x-scope-id' => $websiteId
-            ],
+            'headers' => $headers,
             'clientConfig' => [
                 'environment' => $paymentsMode
             ]

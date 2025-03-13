@@ -7,12 +7,12 @@ declare(strict_types=1);
 
 namespace Magento\PaymentServicesPaypal\Gateway\Request;
 
+use Magento\PaymentServicesBase\Model\ScopeHeadersBuilder;
 use Magento\PaymentServicesPaypal\Model\Config;
 use Magento\PaymentServicesPaypal\Model\CustomerHeadersBuilder;
 use Magento\Payment\Gateway\Data\PaymentDataObjectInterface;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 use Magento\Payment\Gateway\Helper\SubjectReader;
-use Magento\Store\Model\StoreManagerInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
 
 class AuthorizationAndCaptureRequest implements BuilderInterface
@@ -23,28 +23,28 @@ class AuthorizationAndCaptureRequest implements BuilderInterface
     private $config;
 
     /**
+     * @var ScopeHeadersBuilder
+     */
+    private $scopeHeaderBuilder;
+
+    /**
      * @var CustomerHeadersBuilder
      */
     private $customerHeaderBuilder;
 
     /**
-     * @var StoreManagerInterface
-     */
-    private $storeManager;
-
-    /**
      * @param Config $config
+     * @param ScopeHeadersBuilder $scopeHeaderBuilder
      * @param CustomerHeadersBuilder $customerHeaderBuilder
-     * @param StoreManagerInterface $storeManager
      */
     public function __construct(
         Config $config,
+        ScopeHeadersBuilder $scopeHeaderBuilder,
         CustomerHeadersBuilder $customerHeaderBuilder,
-        StoreManagerInterface $storeManager
     ) {
         $this->config = $config;
+        $this->scopeHeaderBuilder = $scopeHeaderBuilder;
         $this->customerHeaderBuilder = $customerHeaderBuilder;
-        $this->storeManager = $storeManager;
     }
 
     /**
@@ -67,7 +67,12 @@ class AuthorizationAndCaptureRequest implements BuilderInterface
             . $this->getPayPalOrderId($payment)
             . '/capture';
 
-        $websiteId = $this->storeManager->getStore($payment->getOrder()->getStoreId())->getWebsiteId();
+        $headers = array_merge(
+            ['Content-Type' => 'application/json'],
+            $this->scopeHeaderBuilder->buildScopeHeaders($payment->getOrder()->getStoreId()),
+            $this->customerHeaderBuilder->buildCustomerHeaders($payment),
+        );
+
         $body = [
             'mp-transaction' => [
                 'order-increment-id' => $payment->getOrder()->getOrderIncrementId()
@@ -76,19 +81,13 @@ class AuthorizationAndCaptureRequest implements BuilderInterface
         if (isset($paymentToken)) {
             $body['mp-transaction']['payment-vault-id'] = $paymentToken->getGatewayToken();
         }
-        $request =  [
+
+        return [
             'uri' => $uri,
             'method' => \Magento\Framework\App\Request\Http::METHOD_POST,
             'body' => $body,
-            'headers' => [
-                'Content-Type' => 'application/json',
-                'x-scope-id' => $websiteId
-            ]
+            'headers' => $headers,
         ];
-        $customHeaders = $this->customerHeaderBuilder->buildCustomerHeaders($payment);
-        $request['headers'] = array_merge($request['headers'], $customHeaders);
-
-        return $request;
     }
 
     private function getPayPalOrderId($payment) {

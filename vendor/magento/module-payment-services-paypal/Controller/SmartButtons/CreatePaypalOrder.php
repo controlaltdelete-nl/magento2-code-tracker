@@ -62,7 +62,7 @@ class CreatePaypalOrder implements HttpPostActionInterface, CsrfAwareActionInter
         try {
             $paymentSource = $this->request->getPost('payment_source');
             $threeDSMode = $this->request->getPost('three_ds_mode');
-            $location = $this->request->getParam('location');
+            $location = $this->request->getPost('location');
             $this->checkout->setLocation($location);
             if ($location !== $this->checkout::LOCATION_PRODUCT_PAGE) {
                 $this->checkout->unsetQuote();

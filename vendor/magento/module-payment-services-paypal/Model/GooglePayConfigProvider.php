@@ -69,6 +69,7 @@ class GooglePayConfigProvider implements ConfigProviderInterface
             $config['payment'][self::CODE]['isVisible'] = false;
             return $config;
         }
+        $config['payment'][self::CODE]['location'] = Config::CHECKOUT_CHECKOUT_LOCATION;
 
         $config['payment'][self::CODE]['mode'] = $this->config->getGooglePayMode();
         $config['payment'][self::CODE]['isVisible'] = true;

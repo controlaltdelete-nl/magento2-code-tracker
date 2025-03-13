@@ -19,11 +19,13 @@ declare(strict_types=1);
 namespace Magento\PaymentServicesPaypal\Test\Unit\Helper;
 
 use Magento\PaymentServicesPaypal\Helper\PaypalApiDataFormatter;
+use Magento\PaymentServicesPaypal\Helper\TextSanitiser;
 use Magento\PaymentServicesPaypal\Helper\TrackingInformationProvider;
 use Magento\Sales\Api\Data\ShipmentInterface;
 use Magento\Sales\Api\Data\ShipmentItemInterface;
 use Magento\Sales\Api\Data\ShipmentTrackInterface;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 
 class TrackingInformationProviderTest extends TestCase
 {
@@ -44,7 +46,8 @@ class TrackingInformationProviderTest extends TestCase
      */
     protected function setUp(): void
     {
-        $this->paypalApiDataFormatter = new(PaypalApiDataFormatter::class);
+        $logger = $this->createMock(LoggerInterface::class);
+        $this->paypalApiDataFormatter = new PaypalApiDataFormatter(new TextSanitiser($logger));
         $this->trackingInformationProvider = new TrackingInformationProvider($this->paypalApiDataFormatter);
     }
 

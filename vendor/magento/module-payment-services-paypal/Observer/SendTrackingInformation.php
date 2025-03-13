@@ -25,12 +25,14 @@ use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Exception\InputException;
 use Magento\PaymentServicesBase\Model\HttpException;
 use Magento\PaymentServicesPaypal\Helper\TrackingInformationProvider;
+use Magento\PaymentServicesPaypal\Helper\Util;
 use Magento\PaymentServicesPaypal\Model\OrderService;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\ShipmentInterface;
 use Magento\Sales\Api\TransactionRepositoryInterface;
 use Magento\Sales\Api\Data\TransactionInterface;
 use Magento\Sales\Model\Order\Payment;
+use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
 
 class SendTrackingInformation implements ObserverInterface
@@ -51,6 +53,11 @@ class SendTrackingInformation implements ObserverInterface
     private OrderService $orderService;
 
     /**
+     * @var StoreManagerInterface
+     */
+    private StoreManagerInterface $storeManager;
+
+    /**
      * @var LoggerInterface
      */
     private LoggerInterface $logger;
@@ -59,17 +66,20 @@ class SendTrackingInformation implements ObserverInterface
      * @param TransactionRepositoryInterface $transactionRepository
      * @param TrackingInformationProvider $trackingInformationProvider
      * @param OrderService $orderService
+     * @param StoreManagerInterface $storeManager
      * @param LoggerInterface $logger
      */
     public function __construct(
         TransactionRepositoryInterface $transactionRepository,
         TrackingInformationProvider    $trackingInformationProvider,
         OrderService                   $orderService,
+        StoreManagerInterface          $storeManager,
         LoggerInterface                $logger,
     ) {
         $this->transactionRepository = $transactionRepository;
         $this->trackingInformationProvider = $trackingInformationProvider;
         $this->orderService = $orderService;
+        $this->storeManager = $storeManager;
         $this->logger = $logger;
     }
 
@@ -95,21 +105,27 @@ class SendTrackingInformation implements ObserverInterface
 
             /** @var Payment $payment */
             $payment = $order->getPayment();
-            if (!$payment || !$this->hasCaptureTransaction($payment)) {
+            if (!$payment
+                || !Util::isPaymentServicesPayPalPaymentMethod($payment->getMethod())
+                || !$this->hasCaptureTransaction($payment)
+            ) {
                 return;
             }
 
             $paypalOrderId = $payment->getAdditionalInformation('paypal_order_id');
-            if (!$paypalOrderId) {
-                $this->logger->error("Order doesn't have a paypal_order_id", [$order->getIncrementId()]);
-                return;
-            }
-
             $paypalTransactionId = $payment->getAdditionalInformation('paypal_txn_id');
             if (!$paypalTransactionId) {
                 $this->logger->error("Order doesn't have a paypal_txn_id", [$order->getIncrementId()]);
                 return;
             }
+
+            $storeId = $order->getStoreId();
+            if (!$storeId) {
+                $this->logger->error("Order doesn't have a store_id.", [$order->getIncrementId()]);
+                return;
+            }
+
+            $store = $this->storeManager->getStore($storeId);
 
             $trackingInformation = $this->trackingInformationProvider->getTrackingInformation(
                 $shipment,
@@ -118,7 +134,7 @@ class SendTrackingInformation implements ObserverInterface
 
             foreach ($trackingInformation as $tracking) {
                 try {
-                    $this->orderService->track($paypalOrderId, $tracking);
+                    $this->orderService->track($store, $paypalOrderId, $tracking);
                 } catch (HttpException $e) {
                     $this->logger->error(
                         'Error sending request to create tracking information',

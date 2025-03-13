@@ -50,11 +50,12 @@ class PaymentManagement
      */
     public function refreshPaymentStatus(\Magento\Sales\Model\Order\Payment $payment): bool
     {
+        $storeId = $this->extractStoreIdFromPayment($payment);
         $orderId = $this->extractPayPalOrderIdFromPayment($payment);
         $payPalTxnId = $this->extractPayPalTxnIdFromPayment($payment);
 
         $captureTransaction = $this->extractCaptureTransaction(
-            $this->orderService->get($orderId),
+            $this->orderService->get($storeId, $orderId),
             $payPalTxnId
         );
 
@@ -102,6 +103,25 @@ class PaymentManagement
     }
 
     /**
+     * Extracts the store view id from the payment.
+     *
+     * @param Order\Payment $payment
+     * @return string
+     */
+    private function extractStoreIdFromPayment(\Magento\Sales\Model\Order\Payment $payment): string
+    {
+        $order = $payment->getOrder();
+        if (!$order) {
+            throw new \InvalidArgumentException("payment has no order associated");
+        }
+        $storeId = $order->getStoreId();
+        if (empty($storeId)) {
+            throw new \InvalidArgumentException("payment order is missing store_id");
+        }
+        return (string) $storeId;
+    }
+
+    /**
      * Extracts the capture transaction from the order
      *
      * @param array $orderData
@@ -112,7 +132,7 @@ class PaymentManagement
     {
         if (!isset($orderData['paypal-order']['purchase_units'])) {
             throw new \InvalidArgumentException(
-                "could not extract transaction from order, order is missin purchase units"
+                "could not extract transaction from order, order is missing purchase units"
             );
         }
 

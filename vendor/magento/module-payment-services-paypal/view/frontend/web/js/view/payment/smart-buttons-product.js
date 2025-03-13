@@ -81,7 +81,8 @@ define([
                 catchOnAuthorize: this.catchError,
                 finallyOnAuthorize: this.showLoader.bind(this, false),
                 onError: this.catchError,
-                onCancel: this.onCancel
+                onCancel: this.onCancel,
+                location: this.pageType,
             });
         },
 

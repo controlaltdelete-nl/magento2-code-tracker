@@ -15,8 +15,8 @@ use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\App\CsrfAwareActionInterface;
 use Magento\PaymentServicesBase\Model\HttpException;
 use Magento\PaymentServicesPaypal\Helper\OrderHelper;
+use Magento\PaymentServicesPaypal\Model\Config;
 use Magento\PaymentServicesPaypal\Model\OrderService;
-use Magento\Quote\Model\Quote\Address as Address;
 use Magento\ServiceProxy\Controller\Adminhtml\AbstractProxyController;
 use Magento\Quote\Api\CartRepositoryInterface as QuoteRepositoryInterface;
 use Magento\Quote\Model\Quote;
@@ -89,8 +89,10 @@ class Create extends AbstractProxyController implements HttpPostActionInterface,
                 : $this->orderService->buildGuestPayer($quote);
             $paymentSource = $this->getRequest()->getPost('payment_source');
             $orderIncrementId = $this->resolveOrderIncrementId($quote);
+            $store = $quote->getStore();
 
             $response = $this->orderService->create(
+                $store,
                 [
                     'amount' => $this->orderHelper->formatAmount((float)$quote->getBaseGrandTotal()),
                     'l2_data' => $this->orderHelper->getL2Data($quote, $paymentSource ?? ''),
@@ -100,19 +102,20 @@ class Create extends AbstractProxyController implements HttpPostActionInterface,
                     'billing_address' => $this->orderService->mapAddress($quote->getBillingAddress()),
                     'payer' => $payer,
                     'is_digital' => $quote->isVirtual(),
-                    'website_id' => $quote->getStore()->getWebsiteId(),
-                    'store_code' => $quote->getStore()->getCode(),
+                    'storeview_code' => $store->getCode(),
                     'payment_source' => $paymentSource,
                     'quote_id' => $quote->getId(),
                     'order_increment_id' => $orderIncrementId,
                     'line_items' => $this->orderHelper->getLineItems($quote, $orderIncrementId),
                     'amount_breakdown' => $this->orderHelper->getAmountBreakdown($quote, $orderIncrementId),
+                    'location' => Config::ADMIN_CHECKOUT_LOCATION
                 ]
             );
 
             if (isset($response["paypal-order"]['id'])) {
                 $quote->getPayment()->setAdditionalInformation('paypal_order_id', $response["paypal-order"]['id']);
                 $quote->getPayment()->setAdditionalInformation('paypal_order_amount', $quote->getBaseGrandTotal());
+                $quote->getPayment()->setAdditionalInformation('location', Config::ADMIN_CHECKOUT_LOCATION);
                 $this->quoteRepository->save($quote);
             }
 

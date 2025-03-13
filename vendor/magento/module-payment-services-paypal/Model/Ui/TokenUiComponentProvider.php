@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace Magento\PaymentServicesPaypal\Model\Ui;
 
+use Magento\PaymentServicesPaypal\Model\Config;
 use Magento\Vault\Api\Data\PaymentTokenInterface;
 use Magento\Vault\Model\Ui\TokenUiComponentProviderInterface;
 use Magento\Vault\Model\Ui\TokenUiComponentInterfaceFactory;
@@ -56,6 +57,7 @@ class TokenUiComponentProvider implements TokenUiComponentProviderInterface
                     'code' => ConfigProvider::CC_VAULT_CODE,
                     'paymentSource' => self::CC_VAULT_SOURCE,
                     'createOrderUrl' => $this->urlBuilder->getUrl(self::CREATE_ORDER_URL),
+                    'location' => Config::CHECKOUT_CHECKOUT_LOCATION,
                     TokenUiComponentProviderInterface::COMPONENT_DETAILS => $jsonDetails,
                     TokenUiComponentProviderInterface::COMPONENT_PUBLIC_HASH => $paymentToken->getPublicHash()
                 ],

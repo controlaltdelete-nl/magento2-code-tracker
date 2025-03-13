@@ -80,8 +80,11 @@ class SetQuoteAsInactive implements HttpPostActionInterface
 
         try {
             $quote = $this->getQuote();
-            $quote->setIsActive(false);
-            $this->quoteRepository->save($quote);
+
+            if ($quote->getIsActive()) {
+                $quote->setIsActive(false);
+                $this->quoteRepository->save($quote);
+            }
 
             $result->setHttpResponseCode(200);
             return $result;
@@ -103,7 +106,7 @@ class SetQuoteAsInactive implements HttpPostActionInterface
     private function getQuote() : CartInterface
     {
         if ($this->paypalSession->getQuoteId()) {
-            return $this->quoteRepository->getActive($this->paypalSession->getQuoteId());
+            return $this->quoteRepository->get($this->paypalSession->getQuoteId());
         }
 
         return $this->checkoutSession->getQuote();

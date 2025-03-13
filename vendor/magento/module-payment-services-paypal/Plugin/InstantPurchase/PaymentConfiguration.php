@@ -16,10 +16,13 @@ use Magento\Quote\Model\Quote;
 use Magento\InstantPurchase\Model\QuoteManagement\PaymentConfiguration as InstantPurchasePaymentConfiguration;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\PaymentServicesBase\Model\Config;
+use Magento\PaymentServicesPaypal\Model\Config as paypalConfig;
 use Magento\PaymentServicesPaypal\Model\HostedFieldsConfigProvider;
 
 class PaymentConfiguration
 {
+    private const LOCATION = paypalConfig::PRODUCT_DETAIL_CHECKOUT_LOCATION;
+
     /**
      * @var OrderService
      */
@@ -81,13 +84,13 @@ class PaymentConfiguration
         $orderIncrementId = $this->orderHelper->reserveAndGetOrderIncrementId($quote);
 
         $response = $this->orderService->create(
+            $quote->getStore(),
             [
                 'amount' => $this->orderHelper->formatAmount((float)$totalAmount),
                 'l2_data' => $this->orderHelper->getL2Data($quote, TokenUiComponentProvider::CC_VAULT_SOURCE),
                 'l3_data' => $this->orderHelper->getL3Data($quote, TokenUiComponentProvider::CC_VAULT_SOURCE),
                 'currency_code' => $currencyCode,
                 'is_digital' => $quote->getIsVirtual(),
-                'website_id' => $quote->getStore()->getWebsiteId(),
                 'shipping_address' => $this->orderService->mapAddress($quote->getShippingAddress()),
                 'billing_address' => $this->orderService->mapAddress($quote->getBillingAddress()),
                 'payer' => $this->orderService->buildPayer($quote, $customer->getId()),
@@ -96,6 +99,7 @@ class PaymentConfiguration
                 'order_increment_id' => $orderIncrementId,
                 'line_items' => $this->orderHelper->getLineItems($quote, $orderIncrementId),
                 'amount_breakdown' => $this->orderHelper->getAmountBreakdown($quote, $orderIncrementId),
+                'location' => self::LOCATION
             ]
         );
         if (!$response['is_successful']) {
@@ -106,7 +110,8 @@ class PaymentConfiguration
             ->setAdditionalInformation('paypal_order_id', $response['paypal-order']['id'])
             ->setAdditionalInformation('payments_order_id', $response['paypal-order']['mp_order_id'])
             ->setAdditionalInformation('payments_mode', $this->config->getEnvironmentType())
-            ->setAdditionalInformation('paypal_order_amount', $totalAmount);
+            ->setAdditionalInformation('paypal_order_amount', $totalAmount)
+            ->setAdditionalInformation('location', self::LOCATION);
 
         return $quote;
     }
