@@ -718,7 +718,7 @@ class LineItemsProviderTest extends TestCase
             15,
             30,
             4,
-            2.23
+            "2.23"
         );
         $quoteItemVirtual = $this->createQuoteItem(
             $productWithDescription,
@@ -848,7 +848,7 @@ class LineItemsProviderTest extends TestCase
         float $unitPrice,
         float $rowTotal,
         float $taxAmount,
-        float $qty = 1,
+        float|string $qty = 1,
         bool $isVirtual = false,
     ): Quote\Item {
         $quoteItem = $this->getMockBuilder(Quote\Item::class)
