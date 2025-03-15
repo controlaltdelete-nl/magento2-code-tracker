@@ -315,6 +315,6 @@ class LineItemsProvider
      */
     private function isDecimal($val): bool
     {
-        return is_numeric($val) && floor($val) != $val;
+        return is_numeric($val) && floor((float)$val) != $val;
     }
 }
