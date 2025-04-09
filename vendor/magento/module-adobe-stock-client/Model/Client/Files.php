@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2019 Adobe
+ * All Rights Reserved.
  */
 declare(strict_types=1);
 
@@ -92,7 +92,7 @@ class Files implements FilesInterface
     /**
      * @inheritdoc
      */
-    public function execute(array $ids, array $columns, string $locale = null): array
+    public function execute(array $ids, array $columns, ?string $locale = null): array
     {
         if (empty($ids)) {
             throw new IntegrationException(__('Files ids can not be empty.'));

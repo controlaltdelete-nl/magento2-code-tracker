@@ -1,6 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright 2024 Adobe
+ * All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -70,7 +71,7 @@ class SaveImageTest extends TestCase
     /**
      * @return array
      */
-    public function getSaveTestDataProvider(): array
+    public static function getSaveTestDataProvider(): array
     {
         return [
             'image_save' => [
@@ -98,7 +99,7 @@ class SaveImageTest extends TestCase
                         ],
                     ]
                 ],
-                'sourcePath' => 'magento-logo.png',
+                'sourceFile' => 'magento-logo.png',
                 'destinationPath' => 'catalog/category/adobe-stock-save-image-test.png',
             ]
         ];
