@@ -1,6 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright 2024 Adobe
+ * All rights reserved.
  * See COPYING.txt for license details.
  */
 declare(strict_types=1);
@@ -72,7 +73,7 @@ class DocumentToAssetTest extends TestCase
     /**
      * @return array
      */
-    public function documentProvider(): array
+    public static function documentProvider(): array
     {
         return [
             'case1' => [
@@ -86,7 +87,7 @@ class DocumentToAssetTest extends TestCase
                     'creator_id' => 3,
                     'is_licensed' => 1
                 ],
-                'additionaData' => [
+                'additionalData' => [
                     'media_gallery_id' => 5
                 ]
             ]

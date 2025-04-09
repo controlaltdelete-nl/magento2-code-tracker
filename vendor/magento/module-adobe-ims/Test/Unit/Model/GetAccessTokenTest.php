@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2022 Adobe
+ * All Rights Reserved.
  */
 declare(strict_types=1);
 
@@ -100,7 +100,7 @@ class GetAccessTokenTest extends TestCase
      *
      * @return array
      */
-    public function expectedDataProvider(): array
+    public static function expectedDataProvider(): array
     {
         return
             [
@@ -108,7 +108,7 @@ class GetAccessTokenTest extends TestCase
                     'token' => 'kladjflakdjf3423rfzddsf'
                 ],
                 [
-                    'null_token' => null
+                    'token' => null
                 ]
             ];
     }

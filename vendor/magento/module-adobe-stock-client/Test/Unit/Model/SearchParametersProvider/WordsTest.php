@@ -1,6 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
+ * Copyright 2024 Adobe
+ * All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -199,7 +200,7 @@ class WordsTest extends TestCase
      *
      * @return array
      */
-    public function requestValuesDataProvider(): array
+    public static function requestValuesDataProvider(): array
     {
         return [
             [

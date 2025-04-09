@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2019 Adobe
+ * All Rights Reserved.
  */
 
 declare(strict_types=1);
@@ -54,7 +54,7 @@ class Save
         Filesystem $filesystem,
         Https $driver,
         IsPathExcludedInterface $isPathExcluded,
-        int $maxFileLength = null
+        ?int $maxFileLength = null
     ) {
         $this->filesystem = $filesystem;
         $this->driver = $driver;
@@ -75,7 +75,12 @@ class Save
     public function execute(string $imageUrl, string $destinationPath, bool $allowOverwrite = false): void
     {
         if (strlen($destinationPath) > $this->maxFileLength) {
-            throw new LocalizedException(__('Destination Path is too long; must be %1 characters or less', $this->maxFileLength));
+            throw new LocalizedException(
+                __(
+                    'Destination Path is too long; must be %1 characters or less',
+                    $this->maxFileLength
+                )
+            );
         }
 
         $mediaDirectory = $this->filesystem->getDirectoryWrite(DirectoryList::MEDIA);

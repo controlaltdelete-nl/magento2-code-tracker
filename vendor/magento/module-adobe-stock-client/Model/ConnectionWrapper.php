@@ -1,7 +1,7 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * Copyright 2019 Adobe
+ * All Rights Reserved.
  */
 declare(strict_types=1);
 
@@ -77,7 +77,7 @@ class ConnectionWrapper
         ImsConfig $imsConfig,
         GetAccessTokenInterface $getAccessToken,
         FlushUserTokensInterface $flushUserTokens,
-        HttpInterface $httpClient = null
+        ?HttpInterface $httpClient = null
     ) {
         $this->clientConfig = $clientConfig;
         $this->connectionFactory = $connectionFactory;
@@ -93,7 +93,7 @@ class ConnectionWrapper
      * @param string|null $apiKey
      * @return AdobeStock
      */
-    private function getConnection(string $apiKey = null): AdobeStock
+    private function getConnection(?string $apiKey = null): AdobeStock
     {
         if (!$this->connection) {
             $this->connection = $this->connectionFactory->create(
