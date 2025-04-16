@@ -1,4 +1,7 @@
-module.exports = {
+// Import utils using ES module syntax
+import utils from './utils.js';
+
+export default {
     meta: {
         type: 'suggestion',
         docs: {
@@ -17,10 +20,6 @@ module.exports = {
      * @returns {Object}
      */
     create: function (context) {
-        'use strict';
-
-        var utils = require('./utils.js');
-
         return {
             /**
              * Checks if shorthand event methods are used.
