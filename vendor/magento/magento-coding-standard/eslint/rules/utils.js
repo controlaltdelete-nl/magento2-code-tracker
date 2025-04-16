@@ -4,7 +4,6 @@
  * @returns object
  */
 function define(node) {
-    'use strict';
     var defineStmt, args;
 
     defineStmt = node.body.find(function (stmt) {
@@ -36,7 +35,6 @@ function define(node) {
  * @returns {null|*}
  */
 function getJqueryName(defineObject) {
-    'use strict';
 
     var jQueryPathIndex;
 
@@ -57,7 +55,6 @@ function getJqueryName(defineObject) {
  * Get Root Program node
  */
 function getProgramNode(node) {
-    'use strict';
     if (!node.parent) {
         return node;
     }
@@ -71,7 +68,6 @@ function getProgramNode(node) {
  * @returns {Object|Null}
  */
 function getExpressionId(node) {
-    'use strict';
 
     while (node) {
         switch (node.type) {
@@ -102,7 +98,6 @@ function getExpressionId(node) {
  */
 
 function isjQuery(node) {
-    'use strict';
     var parentNode, defineNode, jQueryId, id;
 
     parentNode = getProgramNode(node);
@@ -116,7 +111,7 @@ function isjQuery(node) {
     return id && jQueryId && id.name === jQueryId.name;
 }
 
-module.exports = {
+export default {
     traverse: getExpressionId,
     isjQuery: isjQuery
 };
