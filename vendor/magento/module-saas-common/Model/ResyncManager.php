@@ -178,7 +178,8 @@ class ResyncManager
     {
         $this->checkLock(function () {
             $this->ensureNoRunningIndexer();
-            if ($this->indexerConfig->isCleanUpFeed()) {
+            //Truncate index tables if feed clean up options (used only if it does not run in the dry run mode)
+            if ($this->indexerConfig->isCleanUpFeed() && !$this->indexerConfig->isDryRun()) {
                 $this->truncateIndexTable();
             }
             if ($this->isImmediateExport()) {
@@ -316,16 +317,19 @@ class ResyncManager
                 //Partial reindex by IDs supports only single thread reindex
                 $this->progressBarManager->start(count($idsToReindex), 1);
                 //Set feed hash to null for the entities that needs to be re-synchronized
-                $connection->update(
-                    $this->resourceConnection->getTableName($metadata->getFeedTableName()),
-                    [FeedIndexMetadata::FEED_TABLE_FIELD_FEED_HASH => null],
-                    [
-                        $connection->quoteInto(
-                            FeedIndexMetadata::FEED_TABLE_FIELD_SOURCE_ENTITY_ID . ' IN (?)',
-                            $idsToReindex
-                        )
-                    ]
-                );
+                //ignore if running in --dry-run mode
+                if (!$this->indexerConfig->isDryRun()) {
+                    $connection->update(
+                        $this->resourceConnection->getTableName($metadata->getFeedTableName()),
+                        [FeedIndexMetadata::FEED_TABLE_FIELD_FEED_HASH => null],
+                        [
+                            $connection->quoteInto(
+                                FeedIndexMetadata::FEED_TABLE_FIELD_SOURCE_ENTITY_ID . ' IN (?)',
+                                $idsToReindex
+                            )
+                        ]
+                    );
+                }
                 $this->regenerateFeedDataByIds($idsToReindex);
                 $this->progressBarManager->finish();
                 $this->logger->complete();
