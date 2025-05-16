@@ -7,7 +7,6 @@ declare(strict_types=1);
 
 namespace Magento\ServicesId\Console\Command;
 
-use Composer\Console\Input\InputOption;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Console\Cli;
 use Magento\ServicesId\Model\ServicesClientInterface;
@@ -15,6 +14,7 @@ use Magento\ServicesId\Model\ServicesConfigInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Helper\Table;
 
