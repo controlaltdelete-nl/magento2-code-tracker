@@ -29,6 +29,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Magento\SaaSCommon\Model\ResyncManager;
 use Magento\SaaSCommon\Model\ResyncManagerPool;
+use Symfony\Component\Console\Question\ConfirmationQuestion;
 
 /**
  * CLI command for Saas feed data resync
@@ -137,6 +138,22 @@ class Resync extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): ?int
     {
+        $helper = $this->getHelper('question');
+
+        if ($input->getOption(ResyncOptions::CLEANUP_FEED) && !$input->getOption(ResyncOptions::DRY_RUN_OPTION)) {
+            $question = new ConfirmationQuestion(
+                '<comment>Running resync with the `cleanup-feed` option can cause data loss - ' .
+                'e.g., products deleted in AC may persist in AC Service. ' .
+                'Use only when the entire environment needs to be rebuilt.</comment>' . "\n" .
+                'Are you sure you want to continue? (yes/no): ',
+                false
+            );
+
+            if (!$helper->ask($input, $output, $question)) {
+                $output->writeln('<comment>Operation cancelled.</comment>');
+                return Command::FAILURE;
+            }
+        }
         $feed = $this->resyncManagerPool->getActualFeedName((string)$input->getOption(ResyncOptions::FEED_OPTION));
         $availableFeeds = $this->getAllAvailableFeeds();
 
