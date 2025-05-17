@@ -35,6 +35,7 @@ use Magento\ServicesId\Model\ServicesConfig;
 use Magento\ServicesId\Model\ServicesConfigInterface;
 use Magento\SaaSCommon\Model\Logging\SaaSExportLoggerInterface as LoggerInterface;
 use Magento\DataExporter\Model\FeedExportStatusBuilder;
+use Magento\Framework\DataObject\IdentityService;
 
 /**
  * Class responsible for call execution to SaaS Service
@@ -114,6 +115,7 @@ class SubmitFeed
      * @var FeedRouteResolverInterface
      */
     private FeedRouteResolverInterface $feedRouteResolver;
+    private IdentityService $uuid;
 
     /**
      * @param ClientResolverInterface $clientResolver
@@ -128,6 +130,7 @@ class SubmitFeed
      * @param ?IndexerConfig $indexerConfig
      * @param ?ProgressBarManager $progressBarManager
      * @param ?FeedRouteResolverInterface $feedRouteResolver
+     * @param ?IdentityService $uuid
      * @param bool $extendedLog
      * @param string[] $headers
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
@@ -146,6 +149,7 @@ class SubmitFeed
         ?IndexerConfig $indexerConfig = null,
         ?ProgressBarManager $progressBarManager = null,
         ?FeedRouteResolverInterface $feedRouteResolver = null,
+        ?IdentityService $uuid = null,
         bool $extendedLog = false,
         array $headers = []
     ) {
@@ -165,6 +169,8 @@ class SubmitFeed
             ?? ObjectManager::getInstance()->get(ProgressBarManager::class);
         $this->feedRouteResolver = $feedRouteResolver
             ?? ObjectManager::getInstance()->get(FeedRouteResolverInterface::class);
+        $this->uuid = $uuid
+            ?? ObjectManager::getInstance()->get(IdentityService::class);
     }
 
     /**
@@ -194,8 +200,8 @@ class SubmitFeed
                 self::EXTENSION_NAME,
                 $this->config->getValue(self::ENVIRONMENT_CONFIG_PATH)
             );
-
-            $headers = $this->getHeaders();
+            $requestId = $this->uuid->generateId();
+            $headers = $this->getHeaders($requestId);
             $this->logFeedData($feedName, $data);
             $body = $this->converter->toBody($data);
             $options = [
@@ -217,10 +223,11 @@ class SubmitFeed
                 $exportStatus = $this->feedExportStatusBuilder->build(
                     $response->getStatusCode(),
                     $response->getReasonPhrase(),
-                    $failedItems
+                    $failedItems,
+                    [$requestId]
                 );
                 if (!$exportStatus->getStatus()->isSuccess()) {
-                    $log = $this->prepareLog($client, $exportStatus, $feedName, $data, $environmentId);
+                    $log = $this->prepareLog($client, $exportStatus, $feedName, $data, $environmentId, [$requestId]);
                     $this->logger->error(
                         'Export error. API request was not successful.',
                         $log
@@ -237,25 +244,31 @@ class SubmitFeed
         } catch (UnableSendData $exception) {
             $exportStatus = $this->feedExportStatusBuilder->build(
                 ExportStatusCodeProvider::APPLICATION_ERROR,
-                $exception->getMessage()
+                $exception->getMessage(),
+                [],
+                [$requestId ?? '']
             );
             $this->logger->error(
                 $exception->getMessage(),
                 [
                     'exception' => $exception,
-                    'feed' => $feedName
+                    'feed' => $feedName,
+                    'request_id' => $requestId ?? null,
                 ]
             );
         } catch (\Throwable $exception) {
             $exportStatus = $this->feedExportStatusBuilder->build(
                 ExportStatusCodeProvider::APPLICATION_ERROR,
-                $exception->getMessage()
+                $exception->getMessage(),
+                [],
+                [$requestId ?? '']
             );
             $this->logger->error(
                 $exception->getMessage(),
                 [
                     'exception' => $exception,
                     'environment_id' => $environmentId,
+                    'request_id' => $requestId ?? null,
                     'route' => $this->feedRouteResolver->getRoute($feedName),
                     'feed' => $feedName
                 ]
@@ -273,6 +286,7 @@ class SubmitFeed
      * @param string $feedName
      * @param array $payload
      * @param string|null $environmentId
+     * @param array $metadata
      * @return array
      * @throws UnableSendData
      */
@@ -281,19 +295,21 @@ class SubmitFeed
         FeedExportStatus $feedExportStatus,
         string $feedName,
         array $payload,
-        ?string $environmentId
+        ?string $environmentId,
+        ?array $metadata
     ): array {
         $clientConfig = $client->getConfig();
 
         $log = [
             'environment_id' => $environmentId,
+            'metadata' => $metadata ?? null,
             'status_code' => $feedExportStatus->getStatus()->getValue(),
             'feed' => $feedName,
             'reason' => $feedExportStatus->getReasonPhrase(),
             'route' => $this->feedRouteResolver->getRoute($feedName),
             'base_uri' => isset($clientConfig['base_uri'])
                 ? $clientConfig['base_uri']->__toString() : 'base uri wasn\'t set',
-            'failedItems' => $feedExportStatus->getFailedItems()
+            'failedItems' => $feedExportStatus->getFailedItems(),
         ];
 
         if (true === $this->extendedLog) {
@@ -306,12 +322,14 @@ class SubmitFeed
     /**
      * Create a list of headers for the feed submit request.
      *
+     * @param string $requestId
      * @return array
      */
-    private function getHeaders(): array
+    private function getHeaders(string $requestId): array
     {
         $headers = [
             'Content-Type' => $this->converter->getContentMediaType(),
+            'X-Request-Id' => $requestId,
             $this->requestMetadataHeaderProvider->getName() => $this->requestMetadataHeaderProvider->getValue()
         ];
 

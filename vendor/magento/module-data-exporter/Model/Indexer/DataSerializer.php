@@ -142,6 +142,7 @@ class DataSerializer implements DataSerializerInterface
                 ?? 0;
             $outputRow[FeedIndexMetadata::FEED_TABLE_FIELD_STATUS] = $status->getValue();
             $outputRow[FeedIndexMetadata::FEED_TABLE_FIELD_MODIFIED_AT] = $rowModifiedAt;
+            $outputRow[FeedIndexMetadata::FEED_TABLE_FIELD_ERRORS] = '';
             if (!empty($exportFailedItems)) {
                 $failedFeedItem = $exportFailedItems[$itemN] ?? null;
                 // if _specific_ item failed mark only that item as failed, otherwise set status successful
@@ -165,6 +166,7 @@ class DataSerializer implements DataSerializerInterface
             $outputRow[FeedIndexMetadata::FEED_TABLE_FIELD_FEED_HASH] = $row[
                 FeedIndexMetadata::FEED_TABLE_FIELD_FEED_HASH
             ];
+            $outputRow[FeedIndexMetadata::FEED_TABLE_FIELD_METADATA] = $exportStatus->getMetadata();
             if (IndexStateProvider::isUpdate($row)) {
                 $outputRow[FeedIndexMetadata::FEED_TABLE_FIELD_PK] = $row[FeedIndexMetadata::FEED_TABLE_FIELD_PK];
                 $output[IndexStateProvider::UPDATE_OPERATION][] = $outputRow;
