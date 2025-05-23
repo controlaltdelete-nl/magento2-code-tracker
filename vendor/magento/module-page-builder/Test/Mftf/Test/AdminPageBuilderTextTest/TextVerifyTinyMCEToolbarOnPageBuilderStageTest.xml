@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/**
+  * Copyright 2025 Adobe
+  * All Rights Reserved.
+ */
+-->
+<tests xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:mftf:Test/etc/testSchema.xsd">
+    <test name="TextVerifyTinyMCEToolbarOnPageBuilderStageTest">
+        <annotations>
+            <features value="PageBuilder"/>
+            <stories value="Text"/>
+            <title value="TinyMCE toolbar on PageBuilder stage"/>
+            <description value="Verify buttons on WYSIWYG toolbar inside PageBuilder"/>
+            <severity value="MAJOR"/>
+            <useCaseId value="MC-1412"/>
+            <testCaseId value="MC-3463"/>
+            <group value="pagebuilder"/>
+            <group value="pagebuilder-text"/>
+        </annotations>
+        <before>
+            <createData entity="_defaultCmsPage" stepKey="createCMSPage"/>
+            <actionGroup ref="AdminLoginActionGroup" stepKey="loginAsAdmin"/>
+            <actionGroup ref="CliEnableTinyMCEActionGroup" stepKey="enableTinyMCE" />
+        </before>
+        <after>
+            <deleteData createDataKey="createCMSPage" stepKey="deletePreReqCMSPage"/>
+            <actionGroup ref="AdminLogoutActionGroup" stepKey="logout"/>
+        </after>
+        <actionGroup ref="NavigateToCreatedCMSPageActionGroup" stepKey="navigateToCreatedCMSPage1">
+            <argument name="CMSPage" value="$$createCMSPage$$"/>
+        </actionGroup>
+        <actionGroup ref="switchToPageBuilderStage" stepKey="switchToPageBuilderStage"/>
+        <actionGroup ref="dragContentTypeToStage" stepKey="dragRowToRootContainer">
+            <argument name="contentType" value="PageBuilderRowContentType"/>
+            <argument name="containerTargetType" value="PageBuilderRootContainerContentType"/>
+        </actionGroup>
+        <actionGroup ref="expandPageBuilderPanelMenuSection" stepKey="expandPageBuilderPanelMenuSection1">
+            <argument name="contentType" value="PageBuilderTextContentType"/>
+        </actionGroup>
+        <actionGroup ref="dragContentTypeToStage" stepKey="dragButtonsOntoStage">
+            <argument name="contentType" value="PageBuilderTextContentType"/>
+        </actionGroup>
+        <clickWithLeftButton x="10" y="10" selector="{{TextOnStage.tinymce('1')}}" stepKey="focusOnTextEditorArea"/>
+        <actionGroup ref="VerifyTinyMCEActionGroup" stepKey="verifyTinyMCE"/>
+        <actionGroup ref="VerifyMagentoEntityActionGroup" stepKey="verifyMagentoEntities"/>
+        <seeElement selector="{{WYSIWYGOnPageBuilderInline.undo}}" stepKey="seeUndo"/>
+        <seeElement selector="{{WYSIWYGOnPageBuilderInline.redo}}" stepKey="seeRedo"/>
+        <seeElement selector="{{WYSIWYGOnPageBuilderInline.fontSize}}" stepKey="seeFontsize"/>
+        <seeElement selector="{{WYSIWYGOnPageBuilderInline.lineHeight}}" stepKey="seeLineHeight"/>
+        <seeElement selector="{{WYSIWYGOnPageBuilderInline.textColor}}" stepKey="seeTextColor"/>
+        <seeElement selector="{{WYSIWYGOnPageBuilderInline.backgroundColor}}" stepKey="seeBackgroundColor"/>
+        <!--Verify FontSize-->
+        <click selector="{{WYSIWYGOnPageBuilderInline.fontSizeMinus}}" stepKey="clickOnFontSizeMinus"/>
+        <waitForElementVisible stepKey="see13px"  selector="{{WYSIWYGOnPageBuilderInline.fontSizeValue('font-size: 13px')}}"/>
+        <click selector="{{WYSIWYGOnPageBuilderInline.fontSizeMinus}}" stepKey="clickOnFontSizeMinusAgain"/>
+        <waitForElementVisible stepKey="see12px" selector="//*[@data-mce-style and contains(@style, 'font-size: 12px')]" />
+        <click selector="{{WYSIWYGOnPageBuilderInline.fontSizePlus}}" stepKey="clickOnFontSizePlus"/>
+        <waitForElementVisible stepKey="see13pxAfterPlus" selector="//*[@data-mce-style and contains(@style, 'font-size: 13px')]" />
+        <click selector="{{WYSIWYGOnPageBuilderInline.fontSizePlus}}" stepKey="clickOnFontSizePlusOne"/>
+        <waitForElementVisible stepKey="see14pxAfterPlus" selector="//*[@data-mce-style and contains(@style, 'font-size: 14px')]" />
+        <click selector="{{WYSIWYGOnPageBuilderInline.fontSizePlus}}" stepKey="clickOnFontSizePlusTwo"/>
+        <waitForElementVisible stepKey="see15pxAfterPlus" selector="//*[@data-mce-style and contains(@style, 'font-size: 15px')]" />
+        <click selector="{{WYSIWYGOnPageBuilderInline.fontSizePlus}}" stepKey="clickOnFontSizePlusThree"/>
+        <waitForElementVisible stepKey="see16pxAfterPlus" selector="//*[@data-mce-style and contains(@style, 'font-size: 16px')]" />
+        <click selector="{{WYSIWYGOnPageBuilderInline.fontSizePlus}}" stepKey="clickOnFontSizePlusFour"/>
+        <waitForElementVisible stepKey="see17pxAfterPlus" selector="//*[@data-mce-style and contains(@style, 'font-size: 17px')]" />
+        <click selector="{{WYSIWYGOnPageBuilderInline.fontSizePlus}}" stepKey="clickOnFontSizePlusFive"/>
+        <waitForElementVisible stepKey="see18pxAfterPlus" selector="//*[@data-mce-style and contains(@style, 'font-size: 18px')]" />
+        <!--Verify LineHeight-->
+        <comment userInput="Verify LineHeight" stepKey="commentVerifyLineHeight"/>
+        <click selector="{{WYSIWYGOnPageBuilderInline.lineHeight}}" stepKey="clickOnLineHeight"/>
+        <waitForText userInput="1.1" stepKey="seeValue1"/>
+        <waitForText userInput="1.2" stepKey="seeValue2"/>
+        <waitForText userInput="1.3" stepKey="seeValue3"/>
+        <waitForText userInput="1.4" stepKey="seeValue4"/>
+        <waitForText userInput="1.5" stepKey="seeValue5"/>
+        <waitForText userInput="2" stepKey="seeValue6"/>
+        <!--Verify FontStyle on preview-->
+        <comment userInput="Verify FontStyle on preview" stepKey="commentVerifyFontsizeOnPreview"/>
+        <clickWithLeftButton x="10" y="10" selector="{{TextOnStage.tinymce('1')}}" stepKey="focusOnEditorArea"/>
+        <fillField selector="{{TextOnStage.tinymce('1')}}" userInput="{{PageBuilderTextProperty.value}}" stepKey="fillTextToTinyMCE"/>
+        <click selector="{{WYSIWYGOnPageBuilderInline.formatSelector}}" stepKey="expandFormatList"/>
+        <see userInput="Headings" stepKey="seeHeadingsStyle"/>
+        <click selector="{{TextOnStage.headingsList}}" stepKey="selectHeadingsList"/>
+        <click selector="{{TextOnStage.heading1Style}}" stepKey="selectHeading1Style"/>
+        <seeElement selector="{{TextOnStage.emptyTextInHeading1Style}}" stepKey="seeTextInHeadingStyleOnPreview1"/>
+        <actionGroup ref="exitPageBuilderFullScreen" stepKey="exitPageBuilderFullScreen"/>
+        <actionGroup ref="SaveAndContinueEditCmsPageActionGroup" stepKey="saveAndContinueEditCmsPage2"/>
+        <!--Verify FontStyle on stage-->
+        <comment userInput="Verify FontStyle on stage" stepKey="commentVerifyFontStyleOnStage"/>
+        <actionGroup ref="switchToPageBuilderStage" stepKey="switchToPageBuilderStage2"/>
+        <seeElement selector="{{TextOnStage.emptyTextInHeading1Style}}" stepKey="seeTextInHeadingStyleOnPreview2"/>
+        <!--Verify FontStyle on Storeview-->
+        <comment userInput="Verify FontStyle on Storeview" stepKey="commentVerifyFontStyleOnStoreview"/>
+        <amOnPage url="$$createCMSPage.identifier$$" stepKey="amOnPageTestPage2"/>
+        <waitForPageLoad stepKey="waitForPageLoad3"/>
+        <seeElement selector="{{TextOnStorefront.emptyTextInHeading1Style}}" stepKey="seeTextInHeading1StyleOnStorefront"/>
+        <!-- Remove HTML Code Content Type -->
+        <actionGroup ref="NavigateToCreatedCMSPageActionGroup" stepKey="navigateBackToCreatedCMSPage">
+            <argument name="CMSPage" value="$$createCMSPage$$"/>
+        </actionGroup>
+        <actionGroup ref="switchToPageBuilderStage" stepKey="switchToPageBuilderStage3"/>
+        <actionGroup ref="removeContentTypeFromStageByIndex" stepKey="removeHTMLCodeContentType">
+            <argument name="contentType" value="PageBuilderHtmlContentType"/>
+            <argument name="contentTypeNumber" value="1"/>
+        </actionGroup>
+        <actionGroup ref="confirmRemovalModal" stepKey="confirmHTMLCodeRemoval"/>
+        <!-- Remove Text Content Type -->
+        <actionGroup ref="removeContentTypeFromStageByIndex" stepKey="removeTextContentType">
+            <argument name="contentType" value="PageBuilderTextContentType"/>
+            <argument name="contentTypeNumber" value="1"/>
+        </actionGroup>
+        <actionGroup ref="confirmRemovalModal" stepKey="confirmTextRemoval"/>
+        <!-- Create 9/12 column -->
+        <actionGroup ref="dragContentTypeToStage" stepKey="dragColumnIntoStage">
+            <argument name="contentType" value="PageBuilderColumnGroupContentType"/>
+        </actionGroup>
+        <actionGroup ref="duplicateContentType" stepKey="duplicateFirstColumn">
+            <argument name="contentType" value="PageBuilderColumnContentType"/>
+            <argument name="targetIndex" value="2"/>
+        </actionGroup>
+        <actionGroup ref="removeContentTypeFromStageByIndex" stepKey="removeFirstColumnContentType">
+            <argument name="contentType" value="PageBuilderColumnContentType"/>
+            <argument name="contentTypeNumber" value="1"/>
+        </actionGroup>
+        <!-- Assert toolbar did not overflow in 9/12 column -->
+        <actionGroup ref="expandPageBuilderPanelMenuSection" stepKey="expandPageBuilderPanelMenuSection2">
+            <argument name="contentType" value="PageBuilderTextContentType"/>
+        </actionGroup>
+        <actionGroup ref="dragContentTypeToContainer" stepKey="dragTextContentTypeIntoColumn">
+            <argument name="contentType" value="PageBuilderTextContentType"/>
+            <argument name="containerTargetType" value="PageBuilderColumnContentType"/>
+            <argument name="containerTargetIndex" value="1"/>
+            <argument name="contentTypeIndex" value="1"/>
+        </actionGroup>
+        <actionGroup ref="focusOnInlineTinyMCEEditor" stepKey="focusOnInlineTinyMCEEditor">
+            <argument name="section" value="TextOnStage"/>
+        </actionGroup>
+        <actionGroup ref="AdminVerifyTinyMCEToolbarButtonsActionGroup" stepKey="verifyTinyMCEInColumnContentType"/>
+    </test>
+</tests>

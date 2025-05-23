@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ /**
+  * ADOBE CONFIDENTIAL
+  *
+  * Copyright 2020 Adobe
+  * All Rights Reserved.
+  *
+  * NOTICE: All information contained herein is, and remains
+  * the property of Adobe and its suppliers, if any. The intellectual
+  * and technical concepts contained herein are proprietary to Adobe
+  * and its suppliers and are protected by all applicable intellectual
+  * property laws, including trade secret and copyright laws.
+  * Dissemination of this information or reproduction of this material
+  * is strictly forbidden unless prior written permission is obtained
+  * from Adobe.
+  */
+-->
+<tests xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="urn:magento:mftf:Test/etc/testSchema.xsd">
+    <test name="RowValidateVideoBackgroundLazyLoadEnabled" extends="RowValidateVideoBackgroundPlayOnlyWhenVisibleEnabled">
+        <annotations>
+            <features value="PageBuilder"/>
+            <stories value="Row"/>
+            <title value="Row: Validate Video Background Lazy Load Enabled"/>
+            <description value="Verify that the video background lazy load attribute works as intended when enabled."/>
+            <severity value="CRITICAL"/>
+            <useCaseId value="PB-95"/>
+            <testCaseId value="MC-31341"/>
+            <group value="pagebuilder"/>
+            <group value="pagebuilder-row"/>
+            <group value="pagebuilder-rowBackground"/>
+            <group value="pagebuilder-video-background"/>
+            <group value="pr_exclude"/>
+            <group value="pr_exclude"/>
+        </annotations>
+        <actionGroup ref="conditionalClickSlideOutPanelFieldGeneral" stepKey="setLazyLoadDisabled">
+            <argument name="property" value="PageBuilderVideoBackgroundLazyLoad_Enabled"/>
+        </actionGroup>
+        <remove keyForRemoval="setPlayOnlyWhenVisibleEnabled"/>
+        <actionGroup ref="validateVideoBackgroundLoaded" stepKey="validateVideoPlayingStage1">
+            <argument name="section" value="RowOnStage"/>
+            <argument name="index" value="4"/>
+        </actionGroup>
+        <comment userInput="Do not scroll to video row" stepKey="scrollToRow4Stage"/>
+        <actionGroup ref="validateVideoBackgroundNotLoaded" stepKey="validateVideoNotPlayingStage1">
+            <argument name="section" value="RowOnStage"/>
+            <argument name="index" value="4"/>
+        </actionGroup>
+        <actionGroup ref="validateVideoBackgroundLoaded" stepKey="validateVideoPlayingStage2">
+            <argument name="section" value="RowOnStage"/>
+            <argument name="index" value="4"/>
+        </actionGroup>
+        <actionGroup ref="validateVideoBackgroundNotLoaded" stepKey="validateVideoNotPlayingStorefront">
+            <argument name="section" value="RowOnStorefront"/>
+            <argument name="index" value="4"/>
+        </actionGroup>
+        <actionGroup ref="validateVideoBackgroundLoaded" stepKey="validateVideoPlayingStorefront">
+            <argument name="section" value="RowOnStorefront"/>
+            <argument name="index" value="4"/>
+        </actionGroup>
+    </test>
+</tests>

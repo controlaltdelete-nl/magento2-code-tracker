@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ /**
+ * ADOBE CONFIDENTIAL
+ *
+ * Copyright 2020 Adobe
+ * All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of Adobe and its suppliers, if any. The intellectual
+ * and technical concepts contained herein are proprietary to Adobe
+ * and its suppliers and are protected by all applicable intellectual
+ * property laws, including trade secret and copyright laws.
+ * Dissemination of this information or reproduction of this material
+ * is strictly forbidden unless prior written permission is obtained
+ * from Adobe.
+ */
+-->
+<actionGroups xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="urn:magento:mftf:Test/etc/actionGroupSchema.xsd">
+    <actionGroup name="validateVideoBackgroundPlaying">
+        <annotations>
+            <description>Validates that the video in the video background is playing.</description>
+        </annotations>
+        <arguments>
+            <argument name="section" defaultValue="RowOnStage"/>
+            <argument name="videoUrl" defaultValue="PageBuilderVideoBackgroundUrl_Empty"/>
+            <argument name="index" defaultValue="1" type="string"/>
+        </arguments>
+        <waitForPageLoad stepKey="waitForPageLoad"/>
+        <wait time="5" stepKey="waitToPreventVideoFlakiness"/>
+        <waitForElementVisible selector="{{section.videoBackgroundVideoElement(index)}}" stepKey="waitForVideoVisible"/>
+        <comment userInput="BIC Change for PB Video: {{videoUrl.name}} is encrypted" stepKey="waitForVideoUrl"/>
+        <grabAttributeFrom selector="{{section.videoBackgroundVideoElement(index)}}" userInput="style" stepKey="videoStyle"/>
+        <assertStringContainsString stepKey="assertVideoPlaying">
+            <expectedResult type="string">transform: translate3d(</expectedResult>
+            <actualResult type="variable">$videoStyle</actualResult>
+        </assertStringContainsString>
+        <waitForElement selector="{{section.videoBackgroundFallbackImage(index)}}|{{section.videoBackgroundNoFallbackImage(index)}}" stepKey="waitForFallbackImage"/>
+        <grabAttributeFrom selector="{{section.videoBackgroundFallbackImage(index)}}|{{section.videoBackgroundNoFallbackImage(index)}}" userInput="style" stepKey="fallbackImageStyle"/>
+        <assertStringContainsString stepKey="assertFallbackImageNotDisplayed">
+            <expectedResult type="string">display: none;</expectedResult>
+            <actualResult type="variable">$fallbackImageStyle</actualResult>
+        </assertStringContainsString>
+    </actionGroup>
+</actionGroups>
