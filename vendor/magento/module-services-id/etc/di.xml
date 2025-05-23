@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright 2025 Adobe
+ * All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of Adobe and its suppliers, if any. The intellectual
+ * and technical concepts contained herein are proprietary to Adobe
+ * and its suppliers and are protected by all applicable intellectual
+ * property laws, including trade secret and copyright laws.
+ * Dissemination of this information or reproduction of this material
+ * is strictly forbidden unless prior written permission is obtained
+ * from Adobe.
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <preference for="Magento\ServicesId\Model\ServicesClientInterface" type="Magento\ServicesId\Model\ServicesClient" />
+    <preference for="Magento\ServicesId\Model\ServicesConfigInterface" type="Magento\ServicesId\Model\ServicesConfig" />
+    <type name="Magento\Framework\App\Config\Storage\WriterInterface">
+        <plugin name="set_cloud_id_on_config_value_save" type="Magento\ServicesId\Plugin\SetCloudIdOnConfigSave"/>
+    </type>
+    <type name="Magento\Framework\App\Config\Value">
+        <plugin name="set_cloud_id_on_config_value_import" type="Magento\ServicesId\Plugin\SetCloudIdOnConfigImport"/>
+        <plugin name="project_id_on_config_import" type="Magento\ServicesId\Plugin\ProjectIdOnConfigImport"/>
+        <plugin name="environment_id_on_config_import" type="Magento\ServicesId\Plugin\EnvironmentIdOnConfigImport"/>
+    </type>
+    <type name="Magento\Framework\Console\CommandListInterface">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="saas_list_project" xsi:type="object">Magento\ServicesId\Console\Command\ListProjects</item>
+                <item name="saas_initialize_project" xsi:type="object">Magento\ServicesId\Console\Command\InitializeProject</item>
+            </argument>
+        </arguments>
+    </type>
+</config>
