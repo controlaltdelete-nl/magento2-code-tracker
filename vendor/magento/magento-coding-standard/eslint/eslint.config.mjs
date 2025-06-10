@@ -20,14 +20,25 @@ const compat = new FlatCompat({
     recommendedConfig: js.configs.recommended,
     allConfig: js.configs.all
 });
-export default defineConfig([{
-    extends: compat.extends(
-        "./.eslintrc-reset", // Resets all rules before applying custom ones
-        "./.eslintrc-magento", // Magento-specific coding standards
-        "./.eslintrc-jquery", // jQuery-related ESLint Rules
-        "./.eslintrc-misc", // Miscellaneous Rules
-    ),
-    plugins: {
-        "magento-coding-standard-eslint-plugin": magentoCodingStandardEslintPlugin,  // This is in flat config format (object)
+export default defineConfig([
+    {
+        extends: compat.extends(
+            "./.eslintrc-reset", // Resets all rules before applying custom ones
+            "./.eslintrc-magento", // Magento-specific coding standards
+            "./.eslintrc-jquery", // jQuery-related ESLint Rules
+            "./.eslintrc-misc", // Miscellaneous Rules
+        ),
+        plugins: {
+            "magento-coding-standard-eslint-plugin": magentoCodingStandardEslintPlugin,  // This is in flat config format (object)
+        }
+    },
+    {
+        ignores: ['**/eslint/rules/*.js'],
+        languageOptions: {
+            sourceType: "script"  // ensures non-module (classic script) parsing
+        },
+        rules: {
+            strict: ["error", "function"]  // enforces "use strict" inside functions
+        }
     }
-}]);
+]);
