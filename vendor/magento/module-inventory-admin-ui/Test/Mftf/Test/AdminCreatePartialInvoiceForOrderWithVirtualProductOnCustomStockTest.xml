@@ -54,7 +54,7 @@
             <actionGroup ref="CliCacheCleanActionGroup" stepKey="cleanCache">
                 <argument name="tags" value="full_page"/>
             </actionGroup>
-
+            
             <createData entity="VirtualProduct" stepKey="virtualProduct">
                 <requiredEntity createDataKey="category"/>
             </createData>
@@ -95,7 +95,9 @@
             <deleteData createDataKey="customer" stepKey="deleteCustomer"/>
             <deleteData createDataKey="virtualProduct" stepKey="deleteProduct"/>
             <deleteData createDataKey="customStock" stepKey="deleteCustomStock"/>
-            <magentoCron groups="index" stepKey="reindex"/>
+            <actionGroup ref="CliIndexerReindexActionGroup" stepKey="reindex">
+                <argument name="indices" value=""/>
+            </actionGroup>
         </after>
 
         <!--Create Order with Virtual product from Admin-->
@@ -143,8 +145,8 @@
             <argument name="selector" value="AdminProductGridFilterSection.skuFilter"/>
             <argument name="value" value="$$virtualProduct.sku$$"/>
         </actionGroup>
-        <see selector="{{AdminProductGridSection.productQtyPerSource('1',$$customSource.source[name]$$)}}" userInput="99" stepKey="checkProductSourceQtyAfterInvoiceCreated"/>
-        <see selector="{{AdminProductGridSection.productQtyPerSource('1',$$customSource2.source[name]$$)}}" userInput="100" stepKey="checkProductSource2QtyAfterInvoiceCreated"/>
-        <see selector="{{AdminProductGridSection.productSalableQty('1',$$customStock.stock[name]$$)}}" userInput="197" stepKey="checkSalableQtyAfterInvoiceCreated"/>
+        <waitForText selector="{{AdminProductGridSection.productQtyPerSource('1',$$customSource.source[name]$$)}}" userInput="99" stepKey="checkProductSourceQtyAfterInvoiceCreated"/>
+        <waitForText selector="{{AdminProductGridSection.productQtyPerSource('1',$$customSource2.source[name]$$)}}" userInput="100" stepKey="checkProductSource2QtyAfterInvoiceCreated"/>
+        <waitForText selector="{{AdminProductGridSection.productSalableQty('1',$$customStock.stock[name]$$)}}" userInput="197" stepKey="checkSalableQtyAfterInvoiceCreated"/>
     </test>
 </tests>
