@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.0/phpunit.xsd"
+        colors="true"
+        displayDetailsOnIncompleteTests="true"
+        displayDetailsOnSkippedTests="true"
+        displayDetailsOnTestsThatTriggerDeprecations="true"
+        displayDetailsOnTestsThatTriggerWarnings="true"
+        displayDetailsOnTestsThatTriggerNotices="true"
+        displayDetailsOnTestsThatTriggerErrors="true"
+        defaultTestSuite="positive">
+    <testsuites>
+        <testsuite name="positive">
+            <directory>test/report/Generate</directory>
+            <exclude>test/report/Generate/NegativeTest.php</exclude>
+        </testsuite>
+        <testsuite name="negative">
+            <file>test/report/Generate/NegativeTest.php</file>
+        </testsuite>
+    </testsuites>
+    <extensions>
+        <bootstrap class="Qameta\Allure\PHPUnit\AllureExtension" />
+    </extensions>
+</phpunit>

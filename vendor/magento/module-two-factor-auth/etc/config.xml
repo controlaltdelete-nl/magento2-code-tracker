@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<!--
+/**
+  * Copyright 2020 Adobe
+  * All Rights Reserved.
+  */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <twofactorauth>
+            <general>
+                <force_providers></force_providers>
+                <twofactorauth_retry>10</twofactorauth_retry>
+                <auth_lock_expire>300</auth_lock_expire>
+            </general>
+            <authy>
+                <onetouch_message>Login request to your Magento Admin</onetouch_message>
+                <api_key backend_model="Magento\Config\Model\Config\Backend\Encrypted"/>
+            </authy>
+            <duo>
+                <client_secret backend_model="Magento\Config\Model\Config\Backend\Encrypted"/>
+                <secret_key backend_model="Magento\Config\Model\Config\Backend\Encrypted"/>
+            </duo>
+            <google>
+                <leeway backend_model="Magento\TwoFactorAuth\Model\Config\Backend\Leeway">29</leeway>
+            </google>
+        </twofactorauth>
+    </default>
+</config>
