@@ -12,13 +12,16 @@ jobs:
     strategy:
       matrix:
         include:
+          - { PHP_VERSION: 8.4, MAGENTO_VERSION: 2.4.8-p1 }
           - { PHP_VERSION: 8.4, MAGENTO_VERSION: 2.4.8 }
+          - { PHP_VERSION: 8.3, MAGENTO_VERSION: 2.4.7-p6 }
           - { PHP_VERSION: 8.3, MAGENTO_VERSION: 2.4.7-p5 }
           - { PHP_VERSION: 8.3, MAGENTO_VERSION: 2.4.7-p4 }
           - { PHP_VERSION: 8.3, MAGENTO_VERSION: 2.4.7-p3 }
           - { PHP_VERSION: 8.3, MAGENTO_VERSION: 2.4.7-p2 }
           - { PHP_VERSION: 8.3, MAGENTO_VERSION: 2.4.7-p1 }
           - { PHP_VERSION: 8.2, MAGENTO_VERSION: 2.4.7 }
+          - { PHP_VERSION: 8.1, MAGENTO_VERSION: 2.4.6-p11 }
           - { PHP_VERSION: 8.1, MAGENTO_VERSION: 2.4.6-p10 }
           - { PHP_VERSION: 8.1, MAGENTO_VERSION: 2.4.6-p9 }
           - { PHP_VERSION: 8.1, MAGENTO_VERSION: 2.4.6-p8 }
@@ -30,6 +33,7 @@ jobs:
           - { PHP_VERSION: 8.1, MAGENTO_VERSION: 2.4.6-p2 }
           - { PHP_VERSION: 8.2, MAGENTO_VERSION: 2.4.6-p1 }
           - { PHP_VERSION: 8.2, MAGENTO_VERSION: 2.4.6 }
+          - { PHP_VERSION: 8.1, MAGENTO_VERSION: 2.4.5-p13 }
           - { PHP_VERSION: 8.1, MAGENTO_VERSION: 2.4.5-p12 }
           - { PHP_VERSION: 8.1, MAGENTO_VERSION: 2.4.5-p11 }
           - { PHP_VERSION: 8.1, MAGENTO_VERSION: 2.4.5-p10 }
