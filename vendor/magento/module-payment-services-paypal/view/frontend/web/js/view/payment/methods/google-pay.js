@@ -84,6 +84,7 @@ define([
             paymentSource: 'googlepay',
             createOrderUrl: '',
             updateQuoteUrl: '',
+            setQuoteAsInactiveUrl: '',
             instance: null,
             scriptParams: {},
             allowedPaymentMethods: null,
@@ -272,23 +273,25 @@ define([
                                         )
                                     ) {
                                         this.onApprove(paymentData);
-                                        return {transactionState: 'SUCCESS'};
                                     } else {
-                                        this.onError(new Error('couldn\'t approve order'));
-                                        return {transactionState: 'ERROR'};
+                                        this.onError(new Error('couldn\'t approve order using 3DS'));
                                     }
                                 }
                             }).catch((error) => {
                                 console.log("ERROR: ", error)
+                                this.onError(new Error('couldn\'t approve order using 3DS'));
                             })
                         }
                     ).catch((error) => {
                         console.log("ERROR: ", error)
+                        this.onError(new Error('couldn\'t approve order using 3DS'));
                     });
-                    return;
+
+                    return {transactionState: 'SUCCESS'};
                 }
 
-                this.onError(new Error('couldn\'t approve order'));
+                this.onError(new Error('couldn\'t process payment'));
+
                 return {transactionState: 'ERROR'};
             } catch (err) {
                 this.onError(err);
@@ -389,7 +392,7 @@ define([
         },
 
         /**
-         * Calls when error happened on paypal side.
+         * Calls when error happened on PayPal side.
          *
          * @param {Error} error
          */

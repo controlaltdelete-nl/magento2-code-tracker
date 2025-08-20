@@ -24,6 +24,7 @@ use Magento\Framework\GraphQl\Query\ResolverInterface;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
 use Magento\PaymentServicesPaypal\Api\PaymentConfigManagementInterface;
 use Magento\PaymentServicesPaypal\Model\ApplePayConfigProvider;
+use Magento\PaymentServicesPaypal\Model\FastlaneConfigProvider;
 use Magento\PaymentServicesPaypal\Model\GooglePayConfigProvider;
 use Magento\PaymentServicesPaypal\Model\HostedFieldsConfigProvider;
 use Magento\PaymentServicesPaypal\Model\SmartButtonsConfigProvider;
@@ -34,7 +35,8 @@ class PaymentConfig implements ResolverInterface
         'apple_pay' => ApplePayConfigProvider::CODE,
         'google_pay' => GooglePayConfigProvider::CODE,
         'hosted_fields' => HostedFieldsConfigProvider::CODE,
-        'smart_buttons' =>  SmartButtonsConfigProvider::CODE
+        'smart_buttons' =>  SmartButtonsConfigProvider::CODE,
+        'fastlane' => FastlaneConfigProvider::CODE
     ];
 
     /**

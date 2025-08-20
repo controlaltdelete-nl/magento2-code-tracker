@@ -13,6 +13,7 @@ use Magento\Framework\View\Element\Template\Context;
 use Magento\Framework\UrlInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Backend\Model\Session\Quote;
+use Magento\PaymentServicesPaypal\Model\Config;
 
 class AdminHostedFields extends Form
 {
@@ -41,8 +42,14 @@ class AdminHostedFields extends Form
     private $sessionQuote;
 
     /**
+     * @var Config
+     */
+    private $config;
+
+    /**
      * @param Context $context
      * @param SdkParams $sdkParams
+     * @param Config $config
      * @param UrlInterface $url
      * @param Quote $sessionQuote
      * @param array $data
@@ -50,6 +57,7 @@ class AdminHostedFields extends Form
     public function __construct(
         Context $context,
         SdkParams $sdkParams,
+        Config $config,
         UrlInterface $url,
         Quote $sessionQuote,
         array $data = []
@@ -58,6 +66,7 @@ class AdminHostedFields extends Form
         $this->sdkParams = $sdkParams;
         $this->url = $url;
         $this->sessionQuote = $sessionQuote;
+        $this->config = $config;
     }
 
     /**
@@ -91,5 +100,16 @@ class AdminHostedFields extends Form
     public function getCreateOrderUrl()
     {
         return $this->url->getUrl('paymentservicespaypal/order/create');
+    }
+
+    /**
+     * Check if admin vault is enabled.
+     *
+     * @return bool
+     * @throws NoSuchEntityException
+     */
+    public function isAdminVaultEnabled(): bool
+    {
+        return $this->config->isAdminVaultEnabled();
     }
 }

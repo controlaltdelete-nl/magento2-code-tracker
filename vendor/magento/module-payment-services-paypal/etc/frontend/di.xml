@@ -13,6 +13,7 @@
                 <item name="payment_services_paypal_smart_buttons_config_provider" xsi:type="object">Magento\PaymentServicesPaypal\Model\SmartButtonsConfigProvider</item>
                 <item name="payment_services_paypal_apple_pay_config_provider" xsi:type="object">Magento\PaymentServicesPaypal\Model\ApplePayConfigProvider</item>
                 <item name="payment_services_paypal_google_pay_config_provider" xsi:type="object">Magento\PaymentServicesPaypal\Model\GooglePayConfigProvider</item>
+                <item name="payment_services_paypal_fastlane_config_provider" xsi:type="object">Magento\PaymentServicesPaypal\Model\FastlaneConfigProvider</item>
             </argument>
         </arguments>
     </type>

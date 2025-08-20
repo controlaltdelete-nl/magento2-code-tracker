@@ -26,22 +26,22 @@ class PaymentConfiguration
     /**
      * @var OrderService
      */
-    private $orderService;
+    private OrderService $orderService;
 
     /**
      * @var CustomerSession
      */
-    private $customerSession;
+    private CustomerSession $customerSession;
 
     /**
      * @var Config
      */
-    private $config;
+    private Config $config;
 
     /**
      * @var OrderHelper
      */
-    private $orderHelper;
+    private OrderHelper $orderHelper;
 
     /**
      * @param OrderService $orderService
@@ -76,6 +76,10 @@ class PaymentConfiguration
     ): Quote {
         if ($quote->getPayment()->getMethod() !== HostedFieldsConfigProvider::CC_VAULT_CODE) {
             return $quote;
+        }
+
+        if (!$quote->getId() || count($quote->getAllItems()) === 0) {
+            throw new HttpException('Unable to create order: The cart is empty or unavailable. Please try again.');
         }
 
         $totalAmount = $quote->getBaseGrandTotal();

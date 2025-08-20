@@ -133,12 +133,12 @@ define([
 
         initAppleSDK: function () {
             if (!window.ApplePaySession) {
-                console.error('This device does not support Apple Pay');
+                console.warn('This device does not support Apple Pay');
                 return;
             }
 
             if (!ApplePaySession.canMakePayments()) {
-                console.error('This device is not capable of making Apple Pay payments');
+                console.warn('This device is not capable of making Apple Pay payments');
             }
 
             this.applePayInstance = this.paypal.Applepay();
@@ -172,11 +172,21 @@ define([
         onApplePayPaymentAuthorized: function (applePaySession, paypalOrderId = null) {
             applePaySession.onpaymentauthorized = async (event) => {
                 try {
+                    let shippingContact = event.payment.shippingContact;
+
+                    // Remove non-numeric characters from phone number as Paypal doesn't allow it
+                    if (shippingContact && shippingContact.phoneNumber) {
+                        shippingContact = {
+                            ...shippingContact,
+                            phoneNumber: shippingContact.phoneNumber.replace(/\D/g, '')
+                        };
+                    }
+
                     await this.applePayInstance.confirmOrder({
                         orderId: paypalOrderId !== null ? paypalOrderId : this.paypalOrderId,
                         token: event.payment.token,
                         billingContact: event.payment.billingContact,
-                        shippingContact: event.payment.shippingContact
+                        shippingContact: shippingContact
                     });
 
                     applePaySession.completePayment({
@@ -445,16 +455,21 @@ define([
                     ? this.styles.height + "px"
                     : "40px";
 
+                const btnId = this.generateUniqueElementId();
                 document.getElementById(this.buttonContainerId).innerHTML = `
                 <apple-pay-button
-                    id="btn-appl"
+                    id="${btnId}"
                     buttonstyle="${buttonStyle}"
                     type="${buttonType}"
                     locale="${window.LOCALE}"
                     style=" --apple-pay-button-width: 100%; --apple-pay-button-height: ${height}"
                 >`;
-                document.getElementById("btn-appl").addEventListener("click", this.onClick);
+                document.getElementById(btnId).addEventListener("click", this.onClick);
             }
+        },
+
+        generateUniqueElementId: function() {
+            return `btn-appl-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
         },
 
         mapButtonStyle: function () {
@@ -581,7 +596,7 @@ define([
                 // Set minimum time for loader to show
                 setTimeout(() => {
                     resolve();
-                }, 10);
+                }, 50);
             });
         },
 

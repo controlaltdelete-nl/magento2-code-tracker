@@ -20,52 +20,52 @@ namespace Magento\PaymentServicesBase\Test\Unit\Model\ServicesConnector;
 
 use Magento\ServicesConnector\Api\KeyValidationInterface;
 use PHPUnit\Framework\TestCase;
-use Magento\PaymentServicesBase\Model\ServicesConnector\InMemoryKeyValidor;
+use Magento\PaymentServicesBase\Model\ServicesConnector\KeyValidationWithInMemoryCacheDecorator;
 
-class InMemoryKeyValidorTest extends TestCase
+class KeyValidationWithInMemoryCacheDecoratorTest extends TestCase
 {
     /**
      * @var KeyValidationInterface|\PHPUnit\Framework\MockObject\MockObject
      */
-    private KeyValidationInterface|\PHPUnit\Framework\MockObject\MockObject $keyValidatorMock;
+    private KeyValidationInterface|\PHPUnit\Framework\MockObject\MockObject $delegate;
 
     /**
-     * @var InMemoryKeyValidor
+     * @var KeyValidationWithInMemoryCacheDecorator
      */
-    private InMemoryKeyValidor $inMemoryKeyValidor;
+    private KeyValidationWithInMemoryCacheDecorator $decorator;
 
     /**
      * Setup the test
      */
     protected function setUp(): void
     {
-        $this->keyValidatorMock = $this->createMock(KeyValidationInterface::class);
-        $this->inMemoryKeyValidor = new InMemoryKeyValidor($this->keyValidatorMock);
+        $this->delegate = $this->createMock(KeyValidationInterface::class);
+        $this->decorator = new KeyValidationWithInMemoryCacheDecorator($this->delegate);
     }
 
     public function testValidationWithNoCache(): void
     {
         $extension = 'Magento_PaymentServicesBase';
         $environment = 'production';
-        $this->keyValidatorMock->expects($this->once())
+        $this->delegate->expects($this->once())
             ->method('execute')
             ->with($extension, $environment)
             ->willReturn(true);
 
-        $this->assertTrue($this->inMemoryKeyValidor->execute($extension, $environment));
+        $this->assertTrue($this->decorator->execute($extension, $environment));
     }
 
     public function testValidationWithCache(): void
     {
         $extension = 'Magento_PaymentServicesBase';
         $environment = 'production';
-        $this->keyValidatorMock->expects($this->once())
+        $this->delegate->expects($this->once())
             ->method('execute')
             ->with($extension, $environment)
             ->willReturn(true);
 
-        $this->assertTrue($this->inMemoryKeyValidor->execute($extension, $environment));
-        $this->assertTrue($this->inMemoryKeyValidor->execute($extension, $environment));
+        $this->assertTrue($this->decorator->execute($extension, $environment));
+        $this->assertTrue($this->decorator->execute($extension, $environment));
     }
 
     public function testValidationWithDifferentEnvironment(): void
@@ -74,14 +74,14 @@ class InMemoryKeyValidorTest extends TestCase
         $environment1 = 'production';
         $environment2 = 'sandbox';
 
-        $this->keyValidatorMock->expects($this->exactly(2))
+        $this->delegate->expects($this->exactly(2))
             ->method('execute')
             ->willReturnOnConsecutiveCalls(true, false);
 
-        $this->assertTrue($this->inMemoryKeyValidor->execute($extension, $environment1));
-        $this->assertTrue($this->inMemoryKeyValidor->execute($extension, $environment1));
+        $this->assertTrue($this->decorator->execute($extension, $environment1));
+        $this->assertTrue($this->decorator->execute($extension, $environment1));
 
-        $this->assertFalse($this->inMemoryKeyValidor->execute($extension, $environment2));
-        $this->assertFalse($this->inMemoryKeyValidor->execute($extension, $environment2));
+        $this->assertFalse($this->decorator->execute($extension, $environment2));
+        $this->assertFalse($this->decorator->execute($extension, $environment2));
     }
 }

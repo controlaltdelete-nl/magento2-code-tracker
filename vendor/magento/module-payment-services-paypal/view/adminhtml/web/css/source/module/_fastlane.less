@@ -1,0 +1,37 @@
+/**
+ * ADOBE CONFIDENTIAL
+ *
+ * Copyright 2025 Adobe
+ * All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of Adobe and its suppliers, if any. The intellectual
+ * and technical concepts contained herein are proprietary to Adobe
+ * and its suppliers and are protected by all applicable intellectual
+ * property laws, including trade secret and copyright laws.
+ * Dissemination of this information or reproduction of this material
+ * is strictly forbidden unless prior written permission is obtained
+ * from Adobe.
+ */
+
+.fastlane-section {
+    .active {
+
+        input[type='text'][id$='fastlane_styling_root_background_color'],
+        input[type='text'][id$='fastlane_styling_root_error_color'],
+        input[type='text'][id$='fastlane_styling_root_primary_color'],
+        input[type='text'][id$='fastlane_styling_root_text_color'],
+        input[type='text'][id$='fastlane_styling_input_background_color'],
+        input[type='text'][id$='fastlane_styling_input_border_color'],
+        input[type='text'][id$='fastlane_styling_input_focus_border_color'],
+        input[type='text'][id$='fastlane_styling_input_text_color'] {
+            width: ~'calc(90% - 10px)';
+
+            + input {
+
+                margin-left: 10px;
+                width: 10%;
+            }
+        }
+    }
+}

@@ -14,6 +14,7 @@ use Magento\Framework\Serialize\Serializer\Json;
 use Magento\PaymentServicesBase\Model\ServiceClientInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Framework\App\CacheInterface;
+use Psr\Log\LoggerInterface;
 
 class SdkService
 {
@@ -62,12 +63,18 @@ class SdkService
     private $cache;
 
     /**
+     * @var LoggerInterface
+     */
+    private LoggerInterface $logger;
+
+    /**
      * @param Config $config
      * @param ServiceClientInterface $httpClient
      * @param ResolverInterface $localeResolver
      * @param Json $serializer
      * @param StoreManagerInterface $storeManager
      * @param CacheInterface $cache
+     * @param LoggerInterface $logger
      */
     public function __construct(
         Config $config,
@@ -75,7 +82,8 @@ class SdkService
         ResolverInterface $localeResolver,
         Json $serializer,
         StoreManagerInterface $storeManager,
-        CacheInterface $cache
+        CacheInterface $cache,
+        LoggerInterface $logger
     ) {
         $this->config = $config;
         $this->httpClient = $httpClient;
@@ -83,6 +91,7 @@ class SdkService
         $this->serializer = $serializer;
         $this->storeManager = $storeManager;
         $this->cache = $cache;
+        $this->logger = $logger;
     }
 
     /**
@@ -111,15 +120,34 @@ class SdkService
                 self::PAYMENT_ACTION => $paymentAction
             ]
         ];
+
+        $headers = [
+            'Content-Type' => 'application/json',
+            'x-scope-id' => $websiteId
+        ];
+        $body = $this->serializer->serialize($sdkParams);
         $result = $this->httpClient->request(
-            [
-                'Content-Type' => 'application/json',
-                'x-scope-id' => $websiteId
-            ],
+            $headers,
             self::PAYMENT_BUILD_SDK_URL_PATH,
             Http::METHOD_POST,
-            $this->serializer->serialize($sdkParams)
+            $body
         );
+
+        $this->logger->debug(
+            var_export(
+                [
+                    'request' => [
+                        self::PAYMENT_BUILD_SDK_URL_PATH,
+                        $headers,
+                        Http::METHOD_POST,
+                        $body
+                    ],
+                    'response' => $result
+                ],
+                true
+            )
+        );
+
         if (!$result['is_successful']) {
             return [];
         }
