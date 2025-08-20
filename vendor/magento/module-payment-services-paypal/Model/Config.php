@@ -19,6 +19,10 @@ use Magento\Sales\Api\Data\TransactionInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Psr\Log\LoggerInterface;
 
+/**
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * @SuppressWarnings(PHPMD.TooManyFields)
+ */
 class Config
 {
     private const CONFIG_PATH_FUNDING_FORMAT= 'payment/payment_services_paypal_smart_buttons/funding_%s';
@@ -273,6 +277,23 @@ class Config
     }
 
     /**
+     * Check if Fastlane method is enabled
+     *
+     * @param int|null $store
+     * @return bool
+     * @throws NoSuchEntityException
+     */
+    public function isFastlaneEnabled(?int $store = null): bool
+    {
+        $storeCode = $this->storeManager->getStore($store)->getCode();
+        return (bool) $this->scopeConfig->getValue(
+            'payment/payment_services_paypal_fastlane/enabled',
+            ScopeInterface::SCOPE_STORE,
+            $storeCode
+        );
+    }
+
+    /**
      * Get the payment intent (authorize/capture) for a particular payment method
      *
      * @param string $code
@@ -284,6 +305,7 @@ class Config
     {
         $storeCode = $this->storeManager->getStore($storeId)->getCode();
         $configPath = 'payment/' . $code . '/payment_action';
+
         $paymentAction = $this->scopeConfig->getValue(
             $configPath,
             ScopeInterface::SCOPE_STORE,
@@ -313,7 +335,7 @@ class Config
             $storeCode
         );
 
-        return $paymentTitle;
+        return $paymentTitle ?? "";
     }
 
     /**
@@ -334,7 +356,7 @@ class Config
             $storeCode
         );
 
-        return $paymentTitle;
+        return $paymentTitle ?? "0";
     }
 
     /**
@@ -355,6 +377,23 @@ class Config
     }
 
     /**
+     * Check the Pay Later Message styling
+     *
+     * @param int|null $store
+     * @return string
+     * @throws NoSuchEntityException
+     */
+    public function getPayLaterStyling(?int $store = null) : string
+    {
+        $storeCode = $this->storeManager->getStore($store)->getCode();
+        return $this->scopeConfig->getValue(
+            'payment/payment_services_paypal_smart_buttons/paylater_message_configurator',
+            ScopeInterface::SCOPE_STORE,
+            $storeCode
+        );
+    }
+
+    /**
      * Check if the vault is enabled
      *
      * @param int|null $store
@@ -366,6 +405,23 @@ class Config
         $storeCode = $this->storeManager->getStore($store)->getCode();
         return (bool) $this->scopeConfig->getValue(
             'payment/payment_services_paypal_vault/active',
+            ScopeInterface::SCOPE_STORE,
+            $storeCode
+        );
+    }
+
+    /**
+     * Check if the admin vault is enabled
+     *
+     * @param int|null $store
+     * @return bool
+     * @throws NoSuchEntityException
+     */
+    public function isAdminVaultEnabled(?int $store = null) : bool
+    {
+        $storeCode = $this->storeManager->getStore($store)->getCode();
+        return (bool) $this->scopeConfig->getValue(
+            'payment/payment_services_paypal_vault/active_admin',
             ScopeInterface::SCOPE_STORE,
             $storeCode
         );
@@ -452,7 +508,7 @@ class Config
             $params = array_merge(['_secure' => $this->request->isSecure()], $params);
             return $this->assetRepo->getUrlWithParams($fileId, $params);
         } catch (LocalizedException $e) {
-            $this->logger->critical($e);
+            $this->logger->critical('Asset URL generation failed for fileId: ' . $fileId);
             return $this->urlBuilder->getUrl('', ['_direct' => 'core/index/notFound']);
         }
     }
@@ -503,6 +559,67 @@ class Config
     {
         return $this->scopeConfig->getValue(
             'payment/payment_services_paypal_google_pay/' . $configName,
+            ScopeInterface::SCOPE_STORE,
+            $storeCode
+        ) ?? '';
+    }
+
+    /**
+     * Get Fastlane messaging flag.
+     *
+     * @param int|null $store
+     * @return bool
+     */
+    public function isFastlaneMessagingEnabled(?int $store = null): bool
+    {
+        $storeCode = $this->storeManager->getStore($store)->getCode();
+
+        return $this->scopeConfig->isSetFlag(
+            'payment/payment_services_paypal_fastlane/enable_messaging',
+            ScopeInterface::SCOPE_STORE,
+            $storeCode
+        ) ?? false;
+    }
+
+    /**
+     * Get the Fastlane Styles
+     *
+     * @param int|null $store
+     * @return array
+     * @throws NoSuchEntityException
+     */
+    public function getFastlaneStyles(?int $store = null) : array
+    {
+        $storeCode = $this->storeManager->getStore($store)->getCode();
+
+        return [
+            'rootBackgroundColor' => $this->getFastlaneConfig('root_background_color', $storeCode),
+            'rootErrorColor' => $this->getFastlaneConfig('root_error_color', $storeCode),
+            'rootFontFamily' => $this->getFastlaneConfig('root_font_family', $storeCode),
+            'rootFontSize' => $this->getFastlaneConfig('root_font_size', $storeCode),
+            'rootTextColor' => $this->getFastlaneConfig('root_text_color', $storeCode),
+            'rootPadding' => $this->getFastlaneConfig('root_padding', $storeCode),
+            'rootPrimaryColor' => $this->getFastlaneConfig('root_primary_color', $storeCode),
+            'inputBackgroundColor' => $this->getFastlaneConfig('input_background_color', $storeCode),
+            'inputBorderColor' => $this->getFastlaneConfig('input_border_color', $storeCode),
+            'inputBorderRadius' => $this->getFastlaneConfig('input_border_radius', $storeCode),
+            'inputBorderWidth' => $this->getFastlaneConfig('input_border_width', $storeCode),
+            'inputFocusBorderColor' => $this->getFastlaneConfig('input_focus_border_color', $storeCode),
+            'inputTextColor' => $this->getFastlaneConfig('input_text_color', $storeCode)
+        ];
+    }
+
+    /**
+     * Get Fastlane configuration for a given configuration name.
+     *
+     * @param string $configName
+     * @param string $storeCode
+     * @return string
+     */
+    private function getFastlaneConfig(string $configName, string $storeCode): string
+    {
+        return $this->scopeConfig->getValue(
+            'payment/payment_services_paypal_fastlane/' . $configName,
             ScopeInterface::SCOPE_STORE,
             $storeCode
         ) ?? '';
@@ -570,5 +687,16 @@ class Config
     public function getPaymentsSDKUrl() : string
     {
         return $this->scopeConfig->getValue('payment/payment_services/sdk_url');
+    }
+
+    /**
+     * Is the location a checkout location
+     *
+     * @param string $location
+     * @return bool
+     */
+    public function isCheckoutLocation(string $location) : bool
+    {
+        return self::CHECKOUT_CHECKOUT_LOCATION === strtoupper($location);
     }
 }

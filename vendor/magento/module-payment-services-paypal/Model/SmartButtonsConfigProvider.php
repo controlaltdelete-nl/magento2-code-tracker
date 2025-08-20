@@ -29,11 +29,6 @@ class SmartButtonsConfigProvider implements ConfigProviderInterface
     private BaseConfig $baseConfig;
 
     /**
-     * @var array
-     */
-    private array $messageStyles;
-
-    /**
      * @var UrlInterface
      */
     private UrlInterface $url;
@@ -47,20 +42,17 @@ class SmartButtonsConfigProvider implements ConfigProviderInterface
      * @param Config $config
      * @param UrlInterface $url
      * @param BaseConfig $baseConfig
-     * @param array $messageStyles
      * @param ConfigProvider $configProvider
      */
     public function __construct(
         Config $config,
         UrlInterface $url,
         BaseConfig $baseConfig,
-        array $messageStyles,
         ConfigProvider $configProvider
     ) {
         $this->baseConfig = $baseConfig;
         $this->config = $config;
         $this->url = $url;
-        $this->messageStyles = $messageStyles;
         $this->configProvider = $configProvider;
     }
 
@@ -82,7 +74,7 @@ class SmartButtonsConfigProvider implements ConfigProviderInterface
             self::LOCATION,
             $this->getPaymentOptions()
         );
-        $config['payment'][self::CODE]['messageStyles'] = $this->messageStyles;
+        $config['payment'][self::CODE]['messageStyles'] = $this->config->getPayLaterStyling();
         $config['payment'][self::CODE]['canDisplayMessage'] = (bool) $this->config->canDisplayPayLaterMessage();
         $config['payment'][self::CODE]['buttonStyles'] = $this->config->getButtonConfiguration();
         $config['payment'][self::CODE]['paymentTypeIconUrl'] =

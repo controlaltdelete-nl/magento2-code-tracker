@@ -20,11 +20,21 @@ declare(strict_types=1);
 
 namespace Magento\PaymentServicesPaypal\Helper;
 
+use Magento\Framework\Exception\AlreadyExistsException;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\UrlInterface;
 use Magento\PaymentServicesPaypal\Model\Config;
 use Magento\PaymentServicesPaypal\Model\HostedFieldsConfigProvider;
+use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Model\Quote;
+use Magento\Quote\Model\QuoteIdMaskFactory;
+use Magento\Quote\Model\ResourceModel\Quote\QuoteIdMask;
 use Psr\Log\LoggerInterface;
+use Random\RandomException;
 
+/**
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
 class OrderHelper
 {
     /**
@@ -36,29 +46,9 @@ class OrderHelper
     ];
 
     /**
-     * @var L2DataProvider
+     * User action for PayPal smart buttons
      */
-    private L2DataProvider $l2DataProvider;
-
-    /**
-     * @var L3DataProvider
-     */
-    private L3DataProvider $l3DataProvider;
-
-    /**
-     * @var LineItemsProvider
-     */
-    private LineItemsProvider $lineItemsProvider;
-
-    /**
-     * @var Config
-     */
-    private Config $config;
-
-    /**
-     * @var LoggerInterface
-     */
-    private LoggerInterface $logger;
+    private const USER_ACTION = 'PAY_NOW';
 
     /**
      * @param L2DataProvider $l2DataProvider
@@ -66,19 +56,20 @@ class OrderHelper
      * @param LineItemsProvider $lineItemsProvider
      * @param Config $config
      * @param LoggerInterface $logger
+     * @param QuoteIdMaskFactory $quoteIdMaskFactory
+     * @param QuoteIdMask $quoteIdMaskResource
+     * @param UrlInterface $urlBuilder
      */
     public function __construct(
-        L2DataProvider $l2DataProvider,
-        L3DataProvider $l3DataProvider,
-        LineItemsProvider $lineItemsProvider,
-        Config $config,
-        LoggerInterface $logger
+        private readonly L2DataProvider $l2DataProvider,
+        private readonly L3DataProvider $l3DataProvider,
+        private readonly LineItemsProvider $lineItemsProvider,
+        private readonly Config $config,
+        private readonly LoggerInterface $logger,
+        private readonly QuoteIdMaskFactory $quoteIdMaskFactory,
+        private readonly QuoteIdMask $quoteIdMaskResource,
+        private readonly UrlInterface $urlBuilder
     ) {
-        $this->l2DataProvider = $l2DataProvider;
-        $this->l3DataProvider = $l3DataProvider;
-        $this->lineItemsProvider = $lineItemsProvider;
-        $this->config = $config;
-        $this->logger = $logger;
     }
 
     /**
@@ -365,5 +356,114 @@ class OrderHelper
         }
 
         return null;
+    }
+
+    /**
+     * User action for PayPal payment method only
+     *
+     * @return string
+     */
+    public function getUserAction(): string
+    {
+        return self::USER_ACTION;
+    }
+
+    /**
+     * Return shipping preference for create order request
+     *
+     * @param CartInterface|Quote $quote
+     * @return string
+     */
+    public function getShippingPreference(CartInterface|Quote $quote): string
+    {
+        $allVirtual = true;
+        $items = $quote->getAllVisibleItems();
+        foreach ($items as $item) {
+            if (!$item->getIsVirtual()) {
+                $allVirtual = false;
+                break;
+            }
+        }
+        $shippingPreference = 'GET_FROM_FILE';
+        if ($allVirtual) {
+            $shippingPreference = 'NO_SHIPPING';
+        }
+
+        return $shippingPreference;
+    }
+
+    /**
+     * Get 'order_update_callback_config' parameter values
+     *
+     * @param CartInterface|Quote $quote
+     * @return array
+     * @throws LocalizedException
+     * @throws RandomException
+     */
+    public function getOrderUpdateCallbackConfig(CartInterface|Quote $quote): array
+    {
+        return [
+            'callback_events' => ['SHIPPING_ADDRESS', 'SHIPPING_OPTIONS'],
+            'callback_url' => $this->getCallbackUrl($quote)
+        ];
+    }
+
+    /**
+     * Get shipping callback Url
+     *
+     * @param CartInterface|Quote $quote
+     * @return string
+     * @throws LocalizedException
+     * @throws RandomException
+     */
+    private function getCallbackUrl(CartInterface|Quote $quote): string
+    {
+        $sessionId = $this->generateSessionId();
+        $quote->getPayment()->setAdditionalInformation('session_id', $sessionId);
+
+        // Query Parameters
+        $queryParams = [
+            'cart_id' => $this->getOrCreateMaskedId($quote),
+            'session_id' => $sessionId
+        ];
+
+        return $this->urlBuilder->getUrl(
+            'paymentservicespaypal/smartbuttons/shippingcallback',
+            ['_query' => $queryParams, '_secure' => true]
+        );
+    }
+
+    /**
+     * Get existing or create new masked ID
+     *
+     * @param CartInterface|Quote $quote
+     * @return string
+     * @throws AlreadyExistsException
+     */
+    private function getOrCreateMaskedId(CartInterface|Quote $quote): string
+    {
+        $quoteId = (int) $quote->getId();
+        $quoteIdMask = $this->quoteIdMaskFactory->create();
+        $this->quoteIdMaskResource->load($quoteIdMask, $quoteId, 'quote_id');
+
+        if ($quoteIdMask->getMaskedId()) {
+            return $quoteIdMask->getMaskedId();
+        }
+
+        // Create new one
+        $quoteIdMask->setQuoteId($quoteId);
+        $this->quoteIdMaskResource->save($quoteIdMask);
+        return $quoteIdMask->getMaskedId();
+    }
+
+    /**
+     * Generate unique session ID
+     *
+     * @return string
+     * @throws RandomException
+     */
+    private function generateSessionId(): string
+    {
+        return bin2hex(random_bytes(16));
     }
 }

@@ -26,6 +26,25 @@ use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
 class SdkParams implements ResolverInterface
 {
     /**
+     * @var mixed
+     */
+    private mixed $cspNonceProvider;
+
+    /**
+     * Constructor
+     */
+    public function __construct()
+    {
+        //TODO:Just to be compatible with 2.4.6. Remove in future
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        try {
+            $this->cspNonceProvider = $objectManager->get("\Magento\Csp\Helper\CspNonceProvider");
+        } catch (\Throwable $e) {
+            $this->cspNonceProvider = null;
+        }
+    }
+
+    /**
      * @inheritdoc
      */
     public function resolve(
@@ -39,6 +58,25 @@ class SdkParams implements ResolverInterface
         foreach ($value[$field->getName()] as $sdkParam) {
             $sdkParams[] = $sdkParam->getData();
         }
+
+        $cspNonce = $this->getCspNonce();
+        if ($cspNonce && count($sdkParams) > 0) {
+            $sdkParams[] = $cspNonce;
+        }
+
         return $sdkParams;
+    }
+
+    /**
+     * Encapsulate CSP nonce logic.
+     *
+     * @return array|null
+     */
+    private function getCspNonce(): ?array
+    {
+        if ($this->cspNonceProvider === null) {
+            return null;
+        }
+        return ['name' => 'data-csp-nonce', 'value' => $this->cspNonceProvider->generateNonce()];
     }
 }

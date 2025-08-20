@@ -20,7 +20,7 @@ namespace Magento\PaymentServicesBase\Model\ServicesConnector;
 
 use Magento\ServicesConnector\Api\KeyValidationInterface;
 
-class InMemoryKeyValidor implements KeyValidationInterface
+class KeyValidationWithInMemoryCacheDecorator implements KeyValidationInterface
 {
     /**
      * @var array
@@ -30,14 +30,14 @@ class InMemoryKeyValidor implements KeyValidationInterface
     /**
      * @var KeyValidationInterface
      */
-    private KeyValidationInterface $backendKeyValidator;
+    private KeyValidationInterface $delegate;
 
     /**
-     * @param KeyValidationInterface $backendKeyValidator
+     * @param KeyValidationInterface $delegate
      */
-    public function __construct(KeyValidationInterface $backendKeyValidator)
+    public function __construct(KeyValidationInterface $delegate)
     {
-        $this->backendKeyValidator = $backendKeyValidator;
+        $this->delegate = $delegate;
     }
 
     /**
@@ -87,7 +87,7 @@ class InMemoryKeyValidor implements KeyValidationInterface
      */
     private function validateAndCache($extension, $environment): bool
     {
-        $isValid = $this->backendKeyValidator->execute($extension, $environment);
+        $isValid = $this->delegate->execute($extension, $environment);
         $this->inMemoryCache[$extension][$environment] = $isValid;
         return $isValid;
     }
