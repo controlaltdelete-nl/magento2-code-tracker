@@ -20,6 +20,7 @@ declare(strict_types=1);
 
 namespace Magento\PaymentServicesPaypal\Test\Unit\Helper;
 
+use Magento\Framework\UrlInterface;
 use Magento\PaymentServicesPaypal\Helper\L2DataProvider;
 use Magento\PaymentServicesPaypal\Helper\L3DataProvider;
 use Magento\PaymentServicesPaypal\Helper\LineItemsProvider;
@@ -27,6 +28,9 @@ use Magento\PaymentServicesPaypal\Helper\OrderHelper;
 use Magento\PaymentServicesPaypal\Model\Config;
 use Magento\Quote\Api\Data\CurrencyInterface;
 use Magento\Quote\Model\Quote;
+use Magento\Quote\Model\QuoteIdMaskFactory;
+use Magento\Quote\Model\ResourceModel\Quote\QuoteIdMask;
+use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -38,35 +42,50 @@ class OrderHelperTest extends TestCase
     /**
      * @var MockObject|L2DataProvider
      */
-    private $l2DataProvider;
+    private MockObject|L2DataProvider $l2DataProvider;
 
     /**
      * @var MockObject|L3DataProvider
      */
-    private $l3DataProvider;
+    private MockObject|L3DataProvider $l3DataProvider;
 
     /**
      * @var MockObject|LineItemsProvider
      */
-    private $lineItemsProvider;
+    private MockObject|LineItemsProvider $lineItemsProvider;
 
     /**
      * @var MockObject|Config
      */
-    private $config;
+    private MockObject|Config $config;
 
     /**
      * @var MockObject|LoggerInterface
      */
-    private $logger;
+    private MockObject|LoggerInterface $logger;
 
     /**
-     * @var MockObject|OrderHelper
+     * @var MockObject|QuoteIdMaskFactory
      */
-    private $orderHelper;
+    private MockObject|QuoteIdMaskFactory $quoteIdMaskFactory;
 
     /**
-     * Setup the test
+     * @var MockObject|QuoteIdMask
+     */
+    private MockObject|QuoteIdMask $quoteIdMaskResource;
+
+    /**
+     * @var MockObject|UrlInterface
+     */
+    private MockObject|UrlInterface $urlBuilder;
+
+    /**
+     * @var OrderHelper
+     */
+    private OrderHelper $orderHelper;
+
+    /**
+     * Set up the test
      */
     protected function setUp(): void
     {
@@ -75,13 +94,19 @@ class OrderHelperTest extends TestCase
         $this->lineItemsProvider = $this->createMock(LineItemsProvider::class);
         $this->config = $this->createMock(Config::class);
         $this->logger = $this->createMock(LoggerInterface::class);
+        $this->quoteIdMaskFactory = $this->createMock(QuoteIdMaskFactory::class);
+        $this->quoteIdMaskResource = $this->createMock(QuoteIdMask::class);
+        $this->urlBuilder = $this->createMock(UrlInterface::class);
 
         $this->orderHelper = new OrderHelper(
             $this->l2DataProvider,
             $this->l3DataProvider,
             $this->lineItemsProvider,
             $this->config,
-            $this->logger
+            $this->logger,
+            $this->quoteIdMaskFactory,
+            $this->quoteIdMaskResource,
+            $this->urlBuilder
         );
 
         $this->lineItemsProvider->expects($this->any())
@@ -95,6 +120,7 @@ class OrderHelperTest extends TestCase
 
     /**
      * @return void
+     * @throws Exception
      */
     public function testGetLineItemsWithNoAmountMisMatch(): void
     {
@@ -150,6 +176,7 @@ class OrderHelperTest extends TestCase
 
     /**
      * @return void
+     * @throws Exception
      */
     public function testGetLineItemsWithTaxAmountMisMatch(): void
     {
@@ -194,6 +221,7 @@ class OrderHelperTest extends TestCase
 
     /**
      * @return void
+     * @throws Exception
      */
     public function testGetLineItemsWithAmountMisMatch(): void
     {
@@ -238,6 +266,7 @@ class OrderHelperTest extends TestCase
 
     /**
      * @return void
+     * @throws Exception
      */
     public function testGetAmountBreakdownWithoutMisMatch(): void
     {
@@ -269,6 +298,7 @@ class OrderHelperTest extends TestCase
 
     /**
      * @return void
+     * @throws Exception
      */
     public function testGetAmountBreakdownWithMisMatch(): void
     {
@@ -288,6 +318,7 @@ class OrderHelperTest extends TestCase
      * @param float $addressShippingAmount
      * @param float $addressDiscountAmount
      * @return Quote
+     * @throws Exception
      */
     private function createQuote(
         float $quoteGrandTotal,
@@ -332,8 +363,14 @@ class OrderHelperTest extends TestCase
             ])
             ->onlyMethods([
                 'getShippingAddress',
+                'getBillingAddress',
                 'isVirtual',
                 'getCurrency',
+                'getId',
+                'getPayment',
+                'getAllVisibleItems',
+                'reserveOrderId',
+                'getReservedOrderId',
             ])
             ->disableOriginalConstructor()
             ->getMock();
@@ -355,6 +392,10 @@ class OrderHelperTest extends TestCase
             ->willReturn($address);
 
         $quote->expects($this->any())
+            ->method('getBillingAddress')
+            ->willReturn($address);
+
+        $quote->expects($this->any())
             ->method('isVirtual')
             ->willReturn(false);
 
@@ -365,6 +406,7 @@ class OrderHelperTest extends TestCase
      * Create a currency
      *
      * @return CurrencyInterface
+     * @throws Exception
      */
     private function createCurrency(): CurrencyInterface
     {

@@ -8,13 +8,19 @@
 
 <actionGroups xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:noNamespaceSchemaLocation="urn:magento:mftf:Test/etc/actionGroupSchema.xsd">
-    <actionGroup name="StorefrontSetPaymentInPaypalActionGroup" extends="StorefrontPaypalSwitchBackToMagentoActionGroup">
+    <actionGroup name="StorefrontSetPaymentInPaypalActionGroup">
         <annotations>
             <description>Click submit button on PayPal site and go back to Magento site</description>
         </annotations>
-
-        <remove keyForRemoval="scrollToContinueBtn"/>
-        <remove keyForRemoval="clickContinue"/>
-        <executeJS function="document.getElementById('{{PayPalPaymentSection.paypalSubmitBtnId}}').click()" stepKey="clickContinueBtn" before="switchToPreviousTab"/>
+        <conditionalClick selector="{{PayPalPaymentSection.PaypalPayButton}}"
+                          dependentSelector="{{PayPalPaymentSection.PaypalPayButton}}"
+                          visible="true"
+                          stepKey="clickPayButton"/>
+        <conditionalClick selector="{{PayPalPaymentSection.paypalSubmitBtnId}}"
+                          dependentSelector="{{PayPalPaymentSection.paypalSubmitBtnId}}"
+                          visible="true"
+                          stepKey="clickCompletePurchaseButton"/>
+        <switchToPreviousTab stepKey="switchToPreviousTab"/>
     </actionGroup>
 </actionGroups>
+

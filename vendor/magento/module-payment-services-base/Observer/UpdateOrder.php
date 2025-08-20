@@ -73,6 +73,10 @@ class UpdateOrder extends AbstractDataAssignObserver
             json_encode([
                 'order-id' => $order->getId(),
                 'order-increment-id' => $order->getIncrementId(),
+                'amount' => [
+                    'currency_code' => $order->getBaseCurrencyCode(),
+                    'value' => $order->getBaseGrandTotal(),
+                ]
             ]),
         );
 

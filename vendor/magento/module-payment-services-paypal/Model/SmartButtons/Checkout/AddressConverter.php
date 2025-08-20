@@ -17,10 +17,9 @@ class AddressConverter
      */
     public function convertShippingAddress(array $order) : array
     {
-        $data = [
-            'email' => $order['paypal-order']['payer']['email'],
-        ];
+        $data = [];
 
+        $this->addEmail($data, $order['paypal-order']['payer']);
         $this->addTelephone($data, $order['paypal-order']['payer']);
 
         if (isset($order['paypal-order']['shipping-address'])) {
@@ -47,11 +46,11 @@ class AddressConverter
     {
         $data = [
             'firstname' => $order['paypal-order']['payer']['name']['given_name'],
-            'lastname' => $order['paypal-order']['payer']['name']['surname'],
             'country_id' => $order['paypal-order']['billing-address']['country_code'],
-            'email' => $order['paypal-order']['payer']['email']
         ];
 
+        $this->addLastName($data, $order['paypal-order']['payer']);
+        $this->addEmail($data, $order['paypal-order']['payer']);
         $this->addTelephone($data, $order['paypal-order']['payer']);
 
         $address = $order['paypal-order']['billing-address'];
@@ -162,13 +161,41 @@ class AddressConverter
      * Add the telephone to data.
      *
      * @param array $data
-     * @param array $order
+     * @param array $payer
      * @return void
      */
-    private function addTelephone(array &$data, array $order) : void
+    private function addTelephone(array &$data, array $payer) : void
     {
-        if (isset($order['phone_number'])) {
-            $data['telephone'] = $order['phone_number'];
+        if (isset($payer['phone_number'])) {
+            $data['telephone'] = $payer['phone_number'];
+        }
+    }
+
+    /**
+     * Add the email to data.
+     *
+     * @param array $data
+     * @param array $payer
+     * @return void
+     */
+    private function addEmail(array &$data, array $payer) : void
+    {
+        if (isset($payer['email'])) {
+            $data['email'] = $payer['email'];
+        }
+    }
+
+    /**
+     * Add the lastname to data.
+     *
+     * @param array $data
+     * @param array $payer
+     * @return void
+     */
+    private function addLastName(array &$data, array $payer) : void
+    {
+        if (isset($payer['name']['surname'])) {
+            $data['lastname'] = $payer['name']['surname'];
         }
     }
 }

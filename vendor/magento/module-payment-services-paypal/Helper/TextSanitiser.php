@@ -54,4 +54,24 @@ class TextSanitiser
 
         return $output;
     }
+
+    /**
+     * Makes sure the commodity code only contains alphanumeric characters, spaces, and hyphens.
+     *
+     * Used for sanitising PayPal commodity codes
+     *
+     * @param string $input
+     * @return string
+     */
+    public function filterCommodityCode(string $input): string
+    {
+        $output = preg_replace('/[^A-Za-z0-9\\s-]/u', '', $input);
+
+        if ($output === null && preg_last_error() !== PREG_NO_ERROR) {
+            $this->logger->error('Failed to sanitise commodity code. Error: ' . preg_last_error_msg());
+            return '';
+        }
+
+        return $output;
+    }
 }

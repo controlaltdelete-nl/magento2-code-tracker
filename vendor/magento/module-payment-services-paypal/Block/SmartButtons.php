@@ -9,6 +9,8 @@ namespace Magento\PaymentServicesPaypal\Block;
 use Magento\Checkout\Model\CompositeConfigProvider;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\App\ObjectManager;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Framework\View\Element\Template\Context;
 use Magento\PaymentServicesPaypal\Model\Config;
@@ -91,7 +93,8 @@ class SmartButtons extends Template implements ShortcutInterface
         /** @phpstan-ignore-next-line */
         $this->setTemplate($data['template'] ?? $componentConfig[$this->pageType]['template']);
         $this->serializer = $serializer ?: ObjectManager::getInstance()->get(Json::class);
-        $this->configProvider = $compositeConfigProvider ?: ObjectManager::getInstance()->get(CompositeConfigProvider::class);
+        $this->configProvider = $compositeConfigProvider
+            ?: ObjectManager::getInstance()->get(CompositeConfigProvider::class);
         $this->checkoutSession = $checkoutSession ?: ObjectManager::getInstance()->get(CheckoutSession::class);
     }
 
@@ -109,16 +112,21 @@ class SmartButtons extends Template implements ShortcutInterface
      * Get component params of payment methods
      *
      * @return array
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
      */
     public function getComponentParams() : array
     {
+        $baseUrl = $this->_storeManager->getStore()->getBaseUrl();
         return [
             'createOrderUrl' => $this->getUrl('paymentservicespaypal/smartbuttons/createpaypalorder'),
             'authorizeOrderUrl' => $this->getUrl('paymentservicespaypal/smartbuttons/updatequote'),
             'orderReviewUrl' => $this->getUrl('paymentservicespaypal/smartbuttons/review'),
             'cancelUrl' => $this->getUrl('checkout/cart'),
             'estimateShippingMethodsWhenLoggedInUrl' => $this->getUrl('rest/V1/carts/mine/estimate-shipping-methods'),
-            'estimateShippingMethodsWhenGuestUrl' => $this->getUrl('rest/V1/guest-carts/:cartId/estimate-shipping-methods'),
+            'estimateShippingMethodsWhenGuestUrl' => $this->getUrl(
+                'rest/V1/guest-carts/:cartId/estimate-shipping-methods'
+            ),
             'shippingInformationWhenLoggedInUrl' => $this->getUrl('rest/V1/carts/mine/shipping-information'),
             'shippingInformationWhenGuestUrl' => $this->getUrl('rest/V1/guest-carts/:quoteId/shipping-information'),
             'updatePayPalOrderUrl' => $this->getUrl('paymentservicespaypal/smartbuttons/updatepaypalorder/'),
@@ -126,11 +134,14 @@ class SmartButtons extends Template implements ShortcutInterface
             'setQuoteAsInactiveUrl' => $this->getUrl('paymentservicespaypal/smartbuttons/setquoteasinactive'),
             'placeOrderUrl' => $this->getUrl('paymentservicespaypal/smartbuttons/placeorder/'),
             'getOrderDetailsUrl' => $this->getUrl('paymentservicespaypal/order/getcurrentorder'),
-            'threeDSMode' => $this->config->getGooglePayThreeDS() !== "0" ? $this->config->getGooglePayThreeDS() : false,
+            'threeDSMode' => $this->config->getGooglePayThreeDS() !== "0"
+                ? $this->config->getGooglePayThreeDS()
+                : false,
             'styles' => $this->getStyles(),
             'isVirtual' => $this->session->getQuote()->isVirtual(),
             'googlePayMode' => $this->config->getGooglePayMode(),
             'pageType' => $this->pageType,
+            'completeOrderUrl' => $baseUrl . 'rest/V1/payment-order/completeOrder'
         ];
     }
 
@@ -149,6 +160,7 @@ class SmartButtons extends Template implements ShortcutInterface
      *
      * @param string $location
      * @return bool
+     * @throws NoSuchEntityException
      */
     public function isLocationEnabled(string $location): bool
     {
@@ -160,6 +172,7 @@ class SmartButtons extends Template implements ShortcutInterface
      *
      * @param string $location
      * @return bool
+     * @throws NoSuchEntityException
      */
     public function isApplePayLocationEnabled(string $location): bool
     {
@@ -171,6 +184,7 @@ class SmartButtons extends Template implements ShortcutInterface
      *
      * @param string $location
      * @return bool
+     * @throws NoSuchEntityException
      */
     public function isGooglePayLocationEnabled(string $location): bool
     {
@@ -181,6 +195,7 @@ class SmartButtons extends Template implements ShortcutInterface
      * Get styles of Smart Buttons
      *
      * @return array
+     * @throws NoSuchEntityException
      */
     private function getStyles() : array
     {
@@ -201,13 +216,13 @@ class SmartButtons extends Template implements ShortcutInterface
      * Check if quote exists
      *
      * @return bool
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws LocalizedException
      */
     public function doesQuoteExist(): bool
     {
         try {
             return $this->checkoutSession->getQuote()->getId() != null;
-        } catch (\Magento\Framework\Exception\NoSuchEntityException $e) {
+        } catch (NoSuchEntityException $e) {
             return false;
         }
     }

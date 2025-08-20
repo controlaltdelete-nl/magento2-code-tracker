@@ -1,0 +1,70 @@
+// /**
+//  * Copyright © Magento, Inc. All rights reserved.
+//  * See COPYING.txt for license details.
+//  */
+
+& when (@media-common =true) {
+
+    //  Fastlane
+    axo-auth,
+    paypal-shipping-address-selector {
+        position: fixed;
+        z-index: 10000;
+    }
+
+    .paypal-fastlane-powered-by {
+        display: block;
+        margin: @indent__xs 0;
+        width: 150px;
+    }
+
+
+    .paypal-fastlane-shipping-change-address-form {
+        margin-bottom: @indent__l;
+
+        button {
+            width: 100%;
+        }
+    }
+
+    .paypal-fastlane-divider {
+        margin-top: @indent__l;
+        position: relative;
+        text-align: center;
+        width: 100%;
+
+        &:before {
+            border-bottom: 1px solid @color-gray80;
+            content: '';
+            left: 0;
+            position: absolute;
+            top: 50%;
+            width: 100%;
+        }
+
+        span {
+            background-color: @color-gray-light01;
+            padding: 0 @indent__s;
+            position: relative;
+        }
+    }
+
+    #payment-services-paypal-fastlane {
+        paypal-payment {
+            display: block;
+            margin-bottom: @indent__base;
+        }
+
+        + .checkout-agreements-block {
+            .recaptcha-checkout-place-order {
+                margin-bottom: @indent__base;
+            }
+        }
+    }
+}
+
+.media-width(@extremum, @break) when (@extremum ='min') and (@break =@screen__s) {
+    .paypal-fastlane-divider span {
+        background-color: @color-white;
+    }
+}

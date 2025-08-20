@@ -96,6 +96,7 @@
                 <item name="hosted_fields" xsi:type="string">payment_services_paypal_hosted_fields</item>
                 <item name="apple_pay" xsi:type="string">payment_services_paypal_apple_pay</item>
                 <item name="google_pay" xsi:type="string">payment_services_paypal_google_pay</item>
+                <item name="fastlane" xsi:type="string">payment_services_paypal_fastlane</item>
             </argument>
         </arguments>
     </type>

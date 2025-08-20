@@ -46,7 +46,7 @@ define([
          */
         initialize: function (config, element) {
             _.bindAll(this, 'renderButtons', 'initSmartButtons', 'onClick', 'catchError', 'beforeCreateOrder',
-                'afterCreateOrder', 'beforeOnAuthorize', 'afterOnAuthorize', 'onCancel');
+                'afterCreateOrder', 'beforeOnAuthorize', 'onCancel');
             config.uid = utils.uniqueid();
             this._super();
             this.element = element;
@@ -70,8 +70,11 @@ define([
                 scriptParams: this.sdkParams,
                 styles: this.styles,
                 createOrderUrl: this.createOrderUrl,
+                placeOrderUrl: this.placeOrderUrl,
                 authorizeOrderUrl: this.authorizeOrderUrl,
+                completeOrderUrl: this.completeOrderUrl,
                 onClick: this.onClick,
+                setQuoteAsInactiveUrl: this.setQuoteAsInactiveUrl,
                 beforeCreateOrder: this.beforeCreateOrder,
                 afterCreateOrder: this.afterCreateOrder,
                 catchCreateOrder: this.catchError,
@@ -168,6 +171,17 @@ define([
         },
 
         /**
+         * Set quote created from PDP as Inactive
+         */
+        setQuoteInactive: function () {
+            // Set Quote as inactive to avoid having multiple active quotes for the customer
+            return $.ajax({
+                type: 'POST',
+                url: this.setQuoteAsInactiveUrl
+            });
+        },
+
+        /**
          * Before create order.
          *
          * @return {Promise}
@@ -231,29 +245,13 @@ define([
         },
 
         /**
-         * After onAuthorize execute
-         *
-         * @param {Object} res
-         * @param {Object} actions
-         * @return {*}
+         * Set the quote inactive on cancel
          */
-        afterOnAuthorize: function (res, actions) {
-            if (res.success) {
-                return actions.redirect(res.redirectUrl);
-            }
-
-            throw new ResponseError(res.error);
-        },
-
-        /**
-         * Redirect to cart on cancel.
-         *
-         * @param {Object} data
-         * @param {Object} actions
-         */
-        onCancel: function (data, actions) {
-            customerData.invalidate(['cart']);
-            actions.redirect(this.cancelUrl);
+        onCancel: function () {
+            this.setQuoteInactive()
+                .always(() => {
+                    this.showLoader(false);
+                });
         }
     });
 });
