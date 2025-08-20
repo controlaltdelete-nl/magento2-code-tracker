@@ -24,7 +24,6 @@ use Magento\Framework\Data\Form\Element\AbstractElement;
 class ResetPaymentsMerchantIdButton extends Field
 {
     private const RESET_SANDBOX_MERCHANT_ID = 'reset_sandbox_merchant_id';
-    private const RESET_PRODUCTION_MERCHANT_ID = 'reset_production_merchant_id';
 
     /**
      * Preparing global layout
@@ -56,9 +55,7 @@ class ResetPaymentsMerchantIdButton extends Field
         if ($buttonId == self::RESET_SANDBOX_MERCHANT_ID) {
             $config = $this->_scopeConfig->getValue('payment/payment_methods/sandbox_merchant_id');
         }
-        if ($buttonId == self::RESET_PRODUCTION_MERCHANT_ID) {
-            $config = $this->_scopeConfig->getValue('payment/payment_methods/production_merchant_id');
-        }
+
         if (empty($config)) {
             return '';
         }
@@ -83,8 +80,6 @@ class ResetPaymentsMerchantIdButton extends Field
 
         if ($originalData['id'] == self::RESET_SANDBOX_MERCHANT_ID) {
             $payEnvironment = 'sandbox';
-        } elseif ($originalData['id'] == self::RESET_PRODUCTION_MERCHANT_ID) {
-            $payEnvironment = 'production';
         }
 
         $controllerUrl = $this->getUrl('paymentservicesbase/system_config/ResetPaymentsMerchantId') .

@@ -24,6 +24,8 @@ class PaymentOptionsBuilder extends DataObject
     private const IS_GOOGLE_PAY_ENABLED = 'googlepay';
     private const IS_PAYPAL_CARD_ENABLED = 'card';
     private const IS_PAYLATER_MESSAGE_ENABLED = 'paylater_message';
+    private const IS_FASTLANE_ENABLED = 'fastlane';
+    private const DOMAINS = 'domains';
 
     /**
      * Set is smart buttons enabled.
@@ -134,6 +136,34 @@ class PaymentOptionsBuilder extends DataObject
     }
 
     /**
+     * Set is Fastlane enabled.
+     *
+     * @param bool $isFastlaneEnabled
+     * @return PaymentOptionsBuilder
+     */
+    public function setIsFastlaneEnabled(bool $isFastlaneEnabled)
+    {
+        return $this->setData(self::IS_FASTLANE_ENABLED, $isFastlaneEnabled);
+    }
+
+    /**
+     * Set domains.
+     *
+     * Used when generating sdk token for Fastlane
+     * Must be a root domain only:
+     *  - No subdomains such as sub.example.com.
+     *  - No wildcard characters such as *.example.com.
+     *  - No protocols such as http or https.
+     *
+     * @param array $domains
+     * @return PaymentOptionsBuilder
+     */
+    public function setDomains(array $domains)
+    {
+        return $this->setData(self::DOMAINS, $domains);
+    }
+
+    /**
      * Build result.
      *
      * @return array
@@ -150,6 +180,7 @@ class PaymentOptionsBuilder extends DataObject
             self::IS_PAYLATER_MESSAGE_ENABLED => $this->getData(self::IS_PAYLATER_MESSAGE_ENABLED),
             self::IS_GOOGLE_PAY_ENABLED => $this->getData(self::IS_GOOGLE_PAY_ENABLED),
             self::IS_APPLE_PAY_ENABLED => $this->getData(self::IS_APPLE_PAY_ENABLED),
+            self::IS_FASTLANE_ENABLED => $this->getData(self::IS_FASTLANE_ENABLED),
         ];
         if ($this->getData(self::ARE_BUTTONS_ENABLED)) {
             $result[self::BUTTONS] = [
@@ -157,6 +188,9 @@ class PaymentOptionsBuilder extends DataObject
                 self::IS_PAYPAL_CREDIT_ENABLED => $this->getData(self::IS_PAYPAL_CREDIT_ENABLED),
                 self::IS_VENMO_ENABLED => $this->getData(self::IS_VENMO_ENABLED),
             ];
+        }
+        if ($result[self::IS_FASTLANE_ENABLED] && $this->getData(self::DOMAINS)) {
+            $result[self::DOMAINS] = $this->getData(self::DOMAINS);
         }
         return $result;
     }

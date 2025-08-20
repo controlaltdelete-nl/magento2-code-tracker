@@ -9,8 +9,8 @@ define([
     'underscore',
     'uiComponent',
     'scriptLoader',
-    'mage/cookies'
-], function ($, _, Component, loadSdkScript) {
+    'Magento_Customer/js/customer-data'
+], function ($, _, Component, loadSdkScript, customerData) {
     'use strict';
 
     /**
@@ -21,42 +21,51 @@ define([
      * @param {FormData} orderData
      * @return {Promise<Object>}
      */
-    var performCreateOrder = function (url, payPalOrderData, orderData) {
-            orderData = orderData || new FormData();
-            orderData.append('form_key', $.mage.cookies.get('form_key'));
-            orderData.append('payment_source', payPalOrderData['paymentSource']);
+    const performCreateOrder = function (url, payPalOrderData, orderData) {
+        orderData = orderData || new FormData();
+        orderData.append('form_key', $.mage.cookies.get('form_key'));
+        orderData.append('payment_source', payPalOrderData['paymentSource']);
 
-            return fetch(url, {
-                method: 'POST',
-                headers: {},
-                body: orderData || new FormData(),
-                credentials: 'same-origin'
-            }).then(function (response) {
-                return response.json();
-            });
-        },
+        return fetch(url, {
+            method: 'POST',
+            headers: {},
+            body: orderData || new FormData(),
+            credentials: 'same-origin'
+        }).then(function (response) {
+            return response.json();
+        });
+    },
 
-        /**
-         * Payment authorization request.
-         *
-         * @return {Promise<Object>}
-         */
-        performAuthorization = function (url, data) {
-            var orderData = new FormData();
+    /**
+     * Payment authorization request.
+     *
+     * @return {Promise<Object>}
+     */
+    performAuthorization = function (url, data) {
+        return fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                orderId: data.orderID
+            })
+        }).then((response) => {
+            if (!response.ok) {
+                throw new Error($t('We’re unable to take that order right now.'));
+            }
+            return response.json();
+        }).then((response)  => {
+            const parsed = JSON.parse(response);
+            if (!parsed.success) {
+                throw new Error($t('We’re unable to take that order right now.'));
+            }
 
-            orderData.append('form_key', $.mage.cookies.get('form_key'));
-            orderData.append('paypal_order_id', data.orderID);
-            orderData.append('paypal_payer_id', data.payerID);
-
-            return fetch(url, {
-                method: 'POST',
-                headers: {},
-                body: orderData,
-                credentials: 'same-origin'
-            }).then(function (response) {
-                return response.json();
-            });
-        };
+            customerData.invalidate(['cart']);
+            window.location.replace(parsed.redirectUrl);
+        });
+    };
 
     return Component.extend({
         defaults: {
@@ -64,7 +73,10 @@ define([
             paypal: null,
             paymentSource: '',
             creatOrderUrl: '',
+            placeOrderUrl: '',
             authorizeOrderUrl: '',
+            setQuoteAsInactiveUrl: '',
+            completeOrderUrl: '',
             style: {},
             paymentRequest: {
                 applepay: {
@@ -160,7 +172,7 @@ define([
         },
 
         /**
-         * Calls when user click paypal button.
+         * Calls when user click PayPal button.
          */
         onClick: function () {
         },
@@ -225,7 +237,7 @@ define([
          *
          * @return {Promise}
          */
-        beforeOnAuthorize: function (data) {
+        beforeOnAuthorize: function (data, actions) {
             return Promise.resolve(data);
         },
 
@@ -238,24 +250,12 @@ define([
          */
         onApprove: function (data, actions) {
             return this.beforeOnAuthorize(data, actions)
-                .then(performAuthorization.bind(this, this.authorizeOrderUrl))
-                .then(function (authData) {
-                    return this.afterOnAuthorize(authData, actions);
-                }.bind(this)).catch(function (error) {
+                .then(performAuthorization.bind(this, this.completeOrderUrl))
+                .catch(function (error) {
                     return this.catchOnAuthorize(error);
                 }.bind(this)).finally(function (error) {
                     return this.finallyOnAuthorize(error);
                 }.bind(this));
-        },
-
-        /**
-         * Calls after successful payment authorization.
-         *
-         * @param {Object} authData
-         * @return {*}
-         */
-        afterOnAuthorize: function (authData) {
-            return authData;
         },
 
         /**
@@ -271,14 +271,14 @@ define([
         },
 
         /**
-         * Calls when shipping address chenges..
+         * Calls when shipping address changes..
          *
          * @param {Object} data
          */
         onShippingChange: undefined,
 
         /**
-         * Calls when error happened on paypal side.
+         * Calls when error happened on PayPal side.
          *
          * @param {Error} error
          */

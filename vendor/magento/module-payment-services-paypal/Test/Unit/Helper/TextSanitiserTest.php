@@ -35,6 +35,17 @@ class TextSanitiserTest extends TestCase
         $this->assertEquals($expectedOutput, $textSanitiser->textOnly($input));
     }
 
+    /**
+     * @dataProvider provideLettersTestCases
+     */
+    public function testSanitiserWithValidLetters($input, $expectedOutput): void
+    {
+        $logger = $this->createMock(LoggerInterface::class);
+        $textSanitiser = new TextSanitiser($logger);
+
+        $this->assertEquals($expectedOutput, $textSanitiser->filterCommodityCode($input));
+    }
+
     public function provideTestCases()
     {
         return [
@@ -50,6 +61,18 @@ class TextSanitiserTest extends TestCase
             ['春天來了, 陽光溫暖', '春天來了, 陽光溫暖'],
             ['Full-length', 'Full-length'],
 
+        ];
+    }
+
+    public function provideLettersTestCases()
+    {
+        return [
+            ['This is a valid input', 'This is a valid input'],
+            ['1234567890', '1234567890'],
+            ['24-MB01~', '24-MB01'],
+            ['SKU-💥🔥2025', 'SKU-2025'],
+            ['¯\_(ツ)_/¯', ''],
+            ['---===MAG!K===---', '---MAGK---'],
         ];
     }
 }

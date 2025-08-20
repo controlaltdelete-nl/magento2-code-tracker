@@ -56,11 +56,6 @@
                             </comment>
                             <tooltip>Your unique Production Merchant ID for Adobe Commerce Payment Services.</tooltip>
                         </field>
-                        <field id="reset_production_merchant_id" translate="button_label" sortOrder="1" showInDefault="1" showInWebsite="0" showInStore="0">
-                            <label/>
-                            <button_label>Reset Payment Services Production ID</button_label>
-                            <frontend_model>Magento\PaymentServicesBase\Block\Adminhtml\System\Config\ResetPaymentsMerchantIdButton</frontend_model>
-                        </field>
                         <field id="mba_scoping_level" type="select" translate="label comment tooltip" sortOrder="1" showInDefault="1" showInWebsite="0" showInStore="0">
                             <label>Multiple business account scoping level</label>
                             <frontend_model>Magento\PaymentServicesBase\Block\Adminhtml\System\Config\Field\Hidden</frontend_model>

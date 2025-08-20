@@ -18,6 +18,7 @@ declare(strict_types=1);
 
 namespace Magento\PaymentServicesBase\Model;
 
+use Laminas\Http\Request;
 use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\App\Request\Http;
@@ -30,27 +31,27 @@ class MerchantService
     /**
      * @var ServiceClientInterface
      */
-    private $serviceClient;
+    private ServiceClientInterface $serviceClient;
 
     /**
      * @var Config
      */
-    private $config;
+    private Config $config;
 
     /**
      * @var WriterInterface
      */
-    private $configWriter;
+    private WriterInterface $configWriter;
 
     /**
      * @var TypeListInterface
      */
-    private $cacheTypeList;
+    private TypeListInterface $cacheTypeList;
 
     /**
      * @var MerchantCacheService
      */
-    private $cache;
+    private MerchantCacheService $cache;
 
     /**
      * @param Config $config
@@ -79,7 +80,7 @@ class MerchantService
      * @param string $environment
      * @return array
      */
-    public function delete(string $environment)
+    public function delete(string $environment): array
     {
         $response = ['is_successful' => false];
 
@@ -153,7 +154,7 @@ class MerchantService
      * @param string $environment
      * @return void
      */
-    private function updateConfigValueInStorage(string $environment)
+    private function updateConfigValueInStorage(string $environment): void
     {
         if ($environment == 'sandbox') {
             $this->configWriter->save('payment/payment_methods/sandbox_merchant_id', '');
@@ -161,5 +162,32 @@ class MerchantService
             $this->configWriter->save('payment/payment_methods/production_merchant_id', '');
         }
         $this->cacheTypeList->cleanType(\Magento\Framework\App\Cache\Type\Config::TYPE_IDENTIFIER);
+    }
+
+    /**
+     * Get merchant and partner information
+     *
+     * @param string $scopeType
+     * @param int $scopeId
+     * @return array
+     */
+    public function getMerchantAndPartnerInformation(string $scopeType, int $scopeId): array
+    {
+        $environment = $this->config->getEnvironmentType();
+        $response = $this->serviceClient->request(
+            [
+                'Content-Type' => 'application/json',
+                'x-scope-type' => $scopeType,
+                'x-scope-id' => $scopeId
+            ],
+            '/admin/merchant/' . $this->config->getMerchantId($environment) . '/paypal',
+            Request::METHOD_GET
+        );
+
+        if ($response['is_successful'] && $response['status'] === 200) {
+            return $response;
+        }
+
+        throw new HttpException('Failed to fetch the merchant and partner information.');
     }
 }

@@ -30,6 +30,9 @@ type Mutation {
     createPaymentOrder(
         input: CreatePaymentOrderInput! @doc(description: "Contains payment order details that are used while processing the payment order")
     ): CreatePaymentOrderOutput @resolver(class: "\\Magento\\PaymentServicesPaypalGraphQl\\Model\\Resolver\\CreatePaymentOrder") @doc(description:"Creates a payment order for further payment processing")
+    completeOrder(
+            input: CompleteOrderInput @doc(description: "Describes the variables needed to complete or place the order")
+        ): PlaceOrderOutput @resolver(class: "\\Magento\\PaymentServicesPaypalGraphQl\\Model\\Resolver\\CompleteOrderResolver") @doc(description:"Synchronizes order details and place the order")
     syncPaymentOrder(
         input: SyncPaymentOrderInput @doc(description: "Describes the variables needed to synchronize the payment order details")
     ): Boolean @resolver(class: "\\Magento\\PaymentServicesPaypalGraphQl\\Model\\Resolver\\SyncPaymentOrder") @doc(description:"Synchronizes the payment order details for further payment processing")
@@ -39,6 +42,22 @@ type Mutation {
     createVaultCardPaymentToken(
         input: CreateVaultCardPaymentTokenInput! @doc(description: "Describe the variables needed to create a vault card payment token")
     ): CreateVaultCardPaymentTokenOutput @resolver(class: "\\Magento\\PaymentServicesPaypalGraphQl\\Model\\Resolver\\CreateVaultCardPaymentToken") @doc(description:"Creates a vault payment token")
+    addProductsToNewCart(
+        cartItems: [CartItemInput!]! @doc(description: "An array that defines the products to add to the new cart")
+    ): AddProductsToNewCartOutput @resolver(class: "\\Magento\\PaymentServicesPaypalGraphQl\\Model\\Resolver\\AddProductsToNewCart") @doc(description:"Creates a new cart and add any type of product to it")
+    setCartAsInactive(
+        cartId: String! @doc(description: "The customer cart ID")
+    ): SetCartAsInactiveOutput @resolver(class: "\\Magento\\PaymentServicesPaypalGraphQl\\Model\\Resolver\\SetCartAsInactive") @doc(description:"Sets the cart as inactive")
+}
+
+type AddProductsToNewCartOutput @doc(description: "Contains details about the cart after adding products to it.") {
+    cart: Cart @doc(description: "The cart after products have been added.")
+    user_errors: [CartUserInputError!] @doc(description: "Contains errors encountered while adding an item to the cart.")
+}
+
+type SetCartAsInactiveOutput @doc(description: "Sets the cart as inactive") {
+    success: Boolean! @doc(description: "Indicates whether the cart was set as inactive")
+    error: String @doc(description: "The error message returned after failing to set the cart as inactive")
 }
 
 type GetPaymentSDKOutput @doc(description: "Gets the payment SDK URLs and values") {
@@ -81,6 +100,11 @@ input CreatePaymentOrderInput @doc(description: "Contains payment order details 
     location: PaymentLocation! @doc(description: "Defines the origin location for that payment request")
 }
 
+input CompleteOrderInput @doc(description: "Update the quote and complete the order") {
+    cartId: String! @doc(description: "The customer cart ID")
+    id: String! @doc(description: "PayPal order ID")
+}
+
 input SyncPaymentOrderInput @doc(description: "Synchronizes the payment order details") {
     cartId: String! @doc(description: "The customer cart ID")
     id: String! @doc(description: "PayPal order ID")
@@ -107,6 +131,7 @@ type PaymentConfigOutput @doc(description: "Retrieves the payment configuration 
     google_pay: GooglePayConfig @resolver(class: "\\Magento\\PaymentServicesPaypalGraphQl\\Model\\Resolver\\PaymentConfigMethod") @doc(description: "GooglePay payment method configuration")
     hosted_fields: HostedFieldsConfig @resolver(class: "\\Magento\\PaymentServicesPaypalGraphQl\\Model\\Resolver\\PaymentConfigMethod") @doc(description: "Hosted fields payment method configuration")
     smart_buttons: SmartButtonsConfig @resolver(class: "\\Magento\\PaymentServicesPaypalGraphQl\\Model\\Resolver\\PaymentConfigMethod") @doc(description: "Smart Buttons payment method configuration")
+    fastlane: FastlaneConfig @resolver(class: "\\Magento\\PaymentServicesPaypalGraphQl\\Model\\Resolver\\PaymentConfigMethod") @doc(description: "Fastlane payment method configuration")
 }
 
 interface PaymentConfigItem @typeResolver(class: "\\Magento\\PaymentServicesPaypalGraphQl\\Model\\Resolver\\PaymentConfigItemTypeResolver") @doc(description: "Contains payment fields that are common to all types of payment methods.") {
@@ -157,6 +182,10 @@ type GooglePayConfig implements PaymentConfigItem {
     three_ds_mode: ThreeDSMode @doc(description: "3DS mode") @resolver(class: "\\Magento\\PaymentServicesPaypalGraphQl\\Model\\Resolver\\ThreeDSModeResolver")
 }
 
+type FastlaneConfig implements PaymentConfigItem {
+    payment_source: String @doc(description: "The payment source for the payment method")
+}
+
 type ButtonStyles {
     layout: String @doc(description: "The button layout")
     color: String @doc(description: "The button color")
@@ -193,6 +222,7 @@ input PaymentMethodInput {
     payment_services_paypal_apple_pay: ApplePayMethodInput @doc(description:"Required input for Apple Pay button")
     payment_services_paypal_google_pay: GooglePayMethodInput @doc(description:"Required input for Google Pay button")
     payment_services_paypal_vault: VaultMethodInput @doc(description:"Required input for vault")
+    payment_services_paypal_fastlane: FastlaneMethodInput @doc(description:"Required input for fastlane")
 }
 
 input VaultMethodInput @doc(description: "Vault payment inputs") {
@@ -232,6 +262,11 @@ input HostedFieldsInput @doc(description: "Hosted Fields payment inputs") {
     holderName: String @doc(description: "Name on the card")
 }
 
+input FastlaneMethodInput @doc(description: "Fastlane Payment inputs") {
+    payment_source: String @doc(description: "The payment source for the payment method")
+    paypal_fastlane_token: String @doc(description: "The single use token from Fastlane")
+}
+
 input CreateVaultCardSetupTokenInput @doc(description: "Describe the variables needed to create a vault card setup token") {
     setup_token: VaultSetupTokenInput! @doc(description: "The setup token information")
     three_ds_mode: ThreeDSMode @doc(description: "The 3DS mode")
@@ -240,6 +275,7 @@ input CreateVaultCardSetupTokenInput @doc(description: "Describe the variables n
 input VaultSetupTokenInput @doc(description: "The payment source information") {
     payment_source: PaymentSourceInput! @doc(description: "The payment source information")
 }
+
 input PaymentSourceInput @doc(description: "The payment source information") {
     card: CardPaymentSourceInput! @doc(description: "The card payment source information")
 }

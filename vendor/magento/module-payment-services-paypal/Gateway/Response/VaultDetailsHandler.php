@@ -21,6 +21,7 @@ use Magento\PaymentServicesPaypal\Model\Vault\VaultTokenProvider;
 use Magento\Payment\Model\InfoInterface;
 use Magento\Sales\Api\Data\OrderPaymentExtensionInterfaceFactory;
 use Magento\Sales\Api\Data\OrderPaymentExtensionInterface;
+use Magento\Vault\Model\Ui\VaultConfigProvider;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -104,6 +105,8 @@ class VaultDetailsHandler implements HandlerInterface
             $vault = $response['mp-transaction']['vault'];
             $paymentDO = $handlingSubject['payment'];
             $payment = $paymentDO->getPayment();
+
+            $payment->setAdditionalInformation(VaultConfigProvider::IS_ACTIVE_CODE, 1);
 
             try {
                 $billingAddress = $paymentDO->getOrder()->getBillingAddress();

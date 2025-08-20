@@ -6,8 +6,12 @@
   */
 -->
 <sections xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:noNamespaceSchemaLocation="urn:magento:mftf:Page/etc/SectionObject.xsd">
+          xsi:noNamespaceSchemaLocation="urn:magento:mftf:Page/etc/SectionObject.xsd">
     <section name="PayPalPaymentSection">
-        <element name="paypalSubmitBtnId" type="text" selector="payment-submit-btn"/>
+        <element name="paypalSubmitBtnId" type="text" selector="[data-id='payment-submit-btn']"/>
+        <element name="PaypalNextButton" type="button" selector="//button[normalize-space(text())='Next']"/>
+        <element name="PaypalUsePasswordButton" type="button" selector="//button[normalize-space(text())='Use Password Instead']"/>
+        <element name="PaypalLogInButton" type="button" selector="//button[normalize-space(text())='Log In']"/>
+        <element name="PaypalPayButton" type="button" selector="#one-time-cta"/>
     </section>
 </sections>

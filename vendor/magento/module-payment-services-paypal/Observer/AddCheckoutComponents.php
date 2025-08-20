@@ -22,6 +22,7 @@ declare(strict_types=1);
 
 namespace Magento\PaymentServicesPaypal\Observer;
 
+use Magento\Checkout\Model\Session;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Event\Observer as EventObserver;
 use Magento\Framework\Event;
@@ -31,10 +32,18 @@ use Magento\PaymentServicesBase\Model\Config;
 
 class AddCheckoutComponents implements ObserverInterface
 {
+    const MINICART = 'minicart';
+    const CART = 'cart';
+    const PRODUCT = 'product';
     /**
      * @var Config $paymentConfig
      */
     private Config $paymentConfig;
+
+    /**
+     * @var Session
+     */
+    private $session;
 
     /**
      * @var array
@@ -43,13 +52,16 @@ class AddCheckoutComponents implements ObserverInterface
 
     /**
      * @param Config $paymentConfig
+     * @param Session $session
      * @param array $blocks
      */
     public function __construct(
         Config $paymentConfig,
+        Session $session,
         array $blocks = []
     ) {
         $this->paymentConfig = $paymentConfig;
+        $this->session = $session;
         $this->blocks = $blocks;
     }
 
@@ -62,13 +74,20 @@ class AddCheckoutComponents implements ObserverInterface
             return;
         }
 
+        $pageType = $this->getPageType($observer->getEvent());
+
+        // For MINICART - Only show the express buttons when the quote has a total
+        if ($pageType == self::MINICART && !(bool)(float)$this->session->getQuote()->getGrandTotal()) {
+            return;
+        }
+
         /** @var QuoteShortcutButtons $shortcutButtons */
         $shortcutButtons = $observer->getEvent()->getContainer();
         $smartButtons = $shortcutButtons->getLayout()->createBlock(
-            $this->blocks[$this->getPageType($observer->getEvent())],
+            $this->blocks[$pageType],
             '',
             [
-                'pageType' => $this->getPageType($observer->getEvent()),
+                'pageType' => $pageType,
             ]
         );
         $shortcutButtons->addShortcut($smartButtons);
@@ -76,7 +95,7 @@ class AddCheckoutComponents implements ObserverInterface
             Message::class,
             '',
             [
-                'pageType' => $this->getPageType($observer->getEvent()),
+                'pageType' => $pageType,
             ]
         );
         $shortcutButtons->addShortcut($message);
@@ -89,11 +108,11 @@ class AddCheckoutComponents implements ObserverInterface
     private function getPageType($event) : string
     {
         if ($event->getIsCatalogProduct()) {
-            return 'product';
+            return self::PRODUCT;
         }
         if ($event->getIsShoppingCart()) {
-            return 'cart';
+            return self::CART;
         }
-        return 'minicart';
+        return self::MINICART;
     }
 }
