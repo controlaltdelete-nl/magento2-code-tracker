@@ -8,8 +8,33 @@
 
 <actionGroups xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:noNamespaceSchemaLocation="urn:magento:mftf:Test/etc/actionGroupSchema.xsd">
-    <actionGroup name="StorefrontLoginToPaypalAccountActionGroup" extends="StorefrontLoginToPayPalPaymentAccountTwoStepActionGroup">
+    <actionGroup name="StorefrontLoginToPaypalAccountActionGroup">
+        <arguments>
+            <argument name="credentials" defaultValue="_CREDS"/>
+        </arguments>
+        <switchToNextTab stepKey="switchToInContentTab"/>
+        <seeCurrentUrlMatches regex="~\//www.sandbox.paypal.com/~" stepKey="seeCurrentUrlMatchesConfigPath1"/>
+        <conditionalClick selector="{{PayPalPaymentSection.notYouLink}}" dependentSelector="{{PayPalPaymentSection.notYouLink}}" visible="true" stepKey="selectNotYouSection"/>
+        <conditionalClick selector="{{PayPalPaymentSection.existingAccountLoginBtn}}" dependentSelector="{{PayPalPaymentSection.existingAccountLoginBtn}}" visible="true" stepKey="skipAccountCreationAndLogin"/>
+        <waitForElement selector="{{PayPalPaymentSection.email}}" stepKey="waitForLoginForm" />
         <fillField selector="{{PayPalPaymentSection.email}}" userInput="{{credentials.magento/magento_payments_paypal_sandbox_buyer_email}}" stepKey="fillEmail"/>
+        <click selector="{{PayPalPaymentSection.PaypalNextButton}}" stepKey="clickBtnNext"/>
+        <wait time="10" stepKey="waitForPassword"/>
+        <conditionalClick selector="{{PayPalPaymentSection.PaypalUsePasswordButton}}"
+                          dependentSelector="{{PayPalPaymentSection.PaypalUsePasswordButton}}"
+                          visible="true"
+                          stepKey="clickBtnUsePassword"/>
+        <waitForElementVisible selector="{{PayPalPaymentSection.password}}" stepKey="waitForPasswordField"/>
+        <click selector="{{PayPalPaymentSection.password}}" stepKey="focusOnPasswordField"/>
         <fillField selector="{{PayPalPaymentSection.password}}" userInput="{{credentials.magento/magento_payments_paypal_sandbox_buyer_password}}" stepKey="fillPassword"/>
+        <conditionalClick selector="{{PayPalPaymentSection.loginBtn}}"
+                          dependentSelector="{{PayPalPaymentSection.loginBtn}}"
+                          visible="true"
+                          stepKey="login"/>
+        <conditionalClick selector="{{PayPalPaymentSection.PaypalLogInButton}}"
+                          dependentSelector="{{PayPalPaymentSection.PaypalLogInButton}}"
+                          visible="true"
+                          stepKey="login2"/>
+        <wait time="10" stepKey="waitAfterLogin"/>
     </actionGroup>
 </actionGroups>

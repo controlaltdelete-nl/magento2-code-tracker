@@ -18,6 +18,9 @@
     <event name="payment_method_assign_data_payment_services_paypal_google_pay">
         <observer name="payment_services_paypal_smart_buttons_data_assign" instance="Magento\PaymentServicesPaypal\Observer\SaveAdditionalData"/>
     </event>
+    <event name="payment_method_assign_data_payment_services_paypal_fastlane">
+        <observer name="payment_services_paypal_fastlane_data_assign" instance="Magento\PaymentServicesPaypal\Observer\SaveAdditionalData"/>
+    </event>
     <event name="admin_system_config_save">
         <observer name="paypal_sdk_params_cache_flush" instance="Magento\PaymentServicesPaypal\Observer\FlushSdkParamsCache"/>
     </event>

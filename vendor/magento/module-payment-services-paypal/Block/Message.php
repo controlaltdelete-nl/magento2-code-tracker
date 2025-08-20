@@ -7,6 +7,8 @@ declare(strict_types=1);
 namespace Magento\PaymentServicesPaypal\Block;
 
 use Magento\Checkout\Model\Session;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\View\Element\Template\Context;
 use Magento\PaymentServicesPaypal\Model\Config;
 use Magento\Catalog\Block\ShortcutInterface;
@@ -75,11 +77,12 @@ class Message extends Template implements ShortcutInterface
      * Get component parameters.
      *
      * @return array[]
+     * @throws NoSuchEntityException
      */
     public function getComponentParams() : array
     {
         return [
-            'styles' => $this->getStyles(),
+            'styles' => $this->config->getPayLaterStyling(),
             'placement' => $this->componentConfig[$this->pageType]['placement'] ?? '',
             'renderContainer' => $this->componentConfig[$this->pageType]['renderContainer'] ?? ''
         ];
@@ -90,8 +93,8 @@ class Message extends Template implements ShortcutInterface
      *
      * @param string $location
      * @return bool
-     * @throws \Magento\Framework\Exception\LocalizedException
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
      */
     public function isEnabled(string $location) : bool
     {
@@ -102,15 +105,5 @@ class Message extends Template implements ShortcutInterface
         }
         return $isAllowed && $this->config->isEnabled() && $this->config->canDisplayPayLaterMessage()
             && $this->config->isLocationEnabled($location);
-    }
-
-    /**
-     * Get message styles.
-     *
-     * @return array
-     */
-    private function getStyles() : array
-    {
-        return $this->componentConfig[$this->pageType]['styles'];
     }
 }

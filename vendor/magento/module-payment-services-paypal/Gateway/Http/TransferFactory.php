@@ -33,8 +33,13 @@ class TransferFactory implements TransferFactoryInterface
      * @param array $request
      * @return TransferInterface
      */
-    public function create(array $request)
+    public function create(array $request): TransferInterface
     {
+        //TODO: Remove when Fastlane request builder are implemented
+        if (empty($request)) {
+            return $this->transferBuilder->build();
+        }
+
         return $this->transferBuilder->setUri($request['uri'])
             ->setClientConfig($request['clientConfig'] ?? [])
             ->setBody($request['body'])

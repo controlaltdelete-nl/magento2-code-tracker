@@ -22,6 +22,7 @@ namespace Magento\PaymentServicesPaypal\Plugin;
 
 use Magento\PaymentServicesPaypal\Helper\OrderHelper;
 use Magento\PaymentServicesPaypal\Model\Config;
+use Magento\PaymentServicesPaypal\Model\FastlaneConfigProvider;
 use Magento\Quote\Api\CartManagementInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\PaymentInterface;
@@ -29,6 +30,7 @@ use Magento\PaymentServicesPaypal\Model\OrderService;
 use Magento\PaymentServicesBase\Model\HttpException;
 use Magento\Framework\Exception\LocalizedException;
 use Psr\Log\LoggerInterface;
+use Magento\PaymentServicesPaypal\Model\Ui\ConfigProvider;
 
 /**
  * Cancels an order and an authorization transaction.
@@ -129,6 +131,8 @@ class OrderUpdate
     /**
      * Checks if the quote requires a price update.
      *
+     * When using Fastlane, the Paypal order is created during the place order flow so we need to update the order
+     *
      * @param \Magento\Quote\Model\Quote $quote
      * @return bool
      */
@@ -139,7 +143,17 @@ class OrderUpdate
             return false;
         }
 
+        if ($paymentMethod === FastlaneConfigProvider::CODE) {
+            return false;
+        }
+
         $originalOrderAmount = $quote->getPayment()->getAdditionalInformation('paypal_order_amount');
+
+        if ($quote->getPayment()->getMethod() === ConfigProvider::CC_CODE && empty($originalOrderAmount)) {
+            // force order amount update if the payment method is CC and the original order amount is not set
+            return true;
+        }
+
         if (empty($originalOrderAmount)) {
             return false;
         }

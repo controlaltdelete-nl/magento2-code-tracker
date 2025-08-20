@@ -42,7 +42,7 @@ define([
          */
         initialize: function (config, element) {
             _.bindAll(this, 'renderButtons', 'initSmartButtons', 'catchError', 'beforeCreateOrder', 'afterCreateOrder',
-                'beforeOnAuthorize', 'afterOnAuthorize', 'onCancel');
+                'beforeOnAuthorize', 'onCancel');
             config.uid = utils.uniqueid();
             this._super();
             this.element = element;
@@ -66,7 +66,9 @@ define([
                 scriptParams: this.sdkParams,
                 styles: this.styles,
                 createOrderUrl: this.createOrderUrl,
+                placeOrderUrl: this.placeOrderUrl,
                 authorizeOrderUrl: this.authorizeOrderUrl,
+                completeOrderUrl: this.completeOrderUrl,
                 beforeCreateOrder: this.beforeCreateOrder,
                 afterCreateOrder: this.afterCreateOrder,
                 catchCreateOrder: this.catchError,
@@ -85,8 +87,17 @@ define([
          * Render buttons
          */
         renderButtons: function () {
+            if (!this.buttons || !this.buttons.sdkLoaded) {
+                return;
+            }
+
             this.buttons.sdkLoaded.then(function () {
-                this.buttons && this.buttons.render('#' + this.buttonsContainerId);
+                var containerSelector = '#' + this.buttonsContainerId;
+                if ($(containerSelector).length > 0) {
+                    this.buttons.render(containerSelector);
+                } else {
+                    console.warn('PayPal button container not found:', containerSelector);
+                }
             }.bind(this)).catch(function () {
                 console.log('Error: Failed to load PayPal SDK script!');
             });
@@ -175,21 +186,6 @@ define([
             this.showLoader(true);
 
             return Promise.resolve(data);
-        },
-
-        /**
-         * After onAuthorize execute
-         *
-         * @param {Object} res
-         * @param {Object} actions
-         * @return {*}
-         */
-        afterOnAuthorize: function (res, actions) {
-            if (res.success) {
-                return actions.redirect(res.redirectUrl);
-            }
-
-            throw new ResponseError(res.error);
         },
 
         /**

@@ -15,6 +15,39 @@
                             <item name="children" xsi:type="array">
                                 <item name="steps" xsi:type="array">
                                     <item name="children" xsi:type="array">
+                                        <item name="shipping-step" xsi:type="array">
+                                            <item name="component" xsi:type="string">uiComponent</item>
+                                            <item name="children" xsi:type="array">
+                                                <item name="shippingAddress" xsi:type="array">
+                                                    <item name="children" xsi:type="array">
+                                                        <item name="before-fields" xsi:type="array">
+                                                            <item name="children" xsi:type="array">
+                                                                <item name="change-address" xsi:type="array">
+                                                                    <item name="component" xsi:type="string">Magento_PaymentServicesPaypal/js/view/form/element/change-address</item>
+                                                                    <item name="children" xsi:type="array">
+                                                                        <item name="paypal-fastlane-address-watermark" xsi:type="array">
+                                                                            <item name="component" xsi:type="string">Magento_PaymentServicesPaypal/js/view/form/element/powered-by</item>
+                                                                            <item name="id" xsi:type="string">paypal-fastlane-address-watermark</item>
+                                                                            <item name="displayArea" xsi:type="string">paypal-fastlane-address-watermark</item>
+                                                                        </item>
+                                                                    </item>
+                                                                </item>
+                                                            </item>
+                                                        </item>
+                                                        <item name="customer-email" xsi:type="array">
+                                                            <item name="template" xsi:type="string">Magento_PaymentServicesPaypal/form/element/email</item>
+                                                            <item name="children" xsi:type="array">
+                                                                <item name="paypal-fastlane-email-watermark" xsi:type="array">
+                                                                    <item name="component" xsi:type="string">Magento_PaymentServicesPaypal/js/view/form/element/powered-by</item>
+                                                                    <item name="displayArea" xsi:type="string">paypal-fastlane-email-watermark</item>
+                                                                    <item name="id" xsi:type="string">paypal-fastlane-email-watermark</item>
+                                                                </item>
+                                                            </item>
+                                                        </item>
+                                                    </item>
+                                                </item>
+                                            </item>
+                                        </item>
                                         <item name="billing-step" xsi:type="array">
                                             <item name="component" xsi:type="string">uiComponent</item>
                                             <item name="children" xsi:type="array">
@@ -42,6 +75,20 @@
                                                             </item>
                                                         </item>
                                                     </item>
+                                                </item>
+                                            </item>
+                                        </item>
+                                    </item>
+                                </item>
+                                <item name="sidebar" xsi:type="array">
+                                    <item name="children" xsi:type="array">
+                                        <item name="shipping-information" xsi:type="array">
+                                            <item name="template" xsi:type="string">Magento_PaymentServicesPaypal/shipping-information</item>
+                                            <item name="children" xsi:type="array">
+                                                <item name="paypal-fastlane-shipping-watermark" xsi:type="array">
+                                                    <item name="component" xsi:type="string">Magento_PaymentServicesPaypal/js/view/form/element/powered-by</item>
+                                                    <item name="displayArea" xsi:type="string">paypal-fastlane-shipping-watermark</item>
+                                                    <item name="id" xsi:type="string">paypal-fastlane-shipping-watermark</item>
                                                 </item>
                                             </item>
                                         </item>
