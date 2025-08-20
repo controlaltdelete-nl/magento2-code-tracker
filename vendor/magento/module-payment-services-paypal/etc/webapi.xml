@@ -126,4 +126,12 @@
             <parameter name="cartId" force="true">%cart_id%</parameter>
         </data>
     </route>
+
+    <!-- place order -->
+    <route url="/V1/payment-order/completeOrder" method="POST">
+        <service class="Magento\PaymentServicesPaypal\Api\CompleteOrderInterface" method="execute"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
 </routes>

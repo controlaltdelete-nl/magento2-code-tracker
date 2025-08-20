@@ -50,7 +50,7 @@ interface PaymentOrderManagementInterface
         bool $vaultIntent = false,
         ?int $customerId = null,
         ?string $threeDSMode = null
-    );
+    ): PaymentOrderInterface;
 
     /**
      * Get a payment order

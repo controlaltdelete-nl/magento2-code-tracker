@@ -59,6 +59,9 @@
                     <item name="payment_services_paypal_google_pay_style_color" xsi:type="string">payment/payment_services_paypal_google_pay/button_color</item>
                     <item name="payment_services_paypal_google_pay_style_type" xsi:type="string">payment/payment_services_paypal_google_pay/button_type</item>
                     <item name="payment_services_paypal_l2_l3_send_data" xsi:type="string">payment/payment_services_paypal_l2_l3/send_data</item>
+                    <item name="payment_services_paypal_fastlane_enabled" xsi:type="string">payment/payment_services_paypal_fastlane/enabled</item>
+                    <item name="payment_services_paypal_fastlane_title" xsi:type="string">payment/payment_services_paypal_fastlane/title</item>
+                    <item name="payment_services_paypal_fastlane_sort_order" xsi:type="string">payment/payment_services_paypal_fastlane/sort_order</item>
                 </item>
             </argument>
             <argument name="cacheInvalidationPatterns" xsi:type="array">

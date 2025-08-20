@@ -38,6 +38,7 @@ class PaypalApiDataFormatter
 
     private const EMPTY_NAME = 'not available';
     private const EMPTY_DESCRIPTION = 'not available';
+    private const EMPTY_COMMODITY_CODE = 'not available';
 
     public const LINE_ITEMS_CATEGORIES = [
         self::TYPE_DIGITAL  => 'DIGITAL_GOODS',
@@ -78,7 +79,10 @@ class PaypalApiDataFormatter
      */
     public function formatCommodityCode(string $commodityCode): string
     {
-        return mb_substr($commodityCode, 0, self::MAX_COMMODITY_CODE_LENGTH);
+        $shortenedCode = mb_substr($commodityCode, 0, self::MAX_COMMODITY_CODE_LENGTH);
+        $sanitisedCode = $this->textSanitiser->filterCommodityCode($shortenedCode);
+
+        return empty($sanitisedCode) ? self::EMPTY_COMMODITY_CODE : $sanitisedCode;
     }
 
     /**

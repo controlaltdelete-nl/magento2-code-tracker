@@ -27,27 +27,39 @@ $code = $escaper->escapeHtml($block->getMethodCode());
             <div class="grid-container">
                 <div class="admin__field _required card-number-area">
                     <label class="label admin__field-label">
-                        <span><?= $block->escapeHtml(__('Credit Card Number')) ?></span>
+                        <span><?= $escaper->escapeHtml(__('Credit Card Number')) ?></span>
                     </label>
                     <div class="card-field">
                         <div id="card-number" class="card-field-icon"></div>
                         <div class="lock-icon" if="fields[fieldName]?.showLockIcon"
-                              title="<?= $block->escapeHtml(__('Secure transaction')) ?>"></div>
+                              title="<?= $escaper->escapeHtml(__('Secure transaction')) ?>"></div>
                     </div>
                 </div>
                 <div class="admin__field _required expiration-date-area">
                     <label class="label admin__field-label">
-                        <span><?= $block->escapeHtml(__('Expiration Date')) ?></span>
+                        <span><?= $escaper->escapeHtml(__('Expiration Date')) ?></span>
                     </label>
                     <div id="expiration-date" class="card-field card-field-date"></div>
                 </div>
                 <div class="admin__field _required cvv-area">
                     <label class="label admin__field-label">
-                        <span><?= $block->escapeHtml(__('Card Security Code')) ?></span>
+                        <span><?= $escaper->escapeHtml(__('Card Security Code')) ?></span>
                     </label>
                     <div id="cvv" class="card-field card-field-cvv"></div>
                 </div>
             </div>
+            <?php if ($block->isAdminVaultEnabled()): ?>
+                <div class="checkbox-vault">
+                    <label class="label">
+                        <input
+                            type="checkbox"
+                            id="admin_vault"
+                            name="admin_vault"
+                            class="checkbox-vault">
+                        <span><?= $escaper->escapeHtml(__('Save for later use.')) ?></span>
+                    </label>
+                </div>
+            <?php endif; ?>
         </form>
     </div>
     <div class="message"></div>

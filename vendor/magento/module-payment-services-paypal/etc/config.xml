@@ -72,6 +72,8 @@
                 <sort_order>10</sort_order>
                 <paymentInfoKeys>payment_source,paypal_order_id</paymentInfoKeys>
                 <display_paylater_message>1</display_paylater_message>
+                <paylater_message_configurator>{"cart":{"layout":"text","logo":{"type":"inline"},"text":{"align":"left","color":"black","size":12}},"product":{"layout":"text","logo":{"type":"inline"},"text":{"align":"left","color":"black","size":12}},"checkout":{"layout":"text","logo":{"type":"inline"},"text":{"align":"left","color":"black","size":12}}}</paylater_message_configurator>
+                <paylater_message_configurator_load>{"cart":{"placement":"cart","status":"enabled","layout":"text","logo-type":"inline","text-color":"black","text-size":"12"},"product":{"placement":"product","status":"enabled","layout":"text","logo-type":"inline","text-color":"black","text-size":"12"},"checkout":{"placement":"checkout","status":"enabled","layout":"text","logo-type":"inline","text-color":"black","text-size":"12"}}</paylater_message_configurator_load>
                 <display_buttons_product_detail>1</display_buttons_product_detail>
                 <display_buttons_minicart>1</display_buttons_minicart>
                 <display_buttons_cart>1</display_buttons_cart>
@@ -145,6 +147,32 @@
                 <can_review_payment>0</can_review_payment>
                 <three_ds>0</three_ds>
             </payment_services_paypal_google_pay>
+            <payment_services_paypal_fastlane>
+                <payment_action>authorize</payment_action>
+                <active>0</active>
+                <model>PaymentServicesPaypalFastlaneFacade</model>
+                <merchant_gateway_key backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
+                <enabled>0</enabled>
+                <title>Fastlane</title>
+                <order_status>pending_payment</order_status>
+                <debug>1</debug>
+                <currency>USD</currency>
+                <can_authorize>1</can_authorize>
+                <can_capture>1</can_capture>
+                <can_capture_partial>1</can_capture_partial>
+                <can_capture_vault>1</can_capture_vault>
+                <can_sale>1</can_sale>
+                <can_refund>1</can_refund>
+                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+                <can_void>1</can_void>
+                <can_cancel>1</can_cancel>
+                <can_use_checkout>1</can_use_checkout>
+                <is_gateway>1</is_gateway>
+                <sort_order>30</sort_order>
+                <paymentInfoKeys>cc_type,cc_last_4,cc_exp_month/cc_exp_year,paypal_order_id,paypal_fastlane_profile</paymentInfoKeys>
+                <display_on_checkout>1</display_on_checkout>
+                <can_review_payment>0</can_review_payment>
+            </payment_services_paypal_fastlane>
             <payment_services_paypal_l2_l3>
                 <send_data>0</send_data>
             </payment_services_paypal_l2_l3>

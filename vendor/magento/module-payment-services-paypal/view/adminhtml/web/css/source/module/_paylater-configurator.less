@@ -1,0 +1,79 @@
+/**
+ * ADOBE CONFIDENTIAL
+ *
+ * Copyright 2025 Adobe
+ * All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of Adobe and its suppliers, if any. The intellectual
+ * and technical concepts contained herein are proprietary to Adobe
+ * and its suppliers and are protected by all applicable intellectual
+ * property laws, including trade secret and copyright laws.
+ * Dissemination of this information or reproduction of this material
+ * is strictly forbidden unless prior written permission is obtained
+ * from Adobe.
+ */
+
+//  Pay Later Messaging Configurator.
+[id$='solutions_magento_payments_legacy_smart_buttons_message_configurator'] .use-default,
+[id$='solutions_magento_payments_legacy_smart_buttons_paylater_message_styling_message_preview'] .use-default,
+[id$='solutions_magento_payments_legacy_smart_buttons_paylater_message_configurator'],
+[id$='solutions_magento_payments_legacy_smart_buttons_paylater_message_configurator_load'] {
+    display: none;
+}
+
+#messaging-configurator {
+    > div {
+        margin: 0;
+
+        > div {
+            overflow: auto;
+            padding: 0;
+
+            > div {
+                width: auto;
+            }
+        }
+    }
+
+    #configurator-publishButton,
+    [class$='text_body'],
+    [class$='text_body_strong'],
+    [class$='text_strong'] {
+        font-size: 1em;
+        line-height: 1.5em;
+        width: auto;
+    }
+
+    button {
+        font-size: 1em;
+    }
+
+    [class$='accordion_base'] {
+        [class*='text_field_value'] {
+            font-size: 1.5em;
+            height: 3.5em;
+        }
+
+        [class*='text_field_label'] {
+            font-size: 1.25em;
+            line-height: 1.5em;
+        }
+
+        [class*='list_item'] {
+            font-size: 1.5em;
+        }
+
+        .css-udzaps {
+            height: auto;
+        }
+    }
+}
+
+#configurator-controlPanelContainer {
+    width: auto;
+}
+
+#configurator-previewSectionContainer {
+    box-sizing: content-box;
+}

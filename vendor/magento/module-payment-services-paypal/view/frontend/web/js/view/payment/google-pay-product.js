@@ -69,6 +69,7 @@ define([
                 createOrderUrl: this.createOrderUrl,
                 updateQuoteUrl: this.authorizeOrderUrl,
                 onClick: this.onClick,
+                setQuoteAsInactiveUrl: this.setQuoteAsInactiveUrl,
                 beforeCreateOrder: this.beforeCreateOrder,
                 catchCreateOrder: this.catchError,
                 onError: this.catchError,
@@ -117,6 +118,17 @@ define([
         },
 
         /**
+         * Set quote created from PDP as Inactive
+         */
+        setQuoteInactive: function () {
+            // Set Quote as inactive to avoid having multiple active quotes for the customer
+            return $.ajax({
+                type: 'POST',
+                url: this.setQuoteAsInactiveUrl
+            });
+        },
+
+        /**
          * Catch errors.
          *
          * @param {*} error
@@ -124,6 +136,14 @@ define([
         catchError: function (error) {
             console.log(error);
             this.googlePayButton.showLoader(false);
+
+            if (error.name !== "PayPalGooglePayError") {
+                try {
+                    this.setQuoteInactive()
+                } catch (e) {
+                    console.warn('Failed to set quote inactive:', e);
+                }
+            }
 
             if (this.isErrorDisplayed) {
                 return;
@@ -191,14 +211,13 @@ define([
         },
 
         /**
-         * Redirect to cart on cancel.
-         *
-         * @param {Object} data
-         * @param {Object} actions
+         * Set quote inactive on cancel
          */
         onCancel: function () {
-            customerData.invalidate(['cart']);
-            window.location = this.cancelUrl;
+            this.setQuoteInactive()
+                .always(() => {
+                    this.googlePayButton.showLoader(false);
+                });
         }
     });
 });
