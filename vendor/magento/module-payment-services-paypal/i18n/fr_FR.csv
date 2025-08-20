@@ -111,6 +111,7 @@
 "Sort Order","Ordre de tri"
 "Stored Cards","Cartes stockées"
 "Stored Credit Card","Carte de crédit enregistrée"
+"PayPal Debit or Credit Card","Carte de débit ou de crédit PayPal"
 "Stored Payment Method was successfully removed","Le mode de paiement stocké a été supprimé"
 "Submitting order information...","Envoi des informations de commande..."
 "Subtotal","SousTotal"
@@ -158,3 +159,4 @@
 "silver","argent"
 "vertical","vertical"
 "white","blanc"
+"paypal_fastlane_profile","Fastlane Profil"

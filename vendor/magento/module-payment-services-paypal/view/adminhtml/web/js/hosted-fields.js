@@ -52,7 +52,6 @@ define([
             generalErrorMessage: $t('An error occurred. Refresh the page and try again.'),
             paymentMethodValidationError: $t('Your payment was not successful. Try again.'),
             notEligibleErrorMessage: $t('This payment option is currently unavailable.'),
-            shouldCardBeVaulted: false,
             paymentSource: '',
             areHostedFieldsInitialized: false
         },
@@ -109,6 +108,10 @@ define([
                 paymentSource: this.paymentSource
             });
             this.render();
+        },
+
+        shouldCardBeVaulted: function () {
+            return $('#admin_vault').is(':checked');
         },
 
         /**

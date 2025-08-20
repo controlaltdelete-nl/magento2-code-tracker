@@ -12,6 +12,7 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\PaymentServicesPaypal\Api\PaymentSdkManagementInterface;
 use Magento\PaymentServicesPaypal\Model\ApplePayConfigProvider;
 use Magento\PaymentServicesPaypal\Model\Config;
+use Magento\PaymentServicesPaypal\Model\FastlaneConfigProvider;
 use Magento\PaymentServicesPaypal\Model\GooglePayConfigProvider;
 use Magento\PaymentServicesPaypal\Model\HostedFieldsConfigProvider;
 use Magento\PaymentServicesPaypal\Model\SdkService;
@@ -148,6 +149,18 @@ class PaymentSdkManagement implements PaymentSdkManagementInterface
             ];
         }
 
+        if ($this->config->isCheckoutLocation($location)) {
+            $params[] = [
+                'code' => FastlaneConfigProvider::CODE,
+                'params' => $this->getSdkParams(
+                    FastlaneConfigProvider::CODE . '_' . $location,
+                    strtolower($location),
+                    FastlaneConfigProvider::CODE,
+                    $store
+                )
+            ];
+        }
+
         return $params;
     }
 
@@ -217,6 +230,9 @@ class PaymentSdkManagement implements PaymentSdkManagementInterface
         }
         if ($code === HostedFieldsConfigProvider::CODE) {
             return $this->getCCOptions($location, $store);
+        }
+        if ($code === FastlaneConfigProvider::CODE) {
+            return $this->getFastlaneOptions($location, $store);
         }
         return [];
     }
@@ -320,6 +336,30 @@ class PaymentSdkManagement implements PaymentSdkManagementInterface
             $paymentOptionsBuilder->useHostedFieldsForCreditCard();
         }
 
+        return $paymentOptionsBuilder->build();
+    }
+
+    /**
+     * Get script option for Fastlane sdk
+     *
+     * @param string $location
+     * @param int $store
+     * @return array
+     * @throws NoSuchEntityException
+     */
+    private function getFastlaneOptions(string $location, int $store): array
+    {
+        if (!$this->config->isFastlaneEnabled($store) || !$this->config->isCheckoutLocation($location)) {
+            return [];
+        }
+
+        $paymentOptionsBuilder = $this->paymentOptionsBuilderFactory->create();
+        $paymentOptionsBuilder->setIsFastlaneEnabled(true);
+        $paymentOptionsBuilder->setAreButtonsEnabled(false);
+        $paymentOptionsBuilder->setIsPayPalCreditEnabled(false);
+        $paymentOptionsBuilder->setIsVenmoEnabled(false);
+        $paymentOptionsBuilder->setIsApplePayEnabled(false);
+        $paymentOptionsBuilder->setIsPaylaterMessageEnabled(false);
         return $paymentOptionsBuilder->build();
     }
 }

@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace Magento\PaymentServicesPaypal\Model\SmartButtons;
 
+use Magento\Framework\Exception\SessionException;
 use Magento\PaymentServicesPaypal\Helper\OrderHelper;
 use Magento\PaymentServicesPaypal\Model\ApplePayConfigProvider;
 use Magento\PaymentServicesPaypal\Model\GooglePayConfigProvider;
@@ -30,6 +31,7 @@ use Magento\PaymentServicesBase\Model\HttpException;
 use Magento\PaymentServicesBase\Model\Config;
 use Exception;
 use Psr\Log\LoggerInterface;
+use Random\RandomException;
 
 /**
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
@@ -38,75 +40,79 @@ use Psr\Log\LoggerInterface;
 class Checkout
 {
     public const LOCATION_PRODUCT_PAGE = 'product';
-
     private const SUCCESS_PAGE_URI = 'checkout/onepage/success';
-
     private const SUCCESS_PAGE_PRODUCT_PAGE_CHECKOUT_URI = 'paymentservicespaypal/smartbuttons/success';
+
+    public const SSSC_ALLOWED_PAYMENT_SOURCE = [
+        'paypal',
+        'paylater',
+        'venmo'
+    ];
 
     /**
      * @var CartRepositoryInterface
      */
-    private $quoteRepository;
+    private CartRepositoryInterface $quoteRepository;
 
     /**
      * @var CartManagementInterface
      */
-    private $quoteManagement;
+    private CartManagementInterface $quoteManagement;
 
     /**
      * @var Data
      */
-    private $checkoutData;
+    private Data $checkoutData;
 
     /**
      * @var CustomerSession
      */
-    private $customerSession;
+    private CustomerSession $customerSession;
 
     /**
      * @var CheckoutSession
      */
-    private $checkoutSession;
+    private CheckoutSession $checkoutSession;
 
     /**
      * @var PaypalSession
      */
-    private $paypalSession;
+    private PaypalSession $paypalSession;
 
     /**
      * @var OrderSender
      */
-    private $orderSender;
+    private OrderSender $orderSender;
 
     /**
      * @var OrderService
      */
-    private $orderService;
+    private OrderService $orderService;
 
     /**
      * @var LoggerInterface
      */
-    private $logger;
+    private LoggerInterface $logger;
 
     /**
-     * @var CartInterface
+     * @var CartInterface|QuoteEntity|null
      */
-    private $quote;
+    private $quote = null;
 
     /**
      * @var Config
      */
-    private $config;
+    private Config $config;
 
     /**
      * @var Data
      */
-    private $checkoutHelper;
+    private Data $checkoutHelper;
 
     /**
      * @var OrderHelper
      */
-    private $orderHelper;
+    private OrderHelper $orderHelper;
 
     /**
      * @param CartRepositoryInterface $quoteRepository
@@ -190,17 +196,26 @@ class Checkout
     }
 
     /**
-     * Create an order in paypal
+     * Create an order in PayPal
      *
      * @param String $paymentSource
      * @param String|null $threeDSMode
      * @return array
      * @throws LocalizedException
-     * @throws NoSuchEntityException
+     * @throws NoSuchEntityException|RandomException
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
      */
     public function createPayPalOrder(string $paymentSource = '', ?string $threeDSMode = null) : array
     {
         $quote = $this->getQuote();
+
+        if (!$quote->getId() || count($quote->getAllItems()) === 0) {
+            throw new LocalizedException(
+                __('Unable to create order: The cart is empty or unavailable. Please try again.')
+            );
+        }
+
         $quote->reserveOrderId();
         $quote->getPayment()->setAdditionalInformation('payment_source', $paymentSource);
         $paymentMethod = SmartButtonsConfigProvider::CODE;
@@ -212,27 +227,42 @@ class Checkout
         $quote->getPayment()->setMethod($paymentMethod);
         $totalAmount = $quote->getBaseGrandTotal();
         $currencyCode = $quote->getCurrency()->getBaseCurrencyCode();
-        $saasResponse = $this->orderService->create(
-            $quote->getStore(),
-            [
-                'amount' => $this->orderHelper->formatAmount((float)$totalAmount),
-                'currency_code' => $currencyCode,
-                'is_digital' => $quote->getIsVirtual(),
-                'payment_source' => $paymentSource,
-                'three_ds_mode' => $threeDSMode ?: null,
-                'quote_id' => $quote->getId(),
-                'order_increment_id' => $this->orderHelper->reserveAndGetOrderIncrementId($quote),
-                'line_items' => $this->orderHelper->getLineItems($quote, $quote->getReservedOrderId()),
-                'amount_breakdown' => $this->orderHelper->getAmountBreakdown($quote, $quote->getReservedOrderId()),
-                'location' => $this->orderHelper->validateCheckoutLocation($this->getLocation())
-            ]
-        );
+
+        $data = [
+            'amount' => $this->orderHelper->formatAmount((float)$totalAmount),
+            'currency_code' => $currencyCode,
+            'is_digital' => $quote->getIsVirtual(),
+            'payment_source' => $paymentSource,
+            'three_ds_mode' => $threeDSMode ?: null,
+            'quote_id' => $quote->getId(),
+            'order_increment_id' => $this->orderHelper->reserveAndGetOrderIncrementId($quote),
+            'line_items' => $this->orderHelper->getLineItems($quote, $quote->getReservedOrderId()),
+            'amount_breakdown' => $this->orderHelper->getAmountBreakdown($quote, $quote->getReservedOrderId()),
+            'location' => $this->orderHelper->validateCheckoutLocation($this->getLocation())
+        ];
+
+        // Server side shipping callback for PayPal & Venmo
+        if (in_array($paymentSource, self::SSSC_ALLOWED_PAYMENT_SOURCE)) {
+            $shippingPreference = $this->orderHelper->getShippingPreference($quote);
+
+            $data['user_action'] = $this->orderHelper->getUserAction();
+            $data['shipping_preference'] = $shippingPreference;
+            if ($shippingPreference === 'GET_FROM_FILE') {
+                $data['order_update_callback_config'] = $this->orderHelper->getOrderUpdateCallbackConfig($quote);
+            }
+        }
+
+        $saasResponse = $this->orderService->create($quote->getStore(), $data);
 
         if (isset($saasResponse['is_successful'])
             && $saasResponse['is_successful'] === true
             && isset($saasResponse["paypal-order"]['id'])
         ) {
             $quote->getPayment()->setAdditionalInformation('paypal_order_id', $saasResponse["paypal-order"]['id']);
+            $quote->getPayment()->setAdditionalInformation(
+                'payments_mode',
+                $this->config->getEnvironmentType($quote->getStoreId())
+            );
         }
 
         $this->quoteRepository->save($quote);
@@ -251,9 +281,11 @@ class Checkout
     /**
      * Set shipping method for quote
      *
-     * @param string $methodCode
+     * @param string|null $methodCode
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
      */
-    public function updateShippingMethod($methodCode) : void
+    public function updateShippingMethod(string|null $methodCode) : void
     {
         $shippingAddress = $this->getQuote()->getShippingAddress();
         if (!$this->getQuote()->getIsVirtual() && $shippingAddress) {
@@ -278,7 +310,7 @@ class Checkout
      *
      * @return OrderInterface|null
      * @throws LocalizedException
-     * @throws \Magento\Framework\Exception\SessionException
+     * @throws SessionException
      */
     public function placeOrder() :? OrderInterface
     {
@@ -326,11 +358,11 @@ class Checkout
     /**
      * Get quote method
      *
-     * @return CartInterface
+     * @return CartInterface|QuoteEntity
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    public function getQuote() : CartInterface
+    public function getQuote() : CartInterface|QuoteEntity
     {
         if (!$this->quote) {
             if ($this->paypalSession->getQuoteId()) {
@@ -384,7 +416,7 @@ class Checkout
     }
 
     /**
-     *  Set PayPpal session location
+     *  Set PayPal session location
      *
      * @param string $location
      */
@@ -404,7 +436,7 @@ class Checkout
     }
 
     /**
-     * Get successul page uri
+     * Get successful page uri
      *
      * @return string
      */
@@ -420,6 +452,8 @@ class Checkout
      * Get checkout method
      *
      * @return string
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
      */
     private function getCheckoutMethod() : string
     {
@@ -469,7 +503,7 @@ class Checkout
     }
 
     /**
-     * Upddate PayPal order with amount and currency info
+     * Update PayPal order with amount and currency info
      *
      * @throws LocalizedException
      * @throws NoSuchEntityException

@@ -15,6 +15,8 @@ use Magento\Framework\App\RequestInterface;
 use Magento\Framework\App\Request\InvalidRequestException;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Customer\Model\Session as CustomerSession;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\PaymentServicesPaypal\Helper\OrderHelper;
 use Magento\PaymentServicesPaypal\Model\OrderService;
 use Magento\PaymentServicesBase\Model\HttpException;
@@ -27,37 +29,37 @@ class Create implements HttpPostActionInterface, CsrfAwareActionInterface
     /**
      * @var CheckoutSession
      */
-    private $checkoutSession;
+    private CheckoutSession $checkoutSession;
 
     /**
      * @var CustomerSession
      */
-    private $customerSession;
+    private CustomerSession $customerSession;
 
     /**
      * @var OrderService
      */
-    private $orderService;
+    private OrderService $orderService;
 
     /**
      * @var ResultFactory
      */
-    private $resultFactory;
+    private ResultFactory $resultFactory;
 
     /**
      * @var RequestInterface
      */
-    private $request;
+    private RequestInterface $request;
 
     /**
      * @var QuoteRepositoryInterface
      */
-    private $quoteRepository;
+    private QuoteRepositoryInterface $quoteRepository;
 
     /**
      * @var OrderHelper
      */
-    private $orderHelper;
+    private OrderHelper $orderHelper;
 
     /**
      * @param CheckoutSession $checkoutSession
@@ -90,6 +92,8 @@ class Create implements HttpPostActionInterface, CsrfAwareActionInterface
      * Dispatch the order creation request with Commerce params
      *
      * @return ResultInterface
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
      */
     public function execute() : ResultInterface
     {
@@ -100,6 +104,11 @@ class Create implements HttpPostActionInterface, CsrfAwareActionInterface
         $result = $this->resultFactory->create(ResultFactory::TYPE_JSON);
         try {
             $quote = $this->checkoutSession->getQuote();
+
+            if (!$quote->getId() || count($quote->getAllItems()) === 0) {
+                throw new HttpException('Unable to create order: The cart is empty or unavailable. Please try again.');
+            }
+
             $isLoggedIn = $this->customerSession->isLoggedIn();
             $orderIncrementId = $this->orderHelper->reserveAndGetOrderIncrementId($quote);
 

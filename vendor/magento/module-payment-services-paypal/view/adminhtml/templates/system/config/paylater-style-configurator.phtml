@@ -1,0 +1,52 @@
+<?php
+/**
+ * ADOBE CONFIDENTIAL
+ *
+ * Copyright 2025 Adobe
+ * All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of Adobe and its suppliers, if any. The intellectual
+ * and technical concepts contained herein are proprietary to Adobe
+ * and its suppliers and are protected by all applicable intellectual
+ * property laws, including trade secret and copyright laws.
+ * Dissemination of this information or reproduction of this material
+ * is strictly forbidden unless prior written permission is obtained
+ * from Adobe.
+ */
+// @codingStandardsIgnoreFile
+
+use Magento\PaymentServicesPaypal\Block\Adminhtml\Form\PayLaterStyleConfig;
+use Magento\Framework\Escaper;
+
+/** @var Escaper $escaper */
+/** @var PayLaterStyleConfig $block */
+
+?>
+
+<div class="template">
+    <button class="action primary" id="open-modal"><?=$escaper->escapeHtml(__('Configure Messaging'))?></button>
+    <p class="note">
+        <?= $escaper->escapeHtml(__("Pay Later message styles will only take effect after you click 'Save changes' within the configurator modal and also 'Save Config' at the top of this page.")); ?>
+    </p>
+</div>
+
+<div id="configurator-modal" style="display:none;">
+    <div class="modal-content" id="configurator-wrapper">
+        <div id="messaging-configurator" class="configurator_hideOnMobile"></div>
+    </div>
+</div>
+
+<script type="text/x-magento-init">
+    {
+        "*": {
+            "Magento_PaymentServicesPaypal/js/paylater-style-configurator": {
+                "storeLocale": "<?= /* @noEscape */ $block->getStoreLocale() ?>",
+                "merchantId": "<?= /* @noEscape */ $block->getPaypalMerchantId() ?>",
+                "partnerClientId": "<?= /* @noEscape */ $block->getPartnerClientId() ?>",
+                "partnerName": "<?= /* @noEscape */ $block->getPartnerName() ?>",
+                "bnCode": "<?= /* @noEscape */ $block->getBnCode() ?>"
+            }
+        }
+    }
+</script>

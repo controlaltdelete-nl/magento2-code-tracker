@@ -24,6 +24,7 @@
     <preference for="Magento\PaymentServicesPaypal\Api\Data\PaymentConfigHostedFieldsInterface" type="Magento\PaymentServicesPaypal\Model\Api\Data\PaymentConfigHostedFields" />
     <preference for="Magento\PaymentServicesPaypal\Api\Data\PaymentConfigApplePayInterface" type="Magento\PaymentServicesPaypal\Model\Api\Data\PaymentConfigApplePay" />
     <preference for="Magento\PaymentServicesPaypal\Api\Data\PaymentConfigGooglePayInterface" type="Magento\PaymentServicesPaypal\Model\Api\Data\PaymentConfigGooglePay" />
+    <preference for="Magento\PaymentServicesPaypal\Api\Data\PaymentConfigFastlaneInterface" type="Magento\PaymentServicesPaypal\Model\Api\Data\PaymentConfigFastlane" />
     <preference for="Magento\PaymentServicesPaypal\Api\Data\PaymentConfigSmartButtonsMessageStylesInterface" type="Magento\PaymentServicesPaypal\Model\Api\Data\PaymentConfigSmartButtonsMessageStyles" />
     <preference for="Magento\PaymentServicesPaypal\Api\Data\PaymentConfigSmartButtonsLogoInterface" type="Magento\PaymentServicesPaypal\Model\Api\Data\PaymentConfigSmartButtonsLogo" />
     <preference for="Magento\PaymentServicesPaypal\Api\Data\PaymentConfigButtonStylesInterface" type="Magento\PaymentServicesPaypal\Model\Api\Data\PaymentConfigButtonStyles" />
@@ -34,6 +35,8 @@
     <preference for="Magento\PaymentServicesPaypal\Api\Data\VaultCardBillingAddressInterface" type="Magento\PaymentServicesPaypal\Model\Api\Data\VaultCardBillingAddress" />
     <preference for="Magento\PaymentServicesPaypal\Api\Data\VaultCardDetailsInterface" type="Magento\PaymentServicesPaypal\Model\Api\Data\VaultCardDetails" />
     <preference for="Magento\PaymentServicesPaypal\Api\Data\VaultPaymentSourceDetailsInterface" type="Magento\PaymentServicesPaypal\Model\Api\Data\VaultPaymentSourceDetails" />
+    <preference for="Magento\PaymentServicesPaypal\Api\ShippingCallbackManagementInterface" type="Magento\PaymentServicesPaypal\Model\Api\ShippingCallbackManagement" />
+    <preference for="Magento\PaymentServicesPaypal\Api\CompleteOrderInterface" type="Magento\PaymentServicesPaypal\Model\Api\CompleteOrder" />
 
     <type name="Magento\PaymentServicesPaypal\Plugin\OrderUpdate">
         <arguments>
@@ -127,6 +130,17 @@
             <argument name="code" xsi:type="const">Magento\PaymentServicesPaypal\Model\Ui\ConfigProvider::CC_VAULT_CODE</argument>
         </arguments>
     </virtualType>
+    <!-- Fastlane payment method facade configuration-->
+    <virtualType name="PaymentServicesPaypalFastlaneFacade" type="Magento\Payment\Model\Method\Adapter">
+        <arguments>
+            <argument name="code" xsi:type="const">Magento\PaymentServicesPaypal\Model\FastlaneConfigProvider::CODE</argument>
+            <argument name="formBlockType" xsi:type="string">Magento\Payment\Block\Form</argument>
+            <argument name="infoBlockType" xsi:type="string">Magento\PaymentServicesPaypal\Block\FastlaneInfo</argument>
+            <argument name="valueHandlerPool" xsi:type="object">PaymentServicesPaypalFastlaneValueHandlerPool</argument>
+            <argument name="commandPool" xsi:type="object">PaymentServicesPaypalFastlaneCommandPool</argument>
+        </arguments>
+    </virtualType>
+
     <!-- Configuration for Vault payments -->
     <virtualType name="PaymentServicesPaypalVaultConfig" type="Magento\Payment\Gateway\Config\Config">
         <arguments>
@@ -157,31 +171,41 @@
             <argument name="methodCode" xsi:type="const">Magento\PaymentServicesPaypal\Model\GooglePayConfigProvider::CODE</argument>
         </arguments>
     </virtualType>
+    <!-- Fastlane configuration reader -->
+    <virtualType name="PaymentServicesFastlaneConfig" type="Magento\Payment\Gateway\Config\Config">
+        <arguments>
+            <argument name="methodCode" xsi:type="const">Magento\PaymentServicesPaypal\Model\FastlaneConfigProvider::CODE</argument>
+        </arguments>
+    </virtualType>
+
     <!-- Hosted Fields logger -->
     <virtualType name="PaymentServicesPaypalHostedFieldsLogger" type="Magento\Payment\Model\Method\Logger">
         <arguments>
             <argument name="config" xsi:type="object">PaymentServicesPaypalHostedFieldsConfig</argument>
         </arguments>
     </virtualType>
-
     <!-- Smart Buttons logger -->
     <virtualType name="PaymentServicesPaypalSmartButtonsLogger" type="Magento\Payment\Model\Method\Logger">
         <arguments>
             <argument name="config" xsi:type="object">PaymentServicesPaypalSmartButtonsConfig</argument>
         </arguments>
     </virtualType>
-
     <!-- Apple Pay logger -->
     <virtualType name="PaymentServicesPaypalApplePayLogger" type="Magento\Payment\Model\Method\Logger">
         <arguments>
             <argument name="config" xsi:type="object">PaymentServicesApplePayButtonsConfig</argument>
         </arguments>
     </virtualType>
-
     <!-- Google Pay logger -->
     <virtualType name="PaymentServicesPaypalGooglePayLogger" type="Magento\Payment\Model\Method\Logger">
         <arguments>
             <argument name="config" xsi:type="object">PaymentServicesGooglePayButtonsConfig</argument>
+        </arguments>
+    </virtualType>
+    <!-- Fastlane logger -->
+    <virtualType name="PaymentServicesPaypalFastlaneLogger" type="Magento\Payment\Model\Method\Logger">
+        <arguments>
+            <argument name="config" xsi:type="object">PaymentServicesFastlaneConfig</argument>
         </arguments>
     </virtualType>
 
@@ -239,6 +263,20 @@
             </argument>
         </arguments>
     </virtualType>
+    <!-- Fastlane commands -->
+    <virtualType name="PaymentServicesPaypalFastlaneCommandPool" type="Magento\Payment\Gateway\Command\CommandPool">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="authorize" xsi:type="string">PaymentServicesPaypalFastlaneCreateOrderCommand</item>
+                <item name="sale" xsi:type="string">PaymentServicesPaypalFastlaneCreateOrderCommand</item>
+                <item name="capture" xsi:type="string">PaymentServicesPaypalFastlaneCaptureCommand</item>
+                <item name="refund" xsi:type="string">PaymentServicesPaypalFastlaneRefundCommand</item>
+                <item name="cancel" xsi:type="string">PaymentServicesPaypalFastlaneVoidCommand</item>
+                <item name="void" xsi:type="string">PaymentServicesPaypalFastlaneVoidCommand</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
     <virtualType name="HostedFieldsVaultCommandManager" type="Magento\Payment\Gateway\Command\CommandManager">
         <arguments>
             <argument name="commandPool" xsi:type="object">PaymentServicesPaypalHostedFieldsCommandPool</argument>
@@ -304,6 +342,17 @@
             <argument name="handler" xsi:type="object">PaymentServicesPaypalResponseGooglePayHandlerComposite</argument>
             <argument name="transferFactory" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\GooglePayServiceClient</argument>
+            <argument name="validator" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ResponseValidator</argument>
+            <argument name="errorMessageMapper" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ErrorMessageMapper</argument>
+        </arguments>
+    </virtualType>
+     <!-- Fastlane authorize command -->
+    <virtualType name="PaymentServicesPaypalFastlaneCreateOrderCommand" type="Magento\Payment\Gateway\Command\GatewayCommand">
+        <arguments>
+            <argument name="requestBuilder" xsi:type="object">PaymentServicesPaypalFastlaneCreateOrderRequest</argument>
+            <argument name="handler" xsi:type="object">PaymentServicesPaypalResponseFastlaneHandlerComposite</argument>
+            <argument name="transferFactory" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\TransferFactory</argument>
+            <argument name="client" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\FastlaneServiceClient</argument>
             <argument name="validator" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ResponseValidator</argument>
             <argument name="errorMessageMapper" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ErrorMessageMapper</argument>
         </arguments>
@@ -396,6 +445,17 @@
             <argument name="errorMessageMapper" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ErrorMessageMapper</argument>
         </arguments>
     </virtualType>
+     <!-- Fastlane capture command -->
+    <virtualType name="PaymentServicesPaypalFastlaneCaptureCommand" type="Magento\Payment\Gateway\Command\GatewayCommand">
+        <arguments>
+            <argument name="requestBuilder" xsi:type="object">PaymentServicesPaypalCaptureRequest</argument>
+            <argument name="handler" xsi:type="object">PaymentServicesPaypalCaptureResponseHandlerComposite</argument>
+            <argument name="transferFactory" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\TransferFactory</argument>
+            <argument name="client" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\FastlaneServiceClient</argument>
+            <argument name="validator" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ResponseValidator</argument>
+            <argument name="errorMessageMapper" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ErrorMessageMapper</argument>
+        </arguments>
+    </virtualType>
     <!-- Hosted Fields refund command -->
     <virtualType name="PaymentServicesPaypalHostedFieldsRefundCommand" type="Magento\Payment\Gateway\Command\GatewayCommand">
         <arguments>
@@ -436,6 +496,17 @@
             <argument name="handler" xsi:type="object">PaymentServicesPaypalResponseHandlerComposite</argument>
             <argument name="transferFactory" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\TransferFactory</argument>
             <argument name="client" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\ApplePayServiceClient</argument>
+            <argument name="validator" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ResponseValidator</argument>
+            <argument name="errorMessageMapper" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ErrorMessageMapper</argument>
+        </arguments>
+    </virtualType>
+    <!-- Fastlane refund command -->
+    <virtualType name="PaymentServicesPaypalFastlaneRefundCommand" type="Magento\Payment\Gateway\Command\GatewayCommand">
+        <arguments>
+            <argument name="requestBuilder" xsi:type="object">PaymentServicesPaypalRefundRequest</argument>
+            <argument name="handler" xsi:type="object">PaymentServicesPaypalResponseHandlerComposite</argument>
+            <argument name="transferFactory" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\TransferFactory</argument>
+            <argument name="client" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\FastlaneServiceClient</argument>
             <argument name="validator" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ResponseValidator</argument>
             <argument name="errorMessageMapper" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ErrorMessageMapper</argument>
         </arguments>
@@ -484,11 +555,30 @@
             <argument name="errorMessageMapper" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ErrorMessageMapper</argument>
         </arguments>
     </virtualType>
+     <!-- Fastlane void command -->
+    <virtualType name="PaymentServicesPaypalFastlaneVoidCommand" type="Magento\Payment\Gateway\Command\GatewayCommand">
+        <arguments>
+            <argument name="requestBuilder" xsi:type="object">PaymentServicesPaypalVoidRequest</argument>
+            <argument name="handler" xsi:type="object">PaymentServicesPaypalResponseHandlerComposite</argument>
+            <argument name="transferFactory" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\TransferFactory</argument>
+            <argument name="client" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Http\FastlaneServiceClient</argument>
+            <argument name="validator" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ResponseValidator</argument>
+            <argument name="errorMessageMapper" xsi:type="object">Magento\PaymentServicesPaypal\Gateway\Response\ErrorMessageMapper</argument>
+        </arguments>
+    </virtualType>
     <!-- Authorization request -->
     <virtualType name="PaymentServicesPaypalAuthorizationRequest" type="Magento\Payment\Gateway\Request\BuilderComposite">
         <arguments>
             <argument name="builders" xsi:type="array">
                 <item name="transaction" xsi:type="string">Magento\PaymentServicesPaypal\Gateway\Request\AuthorizationRequest</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <!-- Fastlane Create order request -->
+    <virtualType name="PaymentServicesPaypalFastlaneCreateOrderRequest" type="Magento\Payment\Gateway\Request\BuilderComposite">
+        <arguments>
+            <argument name="builders" xsi:type="array">
+                <item name="transaction" xsi:type="string">Magento\PaymentServicesPaypal\Gateway\Request\Fastlane\CreateOrderRequest</item>
             </argument>
         </arguments>
     </virtualType>
@@ -516,7 +606,6 @@
             </argument>
         </arguments>
     </virtualType>
-
     <!-- Void request -->
     <virtualType name="PaymentServicesPaypalVoidRequest" type="Magento\Payment\Gateway\Request\BuilderComposite">
         <arguments>
@@ -525,6 +614,7 @@
             </argument>
         </arguments>
     </virtualType>
+
     <!-- Response handlers -->
     <virtualType name="PaymentServicesPaypalResponseHandlerComposite" type="Magento\Payment\Gateway\Response\HandlerChain">
         <arguments>
@@ -603,6 +693,15 @@
             </argument>
         </arguments>
     </virtualType>
+    <!-- Fastlane Response Handlers -->
+    <virtualType name="PaymentServicesPaypalResponseFastlaneHandlerComposite" type="Magento\Payment\Gateway\Response\HandlerChain">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="createOrderResponse" xsi:type="string">Magento\PaymentServicesPaypal\Gateway\Response\Fastlane\CreateOrderResponseHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
     <!-- Hosted Fields value handlers -->
     <virtualType name="PaymentServicesPaypalHostedFieldsValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
         <arguments>
@@ -655,6 +754,19 @@
             <argument name="configInterface" xsi:type="object">PaymentServicesGooglePayButtonsConfig</argument>
         </arguments>
     </virtualType>
+     <!-- Fastlane value handlers -->
+    <virtualType name="PaymentServicesPaypalFastlaneValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">PaymentServicesPaypalFastlaneConfigValueHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="PaymentServicesPaypalFastlaneConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">PaymentServicesFastlaneConfig</argument>
+        </arguments>
+    </virtualType>
 
     <!--  Payment info block  -->
     <type name="Magento\PaymentServicesPaypal\Block\Info">
@@ -669,6 +781,8 @@
                         <item name="venmo" xsi:type="string" translatable="true">Venmo</item>
                         <item name="applepay" xsi:type="string" translatable="true">Apple Pay</item>
                         <item name="googlepay" xsi:type="string" translatable="true">Google Pay</item>
+                        <item name="card" xsi:type="string" translatable="true">PayPal Debit or Credit Card</item>
+                        <item name="fastlane" xsi:type="string" translatable="true">Fastlane</item>
                     </item>
                 </item>
             </argument>
@@ -694,6 +808,11 @@
             <argument name="config" xsi:type="object">PaymentServicesGooglePayButtonsConfig</argument>
         </arguments>
     </virtualType>
+    <virtualType name="Magento\PaymentServicesPaypal\Block\FastlaneInfo" type="Magento\PaymentServicesPaypal\Block\Info">
+        <arguments>
+            <argument name="config" xsi:type="object">PaymentServicesFastlaneConfig</argument>
+        </arguments>
+    </virtualType>
     <virtualType name="Magento\PaymentServicesPaypal\Gateway\Http\HostedFieldsServiceClient" type="Magento\PaymentServicesPaypal\Gateway\Http\ServiceClient">
         <arguments>
             <argument name="logger" xsi:type="object">PaymentServicesPaypalHostedFieldsLogger</argument>
@@ -714,6 +833,12 @@
             <argument name="logger" xsi:type="object">PaymentServicesPaypalApplePayLogger</argument>
         </arguments>
     </virtualType>
+     <virtualType name="Magento\PaymentServicesPaypal\Gateway\Http\FastlaneServiceClient" type="Magento\PaymentServicesPaypal\Gateway\Http\ServiceClient">
+        <arguments>
+            <argument name="logger" xsi:type="object">PaymentServicesPaypalFastlaneLogger</argument>
+        </arguments>
+    </virtualType>
+
     <type name="Magento\Config\Model\Config\Structure">
         <plugin name="magpay_payments_config_structure" type="Magento\PaymentServicesPaypal\Plugin\Config\Structure"/>
     </type>
@@ -748,45 +873,17 @@
                 <item name="product" xsi:type="array">
                     <item name="template" xsi:type="string">Magento_PaymentServicesPaypal::message_product.phtml</item>
                     <item name="renderContainer" xsi:type="string">.product-add-form .pay-later-message</item>
-                    <item name="placement" xsi:type="string">cart</item>
-                    <item name="styles" xsi:type="array">
-                        <item name="layout" xsi:type="string">text</item>
-                        <item name="logo" xsi:type="array">
-                            <item name="type" xsi:type="string">inline</item>
-                        </item>
-                    </item>
+                    <item name="placement" xsi:type="string">product</item>
                 </item>
                 <item name="cart" xsi:type="array">
                     <item name="template" xsi:type="string">Magento_PaymentServicesPaypal::message_cart.phtml</item>
                     <item name="renderContainer" xsi:type="string">.checkout-methods-items .pay-later-message</item>
                     <item name="placement" xsi:type="string">cart</item>
-                    <item name="styles" xsi:type="array">
-                        <item name="layout" xsi:type="string">text</item>
-                        <item name="logo" xsi:type="array">
-                            <item name="type" xsi:type="string">inline</item>
-                        </item>
-                    </item>
                 </item>
                 <item name="minicart" xsi:type="array">
                     <item name="template" xsi:type="string">Magento_PaymentServicesPaypal::message_minicart.phtml</item>
                     <item name="renderContainer" xsi:type="string">.block-minicart .pay-later-message</item>
                     <item name="placement" xsi:type="string">cart</item>
-                    <item name="styles" xsi:type="array">
-                        <item name="layout" xsi:type="string">text</item>
-                        <item name="logo" xsi:type="array">
-                            <item name="type" xsi:type="string">inline</item>
-                        </item>
-                    </item>
-                </item>
-            </argument>
-        </arguments>
-    </type>
-    <type name="Magento\PaymentServicesPaypal\Model\SmartButtonsConfigProvider">
-        <arguments>
-            <argument name="messageStyles" xsi:type="array">
-                <item name="layout" xsi:type="string">text</item>
-                <item name="logo" xsi:type="array">
-                    <item name="type" xsi:type="string">inline</item>
                 </item>
             </argument>
         </arguments>
@@ -807,6 +904,7 @@
                 <item name="hosted_fields" xsi:type="string">payment_services_paypal_hosted_fields</item>
                 <item name="apple_pay" xsi:type="string">payment_services_paypal_apple_pay</item>
                 <item name="google_pay" xsi:type="string">payment_services_paypal_google_pay</item>
+                <item name="fastlane" xsi:type="string">payment_services_paypal_fastlane</item>
             </argument>
         </arguments>
     </type>
@@ -818,6 +916,7 @@
                 <item name="hosted_fields" xsi:type="string">payment_services_paypal_hosted_fields</item>
                 <item name="apple_pay" xsi:type="string">payment_services_paypal_apple_pay</item>
                 <item name="google_pay" xsi:type="string">payment_services_paypal_google_pay</item>
+                <item name="fastlane" xsi:type="string">payment_services_paypal_fastlane</item>
             </argument>
         </arguments>
     </type>
@@ -855,6 +954,7 @@
                 <item name="smartButtonsCode" xsi:type="const">Magento\PaymentServicesPaypal\Model\SmartButtonsConfigProvider::CODE</item>
                 <item name="applePayCode" xsi:type="const">Magento\PaymentServicesPaypal\Model\ApplePayConfigProvider::CODE</item>
                 <item name="googlePayCode" xsi:type="const">Magento\PaymentServicesPaypal\Model\GooglePayConfigProvider::CODE</item>
+                <item name="fastlaneCode" xsi:type="const">Magento\PaymentServicesPaypal\Model\FastlaneConfigProvider::CODE</item>
             </argument>
         </arguments>
     </type>
@@ -865,6 +965,7 @@
                 <item name="hosted_fields" xsi:type="string">payment_services_paypal_hosted_fields</item>
                 <item name="apple_pay" xsi:type="string">payment_services_paypal_apple_pay</item>
                 <item name="google_pay" xsi:type="string">payment_services_paypal_google_pay</item>
+                <item name="fastlane" xsi:type="string">payment_services_paypal_fastlane</item>
             </argument>
         </arguments>
     </type>
