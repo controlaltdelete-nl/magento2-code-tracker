@@ -116,7 +116,10 @@ class ConfigProvider
             $cspNonceParam = [];
         }
         if (count($cachedParam) > 0) {
-            array_push($cachedParam, $cspNonceParam);
+            if (!empty($cspNonceParam)) {
+                array_push($cachedParam, $cspNonceParam);
+            }
+
             return $cachedParam;
         }
         $paymentOptions = $paymentOptionsBuilder->build();
@@ -140,8 +143,12 @@ class ConfigProvider
         }
         if (count($result) > 0) {
             $this->sdkService->updateSdkParamsCache($result, $location, (string)$storeViewId);
+
+            if (!empty($cspNonceParam)) {
+                array_push($result, $cspNonceParam);
+            }
         }
-        array_push($result, $cspNonceParam);
+
         return $result;
     }
 

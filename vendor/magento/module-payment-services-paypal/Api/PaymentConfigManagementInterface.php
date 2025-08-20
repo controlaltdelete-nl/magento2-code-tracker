@@ -20,6 +20,7 @@ declare(strict_types=1);
 namespace Magento\PaymentServicesPaypal\Api;
 
 use Magento\PaymentServicesPaypal\Api\Data\PaymentConfigApplePayInterface;
+use Magento\PaymentServicesPaypal\Api\Data\PaymentConfigFastlaneInterface;
 use Magento\PaymentServicesPaypal\Api\Data\PaymentConfigGooglePayInterface;
 use Magento\PaymentServicesPaypal\Api\Data\PaymentConfigHostedFieldsInterface;
 use Magento\PaymentServicesPaypal\Api\Data\PaymentConfigSmartButtonsInterface;
@@ -48,12 +49,13 @@ interface PaymentConfigManagementInterface
      * @param string $location sdk location.
      * @param string $methodCode payment method code.
      * @param int|null $store store.
-     * @return PaymentConfigHostedFieldsInterface|PaymentConfigApplePayInterface|PaymentConfigGooglePayInterface|PaymentConfigSmartButtonsInterface
+     * @return PaymentConfigHostedFieldsInterface|PaymentConfigApplePayInterface|PaymentConfigGooglePayInterface|PaymentConfigSmartButtonsInterface|PaymentConfigFastlaneInterface
      * @since 100.1.0
      */
     public function getConfigItem(string $location, string $methodCode, ?int $store = null):
         PaymentConfigHostedFieldsInterface |
         PaymentConfigApplePayInterface |
         PaymentConfigGooglePayInterface |
-        PaymentConfigSmartButtonsInterface;
+        PaymentConfigSmartButtonsInterface |
+        PaymentConfigFastlaneInterface;
 }

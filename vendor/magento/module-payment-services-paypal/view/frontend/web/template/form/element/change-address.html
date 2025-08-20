@@ -1,0 +1,23 @@
+<!--
+/**
+ * Copyright © Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+-->
+<!-- ko if: (profileData && profileData() && profileData().shippingAddress) -->
+<div class="paypal-fastlane-shipping-change-address-form">
+    <div class="paypal-fastlane-change-address">
+        <button data-bind="
+            click: displayChangeShipping,
+            i18n: 'Select a saved address'"></button>
+    </div>
+
+    <!-- ko foreach: getRegion('paypal-fastlane-address-watermark') -->
+    <!-- ko template: getTemplate() --><!-- /ko -->
+    <!--/ko-->
+
+    <div class="paypal-fastlane-divider">
+        <span data-bind="i18n: 'Or add a new address below'"></span>
+    </div>
+</div>
+<!--/ko-->

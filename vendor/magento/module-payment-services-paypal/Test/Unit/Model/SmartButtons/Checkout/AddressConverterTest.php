@@ -129,4 +129,85 @@ class AddressConverterTest extends TestCase
 
         $this->assertEquals($expected, $address);
     }
+
+    /**
+     * @return void
+     */
+    public function testConvertShippingAddress_WithEmptyPayer(): void
+    {
+        $order = [
+            'paypal-order' => [
+                'payer' => [],
+                'shipping-address' => [
+                    'address_line_1' => 'street 1',
+                    'address_line_2' => 'street 2',
+                    'postal_code' => '08005',
+                    'admin_area_1' => 'region',
+                    'admin_area_2' => 'city',
+                    'country_code' => 'ESP',
+                    'full_name' => 'John Doe',
+                ],
+            ],
+        ];
+
+        $address = $this->addressConverter->convertShippingAddress($order);
+
+        $expected = [
+            'street' => [
+                0 => 'street 1',
+                1 => 'street 2',
+            ],
+            'postcode' => '08005',
+            'region' => 'region',
+            'region_id' => '',
+            'city' => 'city',
+            'country_id' => 'ESP',
+            'firstname' => 'John',
+            'lastname' => 'Doe',
+        ];
+
+        $this->assertEquals($expected, $address);
+    }
+
+    /**
+     * @return void
+     */
+    public function testConvertPartialBillingAddress(): void
+    {
+        $order = [
+            'paypal-order' => [
+                'payer' => [
+                    'name' => [
+                        'given_name' => 'John',
+                    ],
+                ],
+                'billing-address' => [
+                    'address_line_1' => 'street 1',
+                    'address_line_2' => 'street 2',
+                    'postal_code' => '08005',
+                    'admin_area_1' => 'region',
+                    'admin_area_2' => 'city',
+                    'country_code' => 'ESP',
+                    'full_name' => 'John Doe',
+                ],
+            ],
+        ];
+
+        $address = $this->addressConverter->convertBillingAddress($order);
+
+        $expected = [
+            'street' => [
+                0 => 'street 1',
+                1 => 'street 2',
+            ],
+            'postcode' => '08005',
+            'region' => 'region',
+            'region_id' => '',
+            'city' => 'city',
+            'country_id' => 'ESP',
+            'firstname' => 'John',
+        ];
+
+        $this->assertEquals($expected, $address);
+    }
 }

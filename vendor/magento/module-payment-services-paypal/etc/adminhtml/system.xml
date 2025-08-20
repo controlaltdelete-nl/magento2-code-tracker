@@ -82,6 +82,135 @@
                             <field id="legacy_admin_enabled">1</field>
                         </depends>
                     </group>
+                    <group id="fastlane" translate="label" sortOrder="11" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Fastlane</label>
+                        <fieldset_css>fastlane-section</fieldset_css>
+                        <frontend_model>Magento\PaymentServicesBase\Block\Adminhtml\System\Config\Fieldset\Child</frontend_model>
+                        <field id="enabled" translate="label" sortOrder="10" type="select" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>Enable Fastlane</label>
+                            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                            <config_path>payment/payment_services_paypal_fastlane/enabled</config_path>
+                        </field>
+                        <field id="title" translate="label" sortOrder="20" type="text" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>Title</label>
+                            <config_path>payment/payment_services_paypal_fastlane/title</config_path>
+                            <depends>
+                                <field id="enabled">1</field>
+                            </depends>
+                        </field>
+                        <field id="payment_action" translate="label" sortOrder="30" type="select" showInDefault="1" showInWebsite="1" showInStore="0">
+                            <label>Payment Action</label>
+                            <source_model>Magento\PaymentServicesPaypal\Model\Adminhtml\Source\PaymentAction</source_model>
+                            <config_path>payment/payment_services_paypal_fastlane/payment_action</config_path>
+                            <depends>
+                                <field id="enabled">1</field>
+                            </depends>
+                        </field>
+                        <field id="sort_order" translate="label" sortOrder="40" type="text" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>Sort Order</label>
+                            <config_path>payment/payment_services_paypal_fastlane/sort_order</config_path>
+                            <validate>validate-zero-or-greater validate-digits</validate>
+                            <depends>
+                                <field id="enabled">1</field>
+                            </depends>
+                        </field>
+                        <field id="enable_messaging" translate="label comment" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>Enable messaging</label>
+                            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                            <config_path>payment/payment_services_paypal_fastlane/enable_messaging</config_path>
+                            <comment><![CDATA[This setting will control whether Fastlane branding is shown by email field.]]></comment>
+                            <tooltip>PayPal powers this accelerated checkout solution from Fastlane. Since you’ll share consumers’ email address with PayPal, please consult your legal advisors on the appropriate setting for your business.</tooltip>
+                            <depends>
+                                <field id="enabled">1</field>
+                            </depends>
+                        </field>
+
+                        <group id="fastlane_styling" translate="label comment" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="50">
+                            <label>Advanced Style Settings (optional)</label>
+                            <comment><![CDATA[Leave the default styling, or customize how Fastlane looks on your website. Styles that don't meet accessibility guidelines will revert to the defaults. See <a href="https://developer.paypal.com/limited-release/accelerated-checkout-bt" target="_blank">PayPal’s developer docs</a> for info.]]></comment>
+                            <fieldset_css>fastlane-styling-section</fieldset_css>
+                            <depends>
+                                <field id="enabled">1</field>
+                            </depends>
+
+                            <group id="fastlane_styling_root" translate="label comment" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="0">
+                                <label>Root Settings</label>
+                                <comment><![CDATA[These apply to the overall Fastlane checkout module.]]></comment>
+                                <fieldset_css>fastlane-styling-section-root</fieldset_css>
+
+                                <field id="background_color" translate="label" type="text" sortOrder="0" showInDefault="1" showInWebsite="1" showInStore="1">
+                                    <label>Background Color</label>
+                                    <config_path>payment/payment_services_paypal_fastlane/root_background_color</config_path>
+                                </field>
+
+                                <field id="error_color" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                                    <label>Error Color</label>
+                                    <config_path>payment/payment_services_paypal_fastlane/root_error_color</config_path>
+                                </field>
+
+                                <field id="font_family" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                                    <label>Font Family</label>
+                                    <config_path>payment/payment_services_paypal_fastlane/root_font_family</config_path>
+                                    <comment><![CDATA[Only fonts available in your theme will be displayed.]]></comment>
+                                </field>
+
+                                <field id="font_size" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                                    <label>Font Size Base</label>
+                                    <config_path>payment/payment_services_paypal_fastlane/root_font_size</config_path>
+                                </field>
+
+                                <field id="padding" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                                    <label>Padding</label>
+                                    <config_path>payment/payment_services_paypal_fastlane/root_padding</config_path>
+                                </field>
+
+                                <field id="primary_color" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                                    <label>Primary Color</label>
+                                    <config_path>payment/payment_services_paypal_fastlane/root_primary_color</config_path>
+                                </field>
+
+                                <field id="text_color" translate="label" type="text" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
+                                    <label>Text Color</label>
+                                    <config_path>payment/payment_services_paypal_fastlane/root_text_color</config_path>
+                                </field>
+                            </group>
+                            <group id="fastlane_styling_input" translate="label comment" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="0">
+                                <label>Input Settings</label>
+                                <comment><![CDATA[These apply to the customer input fields of your Fastlane module.]]></comment>
+                                <fieldset_css>fastlane-styling-section-input</fieldset_css>
+
+                                <field id="background_color" translate="label" type="text" sortOrder="0" showInDefault="1" showInWebsite="1" showInStore="1">
+                                    <label>Background Color</label>
+                                    <config_path>payment/payment_services_paypal_fastlane/input_background_color</config_path>
+                                </field>
+
+                                <field id="border_color" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                                    <label>Border Color</label>
+                                    <config_path>payment/payment_services_paypal_fastlane/input_border_color</config_path>
+                                </field>
+
+                                <field id="border_radius" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                                    <label>Border Radius</label>
+                                    <config_path>payment/payment_services_paypal_fastlane/input_border_radius</config_path>
+                                </field>
+
+                                <field id="border_width" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                                    <label>Border Width</label>
+                                    <config_path>payment/payment_services_paypal_fastlane/input_border_width</config_path>
+                                </field>
+
+                                <field id="focus_border_color" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                                    <label>Focus Border Color</label>
+                                    <config_path>payment/payment_services_paypal_fastlane/input_focus_border_color</config_path>
+                                </field>
+
+                                <field id="text_color" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                                    <label>Text Color Base</label>
+                                    <config_path>payment/payment_services_paypal_fastlane/input_text_color</config_path>
+                                </field>
+                            </group>
+                        </group>
+                    </group>
                     <group id="apple_pay" translate="label" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label>Apple Pay</label>
                         <frontend_model>Magento\PaymentServicesBase\Block\Adminhtml\System\Config\Fieldset\Child</frontend_model>
@@ -207,6 +336,31 @@
                             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                             <config_path>payment/payment_services_paypal_smart_buttons/display_paylater_message</config_path>
                             <comment><![CDATA[Displays Pay Later messaging for available offers. Restrictions apply. <a href="https://developer.paypal.com/docs/business/pay-later/us/" target="_blank">Learn more</a>]]></comment>
+                        </field>
+                        <field id="message_configurator" translate="label" type="button" sortOrder="41"
+                                showInDefault="1" showInWebsite="1" showInStore="1">
+                            <frontend_model>Magento\PaymentServicesPaypal\Block\Adminhtml\Form\PayLaterStyleConfig</frontend_model>
+                            <depends>
+                                <field id="display_paylater_message">1</field>
+                            </depends>
+                        </field>
+                        <!-- Text field for storing mapped configurator values to pass to frontend -->
+                        <field id="paylater_message_configurator" translate="label" type="text" sortOrder="42"
+                            showInDefault="1" showInWebsite="1" showInStore="1">
+                            <config_path>payment/payment_services_paypal_smart_buttons/paylater_message_configurator</config_path>
+                            <frontend_class>paylater-message-configurator-config</frontend_class>
+                            <depends>
+                                <field id="display_paylater_message">1</field>
+                            </depends>
+                        </field>
+                        <!-- Text field for retaining configurator values to load existing admin config -->
+                        <field id="paylater_message_configurator_load" translate="label" type="text" sortOrder="30"
+                            showInDefault="1" showInWebsite="1" showInStore="1">
+                            <config_path>payment/payment_services_paypal_smart_buttons/paylater_message_configurator_load</config_path>
+                            <frontend_class>paylater-message-configurator-config-load</frontend_class>
+                            <depends>
+                                <field id="display_paylater_message">1</field>
+                            </depends>
                         </field>
                         <field id="display_buttons_checkout" translate="label" type="select" sortOrder="45" showInDefault="1" showInWebsite="1" showInStore="1">
                             <label>Show buttons on checkout page</label>

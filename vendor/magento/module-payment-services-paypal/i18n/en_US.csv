@@ -152,6 +152,7 @@ Tagline,Tagline
 "Credit and Debit Card Enabled","Credit and Debit Card Enabled"
 "Pay with Payment Services","Pay with Payment Services"
 "Stored Credit Card","Stored Credit Card"
+"PayPal Debit or Credit Card","PayPal Debit or Credit Card"
 PayPal,PayPal
 PayLater,PayLater
 "Review Order","Review Order"
@@ -163,6 +164,7 @@ PayLater,PayLater
 "payment_source","Payment Type"
 "payments_order_id","Payment Order ID"
 "paypal_order_id","Payment Provider Reference"
+"paypal_fastlane_profile","Fastlane Profile"
 "Show buttons on product detail page","Show buttons on product detail page"
 "Please finish onboarding by using your Adobe generated scope onboarding link.","Please finish onboarding by using your Adobe generated scope onboarding link."
 "There is an issue with your PayPal account. Please reach out to Adobe sales for assistance.","There is an issue with your PayPal account. Please reach out to Adobe sales for assistance."
