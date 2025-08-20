@@ -22,6 +22,8 @@ namespace Magento\PaymentServicesPaypal\Model;
 
 use Magento\Framework\Exception\InvalidArgumentException;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\PaymentServicesPaypal\Api\Data\PaymentOrderInterface;
+use Magento\PaymentServicesPaypal\Model\SmartButtons\Checkout;
 use Magento\PaymentServicesPaypal\Model\SmartButtons\Checkout\AddressConverter;
 use Magento\PaymentServicesPaypal\Api\PaymentOrderManagementInterface;
 use Magento\PaymentServicesPaypal\Helper\OrderHelper;
@@ -85,17 +87,17 @@ class PaymentOrderManagement implements PaymentOrderManagementInterface
     /**
      * @var OrderHelper
      */
-    private $orderHelper;
+    private OrderHelper $orderHelper;
 
     /**
      * @var AddressConverter
      */
-    private $addressConverter;
+    private AddressConverter $addressConverter;
 
     /**
      * @var BaseConfig
      */
-    private $config;
+    private BaseConfig $config;
 
     /**
      * @param CartRepositoryInterface $quoteRepository
@@ -112,16 +114,16 @@ class PaymentOrderManagement implements PaymentOrderManagementInterface
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
-        CartRepositoryInterface              $quoteRepository,
-        OrderService                         $orderService,
-        PaymentOrderInterfaceFactory         $paymentOrderFactory,
-        PaymentOrderDetailsInterfaceFactory  $paymentOrderDetailsFactory,
+        CartRepositoryInterface $quoteRepository,
+        OrderService $orderService,
+        PaymentOrderInterfaceFactory $paymentOrderFactory,
+        PaymentOrderDetailsInterfaceFactory $paymentOrderDetailsFactory,
         PaymentSourceDetailsInterfaceFactory $paymentSourceDetailsFactory,
-        PaymentCardDetailsInterfaceFactory   $paymentCardDetailsFactory,
+        PaymentCardDetailsInterfaceFactory $paymentCardDetailsFactory,
         PaymentCardBinDetailsInterfaceFactory $paymentCardBinDetailsFactory,
-        array                                $validMethodCodes,
-        OrderHelper                          $orderHelper,
-        AddressConverter                     $addressConverter,
+        array $validMethodCodes,
+        OrderHelper $orderHelper,
+        AddressConverter $addressConverter,
         BaseConfig $config
     ) {
         $this->quoteRepository = $quoteRepository;
@@ -139,6 +141,9 @@ class PaymentOrderManagement implements PaymentOrderManagementInterface
 
     /**
      * @inheritdoc
+     *
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
      */
     public function create(
         string $methodCode,
@@ -148,11 +153,19 @@ class PaymentOrderManagement implements PaymentOrderManagementInterface
         bool   $vaultIntent = false,
         ?int    $customerId = null,
         ?string $threeDSMode = null
-    ) {
+    ) : PaymentOrderInterface {
         if (!in_array($methodCode, $this->validMethodCodes)) {
             throw new InvalidArgumentException(__('Invalid methodCode'));
         }
+
         $quote = $this->quoteRepository->getActive($cartId);
+
+        if (!$quote->getId() || count($quote->getAllItems()) === 0) {
+            throw new LocalizedException(__(
+                'Unable to create order: The cart is empty or unavailable. Please try again.'
+            ));
+        }
+
         $isLoggedIn = (bool)$customerId;
         $paymentMethod = $quote->getPayment();
         $paymentMethod->setAdditionalInformation('payment_source', $paymentSource);
@@ -163,36 +176,45 @@ class PaymentOrderManagement implements PaymentOrderManagementInterface
         }
 
         $paymentMethod->setMethod($methodCode);
-        $this->quoteRepository->save($quote);
         $orderIncrementId = $this->orderHelper->reserveAndGetOrderIncrementId($quote);
 
-        $orderServiceResponse = $this->orderService->create(
-            $quote->getStore(),
-            [
-                'amount' => $this->orderHelper->formatAmount((float)$quote->getBaseGrandTotal()),
-                /** @phpstan-ignore-next-line */
-                'l2_data' => $this->orderHelper->getL2Data($quote, $paymentSource ?? ''),
-                /** @phpstan-ignore-next-line */
-                'l3_data' => $this->orderHelper->getL3Data($quote, $paymentSource ?? ''),
-                'currency_code' => $quote->getCurrency()->getBaseCurrencyCode(),
-                'is_digital' => $quote->isVirtual(),
-                // TODO: Setting 'storeview_code' to storeview id (not code) seems incorrect.
-                'storeview_code' => $quote->getStoreId(),
-                'payment_source' => $paymentSource,
-                'quote_id' => $quote->getId(),
-                'payer' => $isLoggedIn
-                    ? $this->orderService->buildPayer($quote, (string)$customerId)
-                    : $this->orderService->buildGuestPayer($quote),
-                'vault' => $vaultIntent,
-                'shipping_address' => $this->orderService->mapAddress($quote->getShippingAddress()),
-                'billing_address' => $this->orderService->mapAddress($quote->getBillingAddress()),
-                'order_increment_id' => $orderIncrementId,
-                'line_items' => $this->orderHelper->getLineItems($quote, $orderIncrementId),
-                'amount_breakdown' => $this->orderHelper->getAmountBreakdown($quote, $orderIncrementId),
-                'three_ds_mode' => $threeDSMode,
-                'location' => $location
-            ]
-        );
+        $data = [
+            'amount' => $this->orderHelper->formatAmount((float)$quote->getBaseGrandTotal()),
+            /** @phpstan-ignore-next-line */
+            'l2_data' => $this->orderHelper->getL2Data($quote, $paymentSource ?? ''),
+            /** @phpstan-ignore-next-line */
+            'l3_data' => $this->orderHelper->getL3Data($quote, $paymentSource ?? ''),
+            'currency_code' => $quote->getCurrency()->getBaseCurrencyCode(),
+            'is_digital' => $quote->isVirtual(),
+            // TODO: Setting 'storeview_code' to storeview id (not code) seems incorrect.
+            'storeview_code' => $quote->getStoreId(),
+            'payment_source' => $paymentSource,
+            'quote_id' => $quote->getId(),
+            'payer' => $isLoggedIn
+                ? $this->orderService->buildPayer($quote, (string)$customerId)
+                : $this->orderService->buildGuestPayer($quote),
+            'vault' => $vaultIntent,
+            'shipping_address' => $this->orderService->mapAddress($quote->getShippingAddress()),
+            'billing_address' => $this->orderService->mapAddress($quote->getBillingAddress()),
+            'order_increment_id' => $orderIncrementId,
+            'line_items' => $this->orderHelper->getLineItems($quote, $orderIncrementId),
+            'amount_breakdown' => $this->orderHelper->getAmountBreakdown($quote, $orderIncrementId),
+            'three_ds_mode' => $threeDSMode,
+            'location' => $location
+        ];
+
+        // Server side shipping callback for PayPal & Venmo
+        if (in_array($paymentSource, Checkout::SSSC_ALLOWED_PAYMENT_SOURCE)) {
+            $shippingPreference = $this->orderHelper->getShippingPreference($quote);
+
+            $data['user_action'] = $this->orderHelper->getUserAction();
+            $data['shipping_preference'] = $shippingPreference;
+            if ($shippingPreference === 'GET_FROM_FILE') {
+                $data['order_update_callback_config'] = $this->orderHelper->getOrderUpdateCallbackConfig($quote);
+            }
+        }
+
+        $orderServiceResponse = $this->orderService->create($quote->getStore(), $data);
 
         if (isset($orderServiceResponse['paypal-order'])) {
             $paypalOrder = $orderServiceResponse['paypal-order'];
@@ -212,6 +234,7 @@ class PaymentOrderManagement implements PaymentOrderManagementInterface
             $this->quoteRepository->save($quote);
             return $response;
         } else {
+            $this->quoteRepository->save($quote);
             $message = 'Failed to create an order';
             if (isset($orderServiceResponse['message'])) {
                 $message = $message . ": " . $orderServiceResponse['message'];

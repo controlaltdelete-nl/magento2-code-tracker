@@ -10,14 +10,15 @@ namespace Magento\PaymentServicesPaypal\Model\Api;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\UrlInterface;
 use Magento\PaymentServicesPaypal\Api\Data\PaymentConfigApplePayInterface;
+use Magento\PaymentServicesPaypal\Api\Data\PaymentConfigFastlaneInterface;
 use Magento\PaymentServicesPaypal\Api\Data\PaymentConfigGooglePayInterface;
 use Magento\PaymentServicesPaypal\Api\Data\PaymentConfigHostedFieldsInterface;
-use Magento\PaymentServicesPaypal\Api\Data\PaymentConfigItemInterface;
 use Magento\PaymentServicesPaypal\Api\Data\PaymentConfigSmartButtonsInterface;
 use Magento\PaymentServicesPaypal\Api\Data\PaymentConfigApplePayInterfaceFactory;
 use Magento\PaymentServicesPaypal\Api\Data\PaymentConfigGooglePayInterfaceFactory;
 use Magento\PaymentServicesPaypal\Api\Data\PaymentConfigHostedFieldsInterfaceFactory;
 use Magento\PaymentServicesPaypal\Api\Data\PaymentConfigSmartButtonsInterfaceFactory;
+use Magento\PaymentServicesPaypal\Api\Data\PaymentConfigFastlaneInterfaceFactory;
 use Magento\PaymentServicesPaypal\Api\Data\PaymentConfigSmartButtonsMessageStylesInterface;
 use Magento\PaymentServicesPaypal\Api\Data\PaymentConfigSmartButtonsMessageStylesInterfaceFactory;
 use Magento\PaymentServicesPaypal\Api\Data\PaymentConfigSmartButtonsLogoInterfaceFactory;
@@ -33,6 +34,7 @@ use Magento\PaymentServicesPaypal\Api\PaymentSdkManagementInterface;
 use Magento\PaymentServicesPaypal\Model\Api\Data\PaymentConfigGooglePayButtonStyles;
 use Magento\PaymentServicesPaypal\Model\ApplePayConfigProvider;
 use Magento\PaymentServicesPaypal\Model\Config;
+use Magento\PaymentServicesPaypal\Model\FastlaneConfigProvider;
 use Magento\PaymentServicesPaypal\Model\GooglePayConfigProvider;
 use Magento\PaymentServicesPaypal\Model\HostedFieldsConfigProvider;
 use Magento\PaymentServicesPaypal\Model\SmartButtonsConfigProvider;
@@ -105,6 +107,11 @@ class PaymentConfigManagement implements PaymentConfigManagementInterface
     private $paymentConfigGooglePayFactory;
 
     /**
+     * @var PaymentConfigFastlaneInterfaceFactory
+     */
+    private $paymentConfigFastlaneFactory;
+
+    /**
      * @var PaymentConfigSmartButtonsMessageStylesInterfaceFactory
      */
     private $paymentConfigSmartButtonsMessageStylesFactory;
@@ -143,6 +150,7 @@ class PaymentConfigManagement implements PaymentConfigManagementInterface
      * @param PaymentConfigGooglePayInterfaceFactory $paymentConfigGooglePayFactory
      * @param PaymentConfigHostedFieldsInterfaceFactory $paymentConfigHostedFieldsFactory
      * @param PaymentConfigSmartButtonsInterfaceFactory $paymentConfigSmartButtonsFactory
+     * @param PaymentConfigFastlaneInterfaceFactory $paymentConfigFastlaneFactory
      * @param PaymentConfigSmartButtonsMessageStylesInterfaceFactory $paymentConfigSmartButtonsMessageStylesFactory
      * @param PaymentConfigSmartButtonsLogoInterfaceFactory $paymentConfigSmartButtonsLogoFactory
      * @param PaymentConfigButtonStylesInterfaceFactory $paymentConfigButtonStylesFactory
@@ -164,6 +172,7 @@ class PaymentConfigManagement implements PaymentConfigManagementInterface
         PaymentConfigGooglePayInterfaceFactory $paymentConfigGooglePayFactory,
         PaymentConfigHostedFieldsInterfaceFactory $paymentConfigHostedFieldsFactory,
         PaymentConfigSmartButtonsInterfaceFactory $paymentConfigSmartButtonsFactory,
+        PaymentConfigFastlaneInterfaceFactory $paymentConfigFastlaneFactory,
         PaymentConfigSmartButtonsMessageStylesInterfaceFactory $paymentConfigSmartButtonsMessageStylesFactory,
         PaymentConfigSmartButtonsLogoInterfaceFactory $paymentConfigSmartButtonsLogoFactory,
         PaymentConfigButtonStylesInterfaceFactory $paymentConfigButtonStylesFactory,
@@ -183,6 +192,7 @@ class PaymentConfigManagement implements PaymentConfigManagementInterface
         $this->paymentConfigHostedFieldsFactory = $paymentConfigHostedFieldsFactory;
         $this->paymentConfigGooglePayFactory = $paymentConfigGooglePayFactory;
         $this->paymentConfigSmartButtonsFactory = $paymentConfigSmartButtonsFactory;
+        $this->paymentConfigFastlaneFactory = $paymentConfigFastlaneFactory;
         $this->paymentConfigSmartButtonsMessageStylesFactory = $paymentConfigSmartButtonsMessageStylesFactory;
         $this->paymentConfigSmartButtonsLogoFactory = $paymentConfigSmartButtonsLogoFactory;
         $this->paymentConfigButtonStylesFactory = $paymentConfigButtonStylesFactory;
@@ -224,14 +234,15 @@ class PaymentConfigManagement implements PaymentConfigManagementInterface
      * @param string $location
      * @param string $methodCode
      * @param int|null $store
-     * @return PaymentConfigSmartButtonsInterface|PaymentConfigHostedFieldsInterface|PaymentConfigApplePayInterface|PaymentConfigGooglePayInterface
+     * @return PaymentConfigSmartButtonsInterface|PaymentConfigHostedFieldsInterface|PaymentConfigApplePayInterface|PaymentConfigGooglePayInterface|PaymentConfigFastlaneInterface
      * @throws NoSuchEntityException
      */
     public function getConfigItem(string $location, string $methodCode, ?int $store = null):
     PaymentConfigSmartButtonsInterface |
     PaymentConfigHostedFieldsInterface |
     PaymentConfigApplePayInterface |
-    PaymentConfigGooglePayInterface
+    PaymentConfigGooglePayInterface |
+    PaymentConfigFastlaneInterface
     {
         $storeId = $store ?? (int)$this->storeManager->getStore()->getId();
         $location = strtoupper($location);
@@ -244,14 +255,15 @@ class PaymentConfigManagement implements PaymentConfigManagementInterface
      * @param string $location
      * @param string $code
      * @param int $store
-     * @return PaymentConfigSmartButtonsInterface|PaymentConfigHostedFieldsInterface|PaymentConfigApplePayInterface|PaymentConfigGooglePayInterface
+     * @return PaymentConfigSmartButtonsInterface|PaymentConfigHostedFieldsInterface|PaymentConfigApplePayInterface|PaymentConfigGooglePayInterface|PaymentConfigFastlaneInterface
      * @throws NoSuchEntityException
      */
     private function getConfigByMethod(string $location, string $code, int $store):
     PaymentConfigSmartButtonsInterface |
     PaymentConfigHostedFieldsInterface |
     PaymentConfigApplePayInterface |
-    PaymentConfigGooglePayInterface
+    PaymentConfigGooglePayInterface |
+    PaymentConfigFastlaneInterface
     {
         $config = $this->getSpecificConfigByMethod($location, $code, $store);
 
@@ -305,6 +317,9 @@ class PaymentConfigManagement implements PaymentConfigManagementInterface
         }
         if ($code === HostedFieldsConfigProvider::CODE) {
             return $this->getHostedFieldsConfig($store);
+        }
+        if ($code === FastlaneConfigProvider::CODE) {
+            return $this->getFastlaneConfig($location, $store);
         }
         return [];
     }
@@ -395,6 +410,27 @@ class PaymentConfigManagement implements PaymentConfigManagementInterface
         $hostedFieldsConfig->setRequiresCardDetails($this->config->isSignifydEnabled());
 
         return $hostedFieldsConfig;
+    }
+
+    /**
+     * Get config for Fastlane
+     *
+     * @param string $location
+     * @param int $store
+     * @return PaymentConfigFastlaneInterface
+     * @throws NoSuchEntityException
+     */
+    private function getFastlaneConfig(string $location, int $store): PaymentConfigFastlaneInterface
+    {
+        /** @var PaymentConfigFastlaneInterface $fastlaneConfig */
+        $fastlaneConfig = $this->paymentConfigFastlaneFactory->create();
+
+        // Fastlane is only visible in checkout
+        $visible = $this->config->isFastlaneEnabled($store) && $this->config->isCheckoutLocation($location);
+        $fastlaneConfig->setHasIsVisible($visible);
+        $fastlaneConfig->setPaymentSource(FastlaneConfigProvider::PAYMENT_SOURCE);
+
+        return $fastlaneConfig;
     }
 
     /**

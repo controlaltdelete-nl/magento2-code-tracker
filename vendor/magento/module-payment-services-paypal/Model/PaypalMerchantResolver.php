@@ -65,7 +65,7 @@ class PaypalMerchantResolver
     }
 
     /**
-     * Get Paypal merchant for the given scope id
+     * Get PayPal merchant for the given scope id
      *
      * @param "global"|"website"|"storeview" $scopeType
      * @param int $scopeId
@@ -113,7 +113,7 @@ class PaypalMerchantResolver
     }
 
     /**
-     * Get the Paypal merchant for the global scope
+     * Get the PayPal merchant for the global scope
      *  ['paypal-account']['id'] can be null but not ['paypal-account']['status']
      *  so PaypalMerchantData cannot be fully null
      *
@@ -147,7 +147,7 @@ class PaypalMerchantResolver
     ): ?PaypalMerchantInterface {
         $websiteId = $this->getWebsiteIdByStore($scopeId);
 
-       return $this->getPaypalMerchantForExactScope(
+        return $this->getPaypalMerchantForExactScope(
             $scopes,
             $websiteId,
             ScopeHeadersBuilder::WEBSITE_SCOPE_TYPE
@@ -155,7 +155,7 @@ class PaypalMerchantResolver
     }
 
     /**
-     * Get the Paypal merchant for the global scope
+     * Get the PayPal merchant for the exact scope
      *
      * @param array $scopes
      * @param int $scopeId

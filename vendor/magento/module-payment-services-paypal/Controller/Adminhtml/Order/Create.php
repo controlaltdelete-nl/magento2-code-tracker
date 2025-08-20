@@ -13,6 +13,7 @@ use Magento\Framework\Controller\ResultFactory;
 use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\App\CsrfAwareActionInterface;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\PaymentServicesBase\Model\HttpException;
 use Magento\PaymentServicesPaypal\Helper\OrderHelper;
 use Magento\PaymentServicesPaypal\Model\Config;
@@ -29,27 +30,27 @@ class Create extends AbstractProxyController implements HttpPostActionInterface,
     /**
      * @var OrderService
      */
-    private $orderService;
+    private OrderService $orderService;
 
     /**
      * @var QuoteSession
      */
-    private $quoteSession;
+    private QuoteSession $quoteSession;
 
     /**
      * @var OrderHelper
      */
-    private $orderHelper;
+    private OrderHelper $orderHelper;
 
     /**
      * @var QuoteRepositoryInterface
      */
-    private $quoteRepository;
+    private QuoteRepositoryInterface $quoteRepository;
 
     /**
      * @var OrderRepositoryInterface
      */
-    private $orderRepository;
+    private OrderRepositoryInterface $orderRepository;
 
     /**
      * @param Context $context
@@ -83,11 +84,17 @@ class Create extends AbstractProxyController implements HttpPostActionInterface,
         $result = $this->resultFactory->create(ResultFactory::TYPE_JSON);
         try {
             $quote = $this->quoteSession->getQuote();
+
+            if (!$quote->getId() || count($quote->getAllItems()) === 0) {
+                throw new HttpException('Unable to create order: The cart is empty or unavailable. Please try again.');
+            }
+
             $customerId = $quote->getCustomerId();
             $payer = $customerId !== null && $customerId != ""
                 ? $this->orderService->buildPayer($quote, (string)$customerId)
                 : $this->orderService->buildGuestPayer($quote);
             $paymentSource = $this->getRequest()->getPost('payment_source');
+            $vault = $this->getRequest()->getParam('vault') === 'true';
             $orderIncrementId = $this->resolveOrderIncrementId($quote);
             $store = $quote->getStore();
 
@@ -107,6 +114,7 @@ class Create extends AbstractProxyController implements HttpPostActionInterface,
                     'quote_id' => $quote->getId(),
                     'order_increment_id' => $orderIncrementId,
                     'line_items' => $this->orderHelper->getLineItems($quote, $orderIncrementId),
+                    'vault' => $vault,
                     'amount_breakdown' => $this->orderHelper->getAmountBreakdown($quote, $orderIncrementId),
                     'location' => Config::ADMIN_CHECKOUT_LOCATION
                 ]
