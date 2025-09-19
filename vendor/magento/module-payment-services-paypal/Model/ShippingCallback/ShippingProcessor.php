@@ -166,8 +166,8 @@ class ShippingProcessor
                 'type' => 'SHIPPING',
                 'selected' => $selected,
                 'amount' => [
-                    'value' => round((float) $method->getAmount(), 2),
-                    'currency_code' => $quote->getQuoteCurrencyCode()
+                    'value' => round((float) $method->getBaseAmount(), 2),
+                    'currency_code' => $quote->getBaseCurrencyCode()
                 ]
             ];
         }
