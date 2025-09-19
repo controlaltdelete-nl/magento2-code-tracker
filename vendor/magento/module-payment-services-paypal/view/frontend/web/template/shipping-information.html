@@ -6,6 +6,7 @@
 -->
 <!-- ko if: (isVisible()) -->
 <div class="shipping-information">
+    <!-- ko if: (!isStorePickup()) -->
     <div class="ship-to">
         <div class="shipping-information-title">
             <span data-bind="i18n: 'Ship To:'"></span>
@@ -23,6 +24,7 @@
             <!-- ko template: getTemplate() --><!-- /ko -->
         <!-- /ko -->
     </div>
+    <!--/ko-->
     <div class="ship-via">
         <div class="shipping-information-title">
             <span data-bind="i18n: 'Shipping Method:'"></span>
