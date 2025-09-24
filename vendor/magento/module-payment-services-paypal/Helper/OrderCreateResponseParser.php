@@ -27,6 +27,7 @@ class OrderCreateResponseParser
 {
     private const DENIED_STATUS = 'denied';
     private const PENDING_STATUS = 'pending';
+    private const OK_STATUS = 'ok';
 
     /**
      * @var LoggerInterface
@@ -119,6 +120,17 @@ class OrderCreateResponseParser
     public function isPending(string $status): bool
     {
         return strcasecmp($status, self::PENDING_STATUS) === 0;
+    }
+
+    /**
+     * Is the transaction ok
+     *
+     * @param string $status
+     * @return bool
+     */
+    public function isOK(string $status): bool
+    {
+        return strcasecmp($status, self::OK_STATUS) === 0;
     }
 
     /**
