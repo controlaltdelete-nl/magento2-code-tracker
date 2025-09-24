@@ -101,8 +101,11 @@ class CreateOrderResponseHandler implements HandlerInterface
             // Get the transaction (authorization or capture information) from Paypal response
             $transaction = $this->orderCreateResponseParser->getTransaction($paypalOrder);
 
-            // If transaction is denied, we throw an exception to stop the order creation
-            if ($this->orderCreateResponseParser->isDenied($transaction['status'])) {
+            // If transaction is not OK and not Pending, we throw an exception to stop the order creation
+            if (
+                !$this->orderCreateResponseParser->isOK($transaction['status'])
+                && !$this->orderCreateResponseParser->isPending($transaction['status'])
+            ) {
                 $this->logger->error(
                     'Transaction denied for Paypal Order Id and Transaction Id',
                     [$paypalOrder['id'], $transaction['paypal_transaction_id']]
