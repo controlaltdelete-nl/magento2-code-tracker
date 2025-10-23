@@ -1,5 +1,7 @@
 <?php
 /**
+ * ADOBE CONFIDENTIAL
+ *
  * Copyright 2021 Adobe
  * All Rights Reserved.
  *
