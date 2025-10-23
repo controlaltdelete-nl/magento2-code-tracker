@@ -1,8 +1,6 @@
 <?php
-/************************************************************************
- *
+/**
  * ADOBE CONFIDENTIAL
- * ___________________
  *
  * Copyright 2024 Adobe
  * All Rights Reserved.
@@ -15,7 +13,6 @@
  * Dissemination of this information or reproduction of this material
  * is strictly forbidden unless prior written permission is obtained
  * from Adobe.
- * ************************************************************************
  */
 
 declare(strict_types=1);

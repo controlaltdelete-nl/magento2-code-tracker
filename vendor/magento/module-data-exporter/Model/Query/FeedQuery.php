@@ -2,15 +2,6 @@
 /**
  * Copyright 2024 Adobe
  * All Rights Reserved.
- *
- * NOTICE: All information contained herein is, and remains
- * the property of Adobe and its suppliers, if any. The intellectual
- * and technical concepts contained herein are proprietary to Adobe
- * and its suppliers and are protected by all applicable intellectual
- * property laws, including trade secret and copyright laws.
- * Dissemination of this information or reproduction of this material
- * is strictly forbidden unless prior written permission is obtained
- * from Adobe.
  */
 declare(strict_types=1);
 
@@ -49,6 +40,7 @@ class FeedQuery
      * @param int $offset
      * @param array|null $ignoredExportStatus
      * @return Select
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function getLimitSelect(
         FeedIndexMetadata $metadata,
@@ -79,6 +71,7 @@ class FeedQuery
      * @param string|null $limit
      * @param array|null $ignoredExportStatus
      * @return Select
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function getDataSelect(
         FeedIndexMetadata $metadata,
@@ -104,6 +97,35 @@ class FeedQuery
             ->where('t.modified_at > ?', $modifiedAt);
         if ($limit) {
             $select->where('t.modified_at <= ?', $limit);
+        }
+
+        return $select;
+    }
+
+    /**
+     * Get select to retrieve data
+     *
+     * @param FeedIndexMetadata $metadata
+     * @param array|null $entityIds
+     * @return Select
+     */
+    public function getFeedIdsSelect(
+        FeedIndexMetadata $metadata,
+        ?array $entityIds,
+    ): Select {
+        $connection = $this->resourceConnection->getConnection();
+        $columns = [
+            FeedIndexMetadata::FEED_TABLE_FIELD_PK,
+            FeedIndexMetadata::FEED_TABLE_FIELD_SOURCE_ENTITY_ID
+        ];
+        $feedTableName = $this->resourceConnection->getTableName($metadata->getFeedTableName());
+        $select = $connection->select()
+            ->from(
+                ['t' => $feedTableName],
+                $columns
+            );
+        if (!empty($entityIds)) {
+            $select->where(FeedIndexMetadata::FEED_TABLE_FIELD_SOURCE_ENTITY_ID . ' in (?)', $entityIds);
         }
 
         return $select;
