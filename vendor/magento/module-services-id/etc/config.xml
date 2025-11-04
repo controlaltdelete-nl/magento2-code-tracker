@@ -19,6 +19,7 @@
                 <environment_id/>
                 <environment_name/>
                 <ims_organization_id/>
+                <ims_enabled>0</ims_enabled>
             </services_id>
         </services_connector>
     </default>
