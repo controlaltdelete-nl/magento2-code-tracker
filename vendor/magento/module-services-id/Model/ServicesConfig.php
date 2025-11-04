@@ -26,6 +26,7 @@ class ServicesConfig implements ServicesConfigInterface
     public const CONFIG_PATH_ENVIRONMENT_TYPE = 'services_connector/services_id/environment';
     public const CONFIG_PATH_IMS_ORGANIZATION_ID = 'services_connector/services_id/ims_organization_id';
     public const CONFIG_PATH_REGISTRY_API_PATH = 'services_connector/services_id/registry_api_path';
+    public const CONFIG_PATH_IMS_ENABLED = 'services_connector/services_id/ims_enabled';
 
     /**
      * Config path values for Services Connector
