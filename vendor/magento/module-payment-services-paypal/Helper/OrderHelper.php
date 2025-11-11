@@ -20,8 +20,10 @@ declare(strict_types=1);
 
 namespace Magento\PaymentServicesPaypal\Helper;
 
+use Magento\Framework\App\Response\RedirectInterface;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\UrlInterface;
 use Magento\PaymentServicesPaypal\Model\Config;
 use Magento\PaymentServicesPaypal\Model\HostedFieldsConfigProvider;
@@ -59,6 +61,7 @@ class OrderHelper
      * @param QuoteIdMaskFactory $quoteIdMaskFactory
      * @param QuoteIdMask $quoteIdMaskResource
      * @param UrlInterface $urlBuilder
+     * @param RedirectInterface $redirect
      */
     public function __construct(
         private readonly L2DataProvider $l2DataProvider,
@@ -68,7 +71,8 @@ class OrderHelper
         private readonly LoggerInterface $logger,
         private readonly QuoteIdMaskFactory $quoteIdMaskFactory,
         private readonly QuoteIdMask $quoteIdMaskResource,
-        private readonly UrlInterface $urlBuilder
+        private readonly UrlInterface $urlBuilder,
+        private readonly RedirectInterface $redirect
     ) {
     }
 
@@ -465,5 +469,52 @@ class OrderHelper
     private function generateSessionId(): string
     {
         return bin2hex(random_bytes(16));
+    }
+
+    /**
+     * Is app switch enabled
+     *
+     * @param int|null $storeId
+     * @return bool
+     * @throws NoSuchEntityException
+     */
+    public function isAppSwitchEnabled(?int $storeId = null): bool
+    {
+        return $this->config->getAppSwitch($storeId);
+    }
+
+    /**
+     * Is contact preference enabled
+     *
+     * @param int|null $storeId
+     * @return bool
+     * @throws NoSuchEntityException
+     */
+    public function isContactPreferenceEnabled(?int $storeId = null): bool
+    {
+        return $this->config->getContactPreference($storeId);
+    }
+
+    /**
+     * Get return and cancel url for App Switch
+     *
+     * @return string
+     */
+    public function getCurrentPageUrl(): string
+    {
+        return $this->redirect->getRefererUrl();
+    }
+
+    /**
+     * Get return & cancel url of checkout payment section for App Switch
+     *
+     * @return string
+     */
+    public function getCheckoutPaymentSectionUrl(): string
+    {
+        return $this->urlBuilder->getUrl(
+            'checkout',
+            ['_secure' => true, '_fragment' => 'payment']
+        );
     }
 }

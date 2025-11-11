@@ -1,7 +1,18 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * ADOBE CONFIDENTIAL
+ *
+ * Copyright 2021 Adobe
+ * All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of Adobe and its suppliers, if any. The intellectual
+ * and technical concepts contained herein are proprietary to Adobe
+ * and its suppliers and are protected by all applicable intellectual
+ * property laws, including trade secret and copyright laws.
+ * Dissemination of this information or reproduction of this material
+ * is strictly forbidden unless prior written permission is obtained
+ * from Adobe.
  */
 declare(strict_types=1);
 
@@ -42,12 +53,18 @@ class Checkout
     public const LOCATION_PRODUCT_PAGE = 'product';
     private const SUCCESS_PAGE_URI = 'checkout/onepage/success';
     private const SUCCESS_PAGE_PRODUCT_PAGE_CHECKOUT_URI = 'paymentservicespaypal/smartbuttons/success';
-
     public const SSSC_ALLOWED_PAYMENT_SOURCE = [
         'paypal',
         'paylater',
         'venmo'
     ];
+    public const BXO_ALLOWED_PAYMENT_SOURCE = [
+        'paypal',
+        'paylater'
+    ];
+    public const NO_CONTACT_INFO = 'NO_CONTACT_INFO';
+    public const UPDATE_CONTACT_INFO = 'UPDATE_CONTACT_INFO';
+    public const RETAIN_CONTACT_INFO = 'RETAIN_CONTACT_INFO';
 
     /**
      * @var CartRepositoryInterface
@@ -249,6 +266,21 @@ class Checkout
             $data['shipping_preference'] = $shippingPreference;
             if ($shippingPreference === 'GET_FROM_FILE') {
                 $data['order_update_callback_config'] = $this->orderHelper->getOrderUpdateCallbackConfig($quote);
+            }
+        }
+
+        // BXO for PayPal
+        if (in_array($paymentSource, self::BXO_ALLOWED_PAYMENT_SOURCE)) {
+            // App Switch
+            if ($this->orderHelper->isAppSwitchEnabled($quote->getStoreId())) {
+                $data['return_url'] = $this->orderHelper->getCurrentPageUrl();
+                $data['cancel_url'] = $this->orderHelper->getCurrentPageUrl();
+            }
+
+            // Contact Preference
+            $data['contact_preference'] = self::NO_CONTACT_INFO;
+            if ($this->orderHelper->isContactPreferenceEnabled($quote->getStoreId())) {
+                $data['contact_preference'] = self::UPDATE_CONTACT_INFO;
             }
         }
 

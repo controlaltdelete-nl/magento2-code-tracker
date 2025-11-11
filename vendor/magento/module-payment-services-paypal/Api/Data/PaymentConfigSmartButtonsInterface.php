@@ -1,7 +1,6 @@
 <?php
-/*************************************************************************
+/**
  * ADOBE CONFIDENTIAL
- * ___________________
  *
  * Copyright 2023 Adobe
  * All Rights Reserved.
@@ -14,13 +13,11 @@
  * Dissemination of this information or reproduction of this material
  * is strictly forbidden unless prior written permission is obtained
  * from Adobe.
- **************************************************************************/
+ */
+
 declare(strict_types=1);
 
 namespace Magento\PaymentServicesPaypal\Api\Data;
-
-use Magento\PaymentServicesPaypal\Model\Data\PaymentConfigSmartButtonsMessageStyles;
-use Magento\PaymentServicesPaypal\Model\Data\PaymentConfigButtonStyles;
 
 interface PaymentConfigSmartButtonsInterface extends PaymentConfigItemInterface
 {
@@ -28,6 +25,7 @@ interface PaymentConfigSmartButtonsInterface extends PaymentConfigItemInterface
     public const MESSAGE_STYLES = 'message_styles';
     public const BUTTON_STYLES = 'button_styles';
     public const DISPLAY_VENMO = 'display_venmo';
+    public const APP_SWITCH_WHEN_AVAILABLE = 'app_switch_when_available';
 
     /**
      * Get canDisplayMessage
@@ -89,4 +87,20 @@ interface PaymentConfigSmartButtonsInterface extends PaymentConfigItemInterface
      * @return $this
      */
     public function setButtonStyles($buttonStyles);
+
+    /**
+     * Get appSwitchWhenAvailable
+     *
+     * @return bool
+     * @SuppressWarnings(PHPMD.BooleanGetMethodName)
+     */
+    public function getAppSwitchWhenAvailable(): bool;
+
+    /**
+     * Set appSwitchWhenAvailable
+     *
+     * @param bool $appSwitchWhenAvailable
+     * @return PaymentConfigSmartButtonsInterface
+     */
+    public function setAppSwitchWhenAvailable(bool $appSwitchWhenAvailable): PaymentConfigSmartButtonsInterface;
 }

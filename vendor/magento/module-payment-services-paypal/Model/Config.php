@@ -184,6 +184,23 @@ class Config
     }
 
     /**
+     * Get 3DS config value for Fastlane
+     *
+     * @param int|null $storeId
+     * @return string
+     * @throws NoSuchEntityException
+     */
+    public function getFastlaneThreeDS(?int $storeId = null): string
+    {
+        $storeCode = $this->storeManager->getStore($storeId)->getCode();
+        return (string) $this->scopeConfig->getValue(
+            'payment/payment_services_paypal_fastlane/three_ds',
+            ScopeInterface::SCOPE_STORE,
+            $storeCode
+        );
+    }
+
+    /**
      * Get the merchant ID
      *
      * @param string $environment
@@ -301,7 +318,7 @@ class Config
      * @return string
      * @throws NoSuchEntityException
      */
-    public function getPaymentIntent(string $code, $storeId = null): string
+    public function getPaymentIntent(string $code, ?int $storeId = null): string
     {
         $storeCode = $this->storeManager->getStore($storeId)->getCode();
         $configPath = 'payment/' . $code . '/payment_action';
@@ -388,6 +405,42 @@ class Config
         $storeCode = $this->storeManager->getStore($store)->getCode();
         return $this->scopeConfig->getValue(
             'payment/payment_services_paypal_smart_buttons/paylater_message_configurator',
+            ScopeInterface::SCOPE_STORE,
+            $storeCode
+        );
+    }
+
+    /**
+     * Get the app switch configuration value
+     *
+     * @param int|null $store
+     * @return bool
+     * @throws NoSuchEntityException
+     * @SuppressWarnings(PHPMD.BooleanGetMethodName)
+     */
+    public function getAppSwitch(?int $store = null): bool
+    {
+        $storeCode = $this->storeManager->getStore($store)->getCode();
+        return (bool) $this->scopeConfig->getValue(
+            'payment/payment_services_paypal_smart_buttons/app_switch',
+            ScopeInterface::SCOPE_STORE,
+            $storeCode
+        );
+    }
+
+    /**
+     * Get the contact preference configuration value
+     *
+     * @param int|null $store
+     * @return bool
+     * @throws NoSuchEntityException
+     * @SuppressWarnings(PHPMD.BooleanGetMethodName)
+     */
+    public function getContactPreference(?int $store = null): bool
+    {
+        $storeCode = $this->storeManager->getStore($store)->getCode();
+        return (bool) $this->scopeConfig->getValue(
+            'payment/payment_services_paypal_smart_buttons/contact_preference',
             ScopeInterface::SCOPE_STORE,
             $storeCode
         );
@@ -569,6 +622,7 @@ class Config
      *
      * @param int|null $store
      * @return bool
+     * @throws NoSuchEntityException
      */
     public function isFastlaneMessagingEnabled(?int $store = null): bool
     {
@@ -593,6 +647,7 @@ class Config
         $storeCode = $this->storeManager->getStore($store)->getCode();
 
         return [
+            'theme' => $this->getFastlaneConfig('theme', $storeCode),
             'rootBackgroundColor' => $this->getFastlaneConfig('root_background_color', $storeCode),
             'rootErrorColor' => $this->getFastlaneConfig('root_error_color', $storeCode),
             'rootFontFamily' => $this->getFastlaneConfig('root_font_family', $storeCode),
