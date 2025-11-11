@@ -20,6 +20,7 @@ declare(strict_types=1);
 
 namespace Magento\PaymentServicesPaypal\Test\Unit\Helper;
 
+use Magento\Framework\App\Response\RedirectInterface;
 use Magento\Framework\UrlInterface;
 use Magento\PaymentServicesPaypal\Helper\L2DataProvider;
 use Magento\PaymentServicesPaypal\Helper\L3DataProvider;
@@ -35,6 +36,9 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
+/**
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
 class OrderHelperTest extends TestCase
 {
     private const ORDER_INCREMENT_ID = '100000001';
@@ -80,6 +84,11 @@ class OrderHelperTest extends TestCase
     private MockObject|UrlInterface $urlBuilder;
 
     /**
+     * @var MockObject|RedirectInterface
+     */
+    private MockObject|RedirectInterface $redirect;
+
+    /**
      * @var OrderHelper
      */
     private OrderHelper $orderHelper;
@@ -97,6 +106,7 @@ class OrderHelperTest extends TestCase
         $this->quoteIdMaskFactory = $this->createMock(QuoteIdMaskFactory::class);
         $this->quoteIdMaskResource = $this->createMock(QuoteIdMask::class);
         $this->urlBuilder = $this->createMock(UrlInterface::class);
+        $this->redirect = $this->createMock(RedirectInterface::class);
 
         $this->orderHelper = new OrderHelper(
             $this->l2DataProvider,
@@ -106,7 +116,8 @@ class OrderHelperTest extends TestCase
             $this->logger,
             $this->quoteIdMaskFactory,
             $this->quoteIdMaskResource,
-            $this->urlBuilder
+            $this->urlBuilder,
+            $this->redirect
         );
 
         $this->lineItemsProvider->expects($this->any())

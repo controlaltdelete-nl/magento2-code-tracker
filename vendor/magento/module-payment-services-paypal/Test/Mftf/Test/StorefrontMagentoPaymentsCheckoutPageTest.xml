@@ -95,7 +95,7 @@
         <appendField userInput="{{PaymentsCreditCardVisaValid.number}}" selector="{{CheckoutPaymentSection.MagentoPaymentServicesHostedFieldsCardNumber}}" stepKey="appendCardNumber"/>
         <switchToPreviousTab stepKey="switchToPreviousTab"/>
         <switchToIFrame userInput="braintree-hosted-field-expirationDate" stepKey="switchToExpirationDataIFrame"/>
-        <appendField userInput="1225" selector="{{CheckoutPaymentSection.MagentoPaymentServicesHostedFieldsExpiration}}" stepKey="appendExpirationDate"/>
+        <appendField userInput="1229" selector="{{CheckoutPaymentSection.MagentoPaymentServicesHostedFieldsExpiration}}" stepKey="appendExpirationDate"/>
         <switchToPreviousTab stepKey="switchToPreviousTab2"/>
         <switchToIFrame userInput="braintree-hosted-field-cvv" stepKey="switchToCVVIFrame"/>
         <appendField userInput="123" selector="{{CheckoutPaymentSection.MagentoPaymentServicesHostedFieldsCVV}}" stepKey="appendCVV"/>

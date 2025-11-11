@@ -1,7 +1,6 @@
 <?php
-/*************************************************************************
+/**
  * ADOBE CONFIDENTIAL
- * ___________________
  *
  * Copyright 2025 Adobe
  * All Rights Reserved.
@@ -14,7 +13,8 @@
  * Dissemination of this information or reproduction of this material
  * is strictly forbidden unless prior written permission is obtained
  * from Adobe.
- **************************************************************************/
+ */
+
 declare(strict_types=1);
 
 namespace Magento\PaymentServicesPaypal\Api\Data;
@@ -24,6 +24,7 @@ use Magento\PaymentServicesPaypal\Model\Api\Data\PaymentConfigFastlane;
 interface PaymentConfigFastlaneInterface extends PaymentConfigItemInterface
 {
     public const PAYMENT_SOURCE = 'payment_source';
+    public const FASTLANE_THREE_DS = 'three_ds';
 
     /**
      * Get Payment Source
@@ -39,4 +40,19 @@ interface PaymentConfigFastlaneInterface extends PaymentConfigItemInterface
      * @return PaymentConfigFastlane
      */
     public function setPaymentSource(string $paymentSource): PaymentConfigFastlane;
+
+    /**
+     * Get Fastlane 3D Secure config
+     *
+     * @return string
+     */
+    public function getFastlaneThreeDS(): string;
+
+    /**
+     * Set Fastlane 3D Secure config
+     *
+     * @param string $fastlaneThreeDs
+     * @return PaymentConfigFastlane
+     */
+    public function setFastlaneThreeDS(string $fastlaneThreeDs): PaymentConfigFastlane;
 }

@@ -28,10 +28,10 @@ class AddressConverterTest extends TestCase
     /**
      * @var AddressConverter
      */
-    private $addressConverter;
+    private AddressConverter $addressConverter;
 
     /**
-     * Setup the test
+     * Set up the test
      */
     protected function setUp(): void
     {
@@ -66,8 +66,8 @@ class AddressConverterTest extends TestCase
         $expected = [
             'street' => [
                 0 => 'street 1',
-                1 => 'street 2',
-             ],
+                1 => 'street 2'
+            ],
             'postcode' => '08005',
             'region' => 'region',
             'region_id' => '',
@@ -76,7 +76,7 @@ class AddressConverterTest extends TestCase
             'firstname' => 'John',
             'lastname' => 'Doe',
             'telephone' => '1234567',
-            'email' => 'test@test.com',
+            'email' => 'test@test.com'
         ];
 
         $this->assertEquals($expected, $address);
@@ -92,10 +92,10 @@ class AddressConverterTest extends TestCase
                 'payer' => [
                     'name' => [
                         'given_name' => 'John',
-                        'surname' => 'Doe',
+                        'surname' => 'Doe'
                     ],
                     'email' => 'test@test.com',
-                    'phone_number' => '2345678',
+                    'phone_number' => '2345678'
                 ],
                 'billing-address' => [
                     'address_line_1' => 'street 1',
@@ -104,7 +104,7 @@ class AddressConverterTest extends TestCase
                     'admin_area_1' => 'region',
                     'admin_area_2' => 'city',
                     'country_code' => 'ESP',
-                    'full_name' => 'John Doe',
+                    'full_name' => 'John Doe'
                 ],
             ],
         ];
@@ -114,7 +114,7 @@ class AddressConverterTest extends TestCase
         $expected = [
             'street' => [
                 0 => 'street 1',
-                1 => 'street 2',
+                1 => 'street 2'
             ],
             'postcode' => '08005',
             'region' => 'region',
@@ -124,7 +124,7 @@ class AddressConverterTest extends TestCase
             'firstname' => 'John',
             'lastname' => 'Doe',
             'telephone' => '2345678',
-            'email' => 'test@test.com',
+            'email' => 'test@test.com'
         ];
 
         $this->assertEquals($expected, $address);
@@ -133,7 +133,7 @@ class AddressConverterTest extends TestCase
     /**
      * @return void
      */
-    public function testConvertShippingAddress_WithEmptyPayer(): void
+    public function testConvertShippingAddressWithEmptyPayer(): void
     {
         $order = [
             'paypal-order' => [
@@ -145,7 +145,7 @@ class AddressConverterTest extends TestCase
                     'admin_area_1' => 'region',
                     'admin_area_2' => 'city',
                     'country_code' => 'ESP',
-                    'full_name' => 'John Doe',
+                    'full_name' => 'John Doe'
                 ],
             ],
         ];
@@ -155,7 +155,7 @@ class AddressConverterTest extends TestCase
         $expected = [
             'street' => [
                 0 => 'street 1',
-                1 => 'street 2',
+                1 => 'street 2'
             ],
             'postcode' => '08005',
             'region' => 'region',
@@ -163,7 +163,7 @@ class AddressConverterTest extends TestCase
             'city' => 'city',
             'country_id' => 'ESP',
             'firstname' => 'John',
-            'lastname' => 'Doe',
+            'lastname' => 'Doe'
         ];
 
         $this->assertEquals($expected, $address);
@@ -178,7 +178,7 @@ class AddressConverterTest extends TestCase
             'paypal-order' => [
                 'payer' => [
                     'name' => [
-                        'given_name' => 'John',
+                        'given_name' => 'John'
                     ],
                 ],
                 'billing-address' => [
@@ -188,7 +188,7 @@ class AddressConverterTest extends TestCase
                     'admin_area_1' => 'region',
                     'admin_area_2' => 'city',
                     'country_code' => 'ESP',
-                    'full_name' => 'John Doe',
+                    'full_name' => 'John Doe'
                 ],
             ],
         ];
@@ -198,16 +198,87 @@ class AddressConverterTest extends TestCase
         $expected = [
             'street' => [
                 0 => 'street 1',
-                1 => 'street 2',
+                1 => 'street 2'
             ],
             'postcode' => '08005',
             'region' => 'region',
             'region_id' => '',
             'city' => 'city',
             'country_id' => 'ESP',
-            'firstname' => 'John',
+            'firstname' => 'John'
         ];
 
         $this->assertEquals($expected, $address);
+    }
+
+    /**
+     * Test telephone priority from shipping address over payer
+     */
+    public function testConvertShippingAddressTelephonePriorityFromShipping(): void
+    {
+        $order = [
+            'paypal-order' => [
+                'payer' => [
+                    'phone_number' => '1234567890'
+                ],
+                'shipping-address' => [
+                    'phone_number' => [
+                        'national_number' => '9876543210'
+                    ],
+                    'full_name' => 'John Doe'
+                ],
+            ],
+        ];
+
+        $address = $this->addressConverter->convertShippingAddress($order);
+
+        $this->assertEquals('9876543210', $address['telephone']);
+    }
+
+    /**
+     * Test email priority from shipping address over payer
+     */
+    public function testConvertShippingAddressEmailPriorityFromShipping(): void
+    {
+        $order = [
+            'paypal-order' => [
+                'payer' => [
+                    'email' => 'payer@test.com'
+                ],
+                'shipping-address' => [
+                    'email' => 'shipping@test.com',
+                    'full_name' => 'John Doe'
+                ],
+            ],
+        ];
+
+        $address = $this->addressConverter->convertShippingAddress($order);
+
+        $this->assertEquals('shipping@test.com', $address['email']);
+    }
+
+    /**
+     * Test shipping address with empty phone number
+     */
+    public function testConvertShippingAddressEmptyPhoneNumber(): void
+    {
+        $order = [
+            'paypal-order' => [
+                'payer' => [
+                    'phone_number' => '1234567890'
+                ],
+                'shipping-address' => [
+                    'phone_number' => [
+                        'national_number' => ''
+                    ],
+                    'full_name' => 'John Doe'
+                ],
+            ],
+        ];
+
+        $address = $this->addressConverter->convertShippingAddress($order);
+
+        // Fallback to payer phone number
+        $this->assertEquals('1234567890', $address['telephone']);
     }
 }

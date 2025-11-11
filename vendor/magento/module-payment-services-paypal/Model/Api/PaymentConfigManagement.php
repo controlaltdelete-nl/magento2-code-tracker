@@ -1,8 +1,20 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * ADOBE CONFIDENTIAL
+ *
+ * Copyright 2023 Adobe
+ * All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of Adobe and its suppliers, if any. The intellectual
+ * and technical concepts contained herein are proprietary to Adobe
+ * and its suppliers and are protected by all applicable intellectual
+ * property laws, including trade secret and copyright laws.
+ * Dissemination of this information or reproduction of this material
+ * is strictly forbidden unless prior written permission is obtained
+ * from Adobe.
  */
+
 declare(strict_types=1);
 
 namespace Magento\PaymentServicesPaypal\Model\Api;
@@ -325,11 +337,12 @@ class PaymentConfigManagement implements PaymentConfigManagementInterface
     }
 
     /**
-     * Get config for paypal smart buttons.
+     * Get config for PayPal smart buttons.
      *
      * @param string $location
      * @param int $store
      * @return PaymentConfigSmartButtonsInterface
+     * @throws NoSuchEntityException
      */
     private function getSmartButtonsConfig(string $location, int $store): PaymentConfigSmartButtonsInterface
     {
@@ -344,6 +357,7 @@ class PaymentConfigManagement implements PaymentConfigManagementInterface
         $buttonStyles = $this->getButtonStyles($store);
         $smartButtonConfig->setButtonStyles($buttonStyles);
         $smartButtonConfig->setHasDisplayVenmo($this->config->isFundingSourceEnabledByName('venmo'));
+        $smartButtonConfig->setAppSwitchWhenAvailable($this->config->getAppSwitch($store));
 
         return $smartButtonConfig;
     }
@@ -354,6 +368,7 @@ class PaymentConfigManagement implements PaymentConfigManagementInterface
      * @param string $location
      * @param int $store
      * @return PaymentConfigApplePayInterface
+     * @throws NoSuchEntityException
      */
     private function getApplePayConfig(string $location, int $store): PaymentConfigApplePayInterface
     {
@@ -396,6 +411,7 @@ class PaymentConfigManagement implements PaymentConfigManagementInterface
      *
      * @param int $store
      * @return PaymentConfigHostedFieldsInterface
+     * @throws NoSuchEntityException
      */
     private function getHostedFieldsConfig(int $store): PaymentConfigHostedFieldsInterface
     {
@@ -429,6 +445,8 @@ class PaymentConfigManagement implements PaymentConfigManagementInterface
         $visible = $this->config->isFastlaneEnabled($store) && $this->config->isCheckoutLocation($location);
         $fastlaneConfig->setHasIsVisible($visible);
         $fastlaneConfig->setPaymentSource(FastlaneConfigProvider::PAYMENT_SOURCE);
+        $threeDS = (string) $this->config->getFastlaneThreeDS($store);
+        $fastlaneConfig->setFastlaneThreeDS($threeDS);
 
         return $fastlaneConfig;
     }
@@ -465,6 +483,7 @@ class PaymentConfigManagement implements PaymentConfigManagementInterface
      *
      * @param int $store
      * @return PaymentConfigButtonStylesInterface
+     * @throws NoSuchEntityException
      */
     private function getButtonStyles(int $store): PaymentConfigButtonStylesInterface
     {

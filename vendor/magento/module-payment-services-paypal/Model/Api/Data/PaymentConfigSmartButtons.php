@@ -1,7 +1,6 @@
 <?php
-/*************************************************************************
+/**
  * ADOBE CONFIDENTIAL
- * ___________________
  *
  * Copyright 2023 Adobe
  * All Rights Reserved.
@@ -14,7 +13,8 @@
  * Dissemination of this information or reproduction of this material
  * is strictly forbidden unless prior written permission is obtained
  * from Adobe.
- **************************************************************************/
+ */
+
 declare(strict_types=1);
 
 namespace Magento\PaymentServicesPaypal\Model\Api\Data;
@@ -33,6 +33,7 @@ class PaymentConfigSmartButtons extends PaymentConfigItem implements PaymentConf
     {
         return $this->getData(self::DISPLAY_MESSAGE);
     }
+
     /**
      * @inheritdoc
      */
@@ -40,6 +41,7 @@ class PaymentConfigSmartButtons extends PaymentConfigItem implements PaymentConf
     {
         return $this->setData(self::DISPLAY_MESSAGE, $canDisplayMessage);
     }
+
     /**
      * @inheritdoc
      */
@@ -47,6 +49,7 @@ class PaymentConfigSmartButtons extends PaymentConfigItem implements PaymentConf
     {
         return $this->getData(self::DISPLAY_VENMO);
     }
+
     /**
      * @inheritdoc
      */
@@ -54,6 +57,7 @@ class PaymentConfigSmartButtons extends PaymentConfigItem implements PaymentConf
     {
         return $this->setData(self::DISPLAY_VENMO, $canDisplayVenmo);
     }
+
     /**
      * @inheritdoc
      */
@@ -61,6 +65,7 @@ class PaymentConfigSmartButtons extends PaymentConfigItem implements PaymentConf
     {
         return $this->getData(self::MESSAGE_STYLES);
     }
+
     /**
      * @inheritdoc
      */
@@ -68,6 +73,7 @@ class PaymentConfigSmartButtons extends PaymentConfigItem implements PaymentConf
     {
         return $this->setData(self::MESSAGE_STYLES, $messageStyles);
     }
+
     /**
      * @inheritdoc
      */
@@ -75,11 +81,28 @@ class PaymentConfigSmartButtons extends PaymentConfigItem implements PaymentConf
     {
         return $this->getData(self::BUTTON_STYLES);
     }
+
     /**
      * @inheritdoc
      */
     public function setButtonStyles($buttonStyles)
     {
         return $this->setData(self::BUTTON_STYLES, $buttonStyles);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getAppSwitchWhenAvailable(): bool
+    {
+        return (bool) $this->getData(self::APP_SWITCH_WHEN_AVAILABLE);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function setAppSwitchWhenAvailable(bool $appSwitchWhenAvailable): PaymentConfigSmartButtonsInterface
+    {
+        return $this->setData(self::APP_SWITCH_WHEN_AVAILABLE, $appSwitchWhenAvailable);
     }
 }

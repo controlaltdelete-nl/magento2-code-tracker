@@ -1,6 +1,17 @@
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * ADOBE CONFIDENTIAL
+ *
+ * Copyright 2021 Adobe
+ * All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of Adobe and its suppliers, if any. The intellectual
+ * and technical concepts contained herein are proprietary to Adobe
+ * and its suppliers and are protected by all applicable intellectual
+ * property laws, including trade secret and copyright laws.
+ * Dissemination of this information or reproduction of this material
+ * is strictly forbidden unless prior written permission is obtained
+ * from Adobe.
  */
 
 /* eslint-disable no-undef */
@@ -12,6 +23,8 @@ define([
     'Magento_Checkout/js/model/quote',
     'Magento_Checkout/js/model/full-screen-loader',
     'mage/translate',
+    'Magento_PaymentServicesPaypal/js/helpers/remove-paypal-url-token',
+    'Magento_PaymentServicesPaypal/js/model/app-switch-data',
     'Magento_PaymentServicesPaypal/js/view/payment/methods/smart-buttons',
     'Magento_PaymentServicesPaypal/js/view/payment/message',
     'Magento_Checkout/js/model/payment/additional-validators',
@@ -27,6 +40,8 @@ define([
     quote,
     fullScreenLoader,
     $t,
+    removePayPalUrlToken,
+    appSwitchDataModel,
     SmartButtons,
     Message,
     additionalValidators,
@@ -43,10 +58,10 @@ define([
             {},
             {
                 type: 'POST',
-                url: url,
+                url: url
             }
         );
-    }
+    };
 
     return Component.extend({
         defaults: {
@@ -100,19 +115,24 @@ define([
         initSmartButtons: function () {
             this.buttons = new SmartButtons({
                 sdkNamespace: this.sdkNamespace,
-                scriptParams: window.checkoutConfig.payment['payment_services_paypal_smart_buttons'].sdkParams,
-                createOrderUrl: window.checkoutConfig.payment['payment_services_paypal_smart_buttons'].createOrderUrl,
-                styles: window.checkoutConfig.payment['payment_services_paypal_smart_buttons'].buttonStyles,
+                scriptParams: window.checkoutConfig.payment[this.getCode()].sdkParams,
+                createOrderUrl: window.checkoutConfig.payment[this.getCode()].createOrderUrl,
+                styles: window.checkoutConfig.payment[this.getCode()].buttonStyles,
                 onInit: this.onInit,
                 onClick: this.onClick,
                 beforeCreateOrder: this.beforeCreateOrder,
                 afterCreateOrder: this.afterCreateOrder,
                 catchCreateOrder: this.catchError,
                 onApprove: function () {
+                    if (this.hasReturned) {
+                        this.setAppSwitchResumeData();
+                    }
+
                     this.placeOrder();
                 }.bind(this),
                 onError: this.catchError,
                 location: window.checkoutConfig.payment[this.getCode()].location,
+                appSwitchWhenAvailable: window.checkoutConfig.payment[this.getCode()].appSwitchWhenAvailable
             });
         },
 
@@ -121,10 +141,10 @@ define([
          */
         initMessage: function () {
             this.message = new Message({
-                scriptParams: window.checkoutConfig.payment['payment_services_paypal_smart_buttons'].sdkParams,
+                scriptParams: window.checkoutConfig.payment[this.getCode()].sdkParams,
                 element: this.element,
                 renderContainer: '#' + this.payLaterMessageContainerId,
-                styles: window.checkoutConfig.payment['payment_services_paypal_smart_buttons'].messageStyles,
+                styles: window.checkoutConfig.payment[this.getCode()].messageStyles,
                 placement: 'payment',
                 amount: this.grandTotalAmount()
             });
@@ -160,7 +180,15 @@ define([
          */
         afterRender: function () {
             this.buttons.sdkLoaded.then(function () {
-                this.buttons.render('#' + this.buttonsContainerId);
+                this.buttons.setup('#' + this.buttonsContainerId);
+
+                if (this.buttons.instance.hasReturned()) {
+                    this.hasReturned = true;
+                    this.buttons.instance.resume();
+                } else {
+                    this.buttons.render();
+                }
+
                 this.renderMessage();
                 this.isAvailable(!!this.buttons.instance && this.buttons.instance.isEligible());
             }.bind(this)).catch(function () {
@@ -176,7 +204,7 @@ define([
          * Render message
          */
         renderMessage: function () {
-            if (window.checkoutConfig.payment['payment_services_paypal_smart_buttons'].canDisplayMessage) {
+            if (window.checkoutConfig.payment[this.getCode()].canDisplayMessage) {
                 this.message.render();
             }
         },
@@ -256,8 +284,33 @@ define([
          */
         onClick: function (data, actions) {
             if (this.validate() && additionalValidators.validate()) {
+                // Add terms data to app switch.
+                if (window.checkoutConfig?.checkoutAgreements?.isEnabled) {
+                    const agreementsInputPath = '.payment-method._active div.checkout-agreements input';
+
+                    $(agreementsInputPath).each(function (index, element) {
+                        const termsData = appSwitchDataModel.getData('terms') || {};
+                        termsData[element.id] = element.value;
+
+                        appSwitchDataModel.setData('terms', termsData);
+                    });
+                }
+
+                const reCaptcha = $('.g-recaptcha:visible');
+                const reCaptchaId = reCaptcha && reCaptcha.last().attr('id');
+
+                // Add recaptcha if it exists.
+                if (reCaptchaId) {
+                    const reCaptchaToken = $(`#${reCaptchaId} [name="g-recaptcha-response"]`).val();
+
+                    appSwitchDataModel.setData('recaptcha', reCaptchaToken);
+                }
+
                 return actions.resolve();
+
             }
+
+            appSwitchDataModel.setData('pageType', this.pageType);
 
             return actions.reject();
         },
@@ -286,6 +339,10 @@ define([
                 this.paymentsOrderId = data.response['paypal-order']['mp_order_id'];
                 this.paypalOrderId = data.response['paypal-order'].id;
 
+                appSwitchDataModel.setData('paymentsOrderId', this.paymentsOrderId);
+                appSwitchDataModel.setData('paypalOrderId', this.paypalOrderId);
+                appSwitchDataModel.setData('paymentSource', this.buttons.paymentSource);
+
                 return this.paypalOrderId;
             }
 
@@ -298,11 +355,46 @@ define([
          * @param {Error} error
          */
         catchError: function (error) {
+            removePayPalUrlToken();
             this.messageContainer.addErrorMessage({
                 message: this.requestProcessingError
             });
             console.log('Error: ', error.message);
-        }
 
+            this.afterRender();
+        },
+
+        /**
+         * Re-initialise checkout data.
+         *
+         * This is in case the App Switch returns in a new tab.
+         */
+        setAppSwitchResumeData: function () {
+            this.paymentsOrderId = appSwitchDataModel.getData('paymentsOrderId');
+            this.paypalOrderId = appSwitchDataModel.getData('paypalOrderId');
+            this.buttons.paymentSource = appSwitchDataModel.getData('paymentSource');
+
+            // Add terms data to app switch.
+            if (window.checkoutConfig?.checkoutAgreements?.isEnabled) {
+                const terms = appSwitchDataModel.getData('terms');
+
+                if (terms) {
+                    Object.keys(terms).forEach((term) => {
+                        $(`#${term}`).prop('checked', terms[term] === '1');
+                    });
+                }
+            }
+
+            const reCaptcha = $('.g-recaptcha:visible'),
+                reCaptchaId = reCaptcha && reCaptcha.last().attr('id');
+
+            if (reCaptchaId) {
+                const reCaptchaToken = appSwitchDataModel.getData('recaptcha');
+
+                $(`#${reCaptchaId} [name="g-recaptcha-response"]`).val(reCaptchaToken);
+            }
+
+            appSwitchDataModel.clearData();
+        }
     });
 });

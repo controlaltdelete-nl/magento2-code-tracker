@@ -101,6 +101,10 @@ class PaypalOrderRequestBuilder
         $body = $this->applyUserAction($body, $data);
         $body = $this->applyShippingPreference($body, $data);
         $body = $this->applyOrderUpdateCallbackConfig($body, $data);
+        $body = $this->applyReturnUrl($body, $data);
+        $body = $this->applyCancelUrl($body, $data);
+        $body = $this->applyLaunchPayPalApp($body, $data);
+        $body = $this->applyContactPreference($body, $data);
 
         return $body;
     }
@@ -217,7 +221,7 @@ class PaypalOrderRequestBuilder
     {
         $quote = $this->quoteRepository->get($quoteId);
         $paymentMethod = $quote->getPayment()->getMethod();
-        $storeId = $quote->getStoreId();
+        $storeId = $quote->getStoreId() === null ? null : (int) $quote->getStoreId();
         if ($paymentMethod === HostedFieldsConfigProvider::CC_VAULT_CODE) {
             return $this->config->getPaymentIntent(HostedFieldsConfigProvider::CODE, $storeId);
         }
@@ -421,6 +425,78 @@ class PaypalOrderRequestBuilder
         }
 
         $order[self::PAYPAL_ORDER]['order_update_callback_config'] = $data['order_update_callback_config'];
+
+        return $order;
+    }
+
+    /**
+     * Apply 'return_url' for app switch
+     *
+     * @param array $order
+     * @param array $data
+     * @return array
+     */
+    private function applyReturnUrl(array $order, array $data): array
+    {
+        if (empty($data['return_url'])) {
+            return $order;
+        }
+
+        $order[self::PAYPAL_ORDER]['return_url'] = $data['return_url'];
+
+        return $order;
+    }
+
+    /**
+     * Apply 'cancel_url' for app switch
+     *
+     * @param array $order
+     * @param array $data
+     * @return array
+     */
+    private function applyCancelUrl(array $order, array $data): array
+    {
+        if (empty($data['cancel_url'])) {
+            return $order;
+        }
+
+        $order[self::PAYPAL_ORDER]['cancel_url'] = $data['cancel_url'];
+
+        return $order;
+    }
+
+    /**
+     * Apply 'launch_paypal_app' for app switch
+     *
+     * @param array $order
+     * @param array $data
+     * @return array
+     */
+    private function applyLaunchPayPalApp(array $order, array $data): array
+    {
+        if (empty($data['launch_paypal_app'])) {
+            return $order;
+        }
+
+        $order[self::PAYPAL_ORDER]['launch_paypal_app'] = $data['launch_paypal_app'];
+
+        return $order;
+    }
+
+    /**
+     * Apply 'contact_preference' for app switch
+     *
+     * @param array $order
+     * @param array $data
+     * @return array
+     */
+    private function applyContactPreference(array $order, array $data): array
+    {
+        if (empty($data['contact_preference'])) {
+            return $order;
+        }
+
+        $order[self::PAYPAL_ORDER]['contact_preference'] = $data['contact_preference'];
 
         return $order;
     }

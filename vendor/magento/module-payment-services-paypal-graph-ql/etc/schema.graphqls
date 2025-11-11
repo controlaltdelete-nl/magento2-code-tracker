@@ -169,6 +169,7 @@ type SmartButtonsConfig implements PaymentConfigItem {
     message_styles: MessageStyles @resolver(class: "\\Magento\\PaymentServicesPaypalGraphQl\\Model\\Resolver\\PaymentConfigMethod") @doc(description: "Contains details about the styles for the PayPal Pay Later message")
     button_styles: ButtonStyles @resolver(class: "\\Magento\\PaymentServicesPaypalGraphQl\\Model\\Resolver\\PaymentConfigMethod") @doc(description: "The styles for the PayPal Smart Button configuration")
     display_venmo: Boolean @doc(description: "Indicates whether to display Venmo")
+    app_switch_when_available: Boolean @doc(description: "Indicated whether to use App Switch on enabled mobile devices")
 }
 
 type ApplePayConfig implements PaymentConfigItem {
@@ -184,6 +185,7 @@ type GooglePayConfig implements PaymentConfigItem {
 
 type FastlaneConfig implements PaymentConfigItem {
     payment_source: String @doc(description: "The payment source for the payment method")
+    three_ds_mode: ThreeDSMode @doc(description: "3DS mode") @resolver(class: "\\Magento\\PaymentServicesPaypalGraphQl\\Model\\Resolver\\ThreeDSModeResolver")
 }
 
 type ButtonStyles {

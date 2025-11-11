@@ -30,7 +30,7 @@
         <data key="code">amex</data>
         <data key="number">378282246310005</data>
         <data key="numberErrorMessage"/>
-        <data key="expirationDate">1225</data>
+        <data key="expirationDate">1229</data>
         <data key="expirationErrorMessage"/>
         <data key="cvv">1234</data>
         <data key="cvvErrorMessage"/>
@@ -39,7 +39,7 @@
         <data key="code">discover</data>
         <data key="number">6011111111111117</data>
         <data key="numberErrorMessage"/>
-        <data key="expirationDate">1225</data>
+        <data key="expirationDate">1229</data>
         <data key="expirationErrorMessage"/>
         <data key="cvv">123</data>
         <data key="cvvErrorMessage"/>
@@ -48,7 +48,7 @@
         <data key="code">mastercard</data>
         <data key="number">2221000000000009</data>
         <data key="numberErrorMessage"/>
-        <data key="expirationDate">1225</data>
+        <data key="expirationDate">1229</data>
         <data key="expirationErrorMessage"/>
         <data key="cvv">123</data>
         <data key="cvvErrorMessage"/>
@@ -57,7 +57,7 @@
         <data key="code">visa</data>
         <data key="number">4032034601040846</data>
         <data key="numberErrorMessage"/>
-        <data key="expirationDate">1025</data>
+        <data key="expirationDate">1229</data>
         <data key="expirationErrorMessage"/>
         <data key="cvv">761</data>
         <data key="cvvErrorMessage"/>
