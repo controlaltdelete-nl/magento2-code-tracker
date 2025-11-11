@@ -1,8 +1,20 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * ADOBE CONFIDENTIAL
+ *
+ * Copyright 2021 Adobe
+ * All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of Adobe and its suppliers, if any. The intellectual
+ * and technical concepts contained herein are proprietary to Adobe
+ * and its suppliers and are protected by all applicable intellectual
+ * property laws, including trade secret and copyright laws.
+ * Dissemination of this information or reproduction of this material
+ * is strictly forbidden unless prior written permission is obtained
+ * from Adobe.
  */
+
 declare(strict_types=1);
 namespace Magento\PaymentServicesPaypal\Block;
 
@@ -118,6 +130,7 @@ class SmartButtons extends Template implements ShortcutInterface
     public function getComponentParams() : array
     {
         $baseUrl = $this->_storeManager->getStore()->getBaseUrl();
+        $storeId = (int) $this->_storeManager->getStore()->getId();
         return [
             'createOrderUrl' => $this->getUrl('paymentservicespaypal/smartbuttons/createpaypalorder'),
             'authorizeOrderUrl' => $this->getUrl('paymentservicespaypal/smartbuttons/updatequote'),
@@ -141,7 +154,8 @@ class SmartButtons extends Template implements ShortcutInterface
             'isVirtual' => $this->session->getQuote()->isVirtual(),
             'googlePayMode' => $this->config->getGooglePayMode(),
             'pageType' => $this->pageType,
-            'completeOrderUrl' => $baseUrl . 'rest/V1/payment-order/completeOrder'
+            'completeOrderUrl' => $baseUrl . 'rest/V1/payment-order/completeOrder',
+            'appSwitchWhenAvailable' => $this->config->getAppSwitch($storeId)
         ];
     }
 

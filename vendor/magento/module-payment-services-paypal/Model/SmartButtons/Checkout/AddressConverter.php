@@ -1,8 +1,20 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * ADOBE CONFIDENTIAL
+ *
+ * Copyright 2021 Adobe
+ * All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of Adobe and its suppliers, if any. The intellectual
+ * and technical concepts contained herein are proprietary to Adobe
+ * and its suppliers and are protected by all applicable intellectual
+ * property laws, including trade secret and copyright laws.
+ * Dissemination of this information or reproduction of this material
+ * is strictly forbidden unless prior written permission is obtained
+ * from Adobe.
  */
+
 declare(strict_types=1);
 
 namespace Magento\PaymentServicesPaypal\Model\SmartButtons\Checkout;
@@ -19,8 +31,8 @@ class AddressConverter
     {
         $data = [];
 
-        $this->addEmail($data, $order['paypal-order']['payer']);
-        $this->addTelephone($data, $order['paypal-order']['payer']);
+        $this->addEmail($data, $order['paypal-order']);
+        $this->addTelephone($data, $order['paypal-order']);
 
         if (isset($order['paypal-order']['shipping-address'])) {
             $address = $order['paypal-order']['shipping-address'];
@@ -50,8 +62,8 @@ class AddressConverter
         ];
 
         $this->addLastName($data, $order['paypal-order']['payer']);
-        $this->addEmail($data, $order['paypal-order']['payer']);
-        $this->addTelephone($data, $order['paypal-order']['payer']);
+        $this->addEmail($data, $order['paypal-order']);
+        $this->addTelephone($data, $order['paypal-order']);
 
         $address = $order['paypal-order']['billing-address'];
 
@@ -161,13 +173,23 @@ class AddressConverter
      * Add the telephone to data.
      *
      * @param array $data
-     * @param array $payer
+     * @param array $payPalOrder
      * @return void
      */
-    private function addTelephone(array &$data, array $payer) : void
+    private function addTelephone(array &$data, array $payPalOrder) : void
     {
-        if (isset($payer['phone_number'])) {
-            $data['telephone'] = $payer['phone_number'];
+        if (isset($payPalOrder['payer']['phone_number'])) {
+            $data['telephone'] = $payPalOrder['payer']['phone_number'];
+        }
+
+        if (isset($payPalOrder['shipping-address'])) {
+            $shipping = $payPalOrder['shipping-address'];
+
+            if (isset($shipping['phone_number'])
+                && !empty($shipping['phone_number']['national_number'])
+            ) {
+                $data['telephone'] = $shipping['phone_number']['national_number'];
+            }
         }
     }
 
@@ -175,13 +197,21 @@ class AddressConverter
      * Add the email to data.
      *
      * @param array $data
-     * @param array $payer
+     * @param array $payPalOrder
      * @return void
      */
-    private function addEmail(array &$data, array $payer) : void
+    private function addEmail(array &$data, array $payPalOrder) : void
     {
-        if (isset($payer['email'])) {
-            $data['email'] = $payer['email'];
+        if (isset($payPalOrder['payer']['email'])) {
+            $data['email'] = $payPalOrder['payer']['email'];
+        }
+
+        if (isset($payPalOrder['shipping-address'])) {
+            $shipping = $payPalOrder['shipping-address'];
+
+            if (isset($shipping['email'])) {
+                $data['email'] = $shipping['email'];
+            }
         }
     }
 

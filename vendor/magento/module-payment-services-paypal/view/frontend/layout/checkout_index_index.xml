@@ -53,6 +53,16 @@
                                             <item name="children" xsi:type="array">
                                                 <item name="payment" xsi:type="array">
                                                     <item name="children" xsi:type="array">
+                                                        <item name="customer-email" xsi:type="array">
+                                                            <item name="template" xsi:type="string">Magento_PaymentServicesPaypal/form/element/email</item>
+                                                            <item name="children" xsi:type="array">
+                                                                <item name="paypal-fastlane-email-watermark" xsi:type="array">
+                                                                    <item name="component" xsi:type="string">Magento_PaymentServicesPaypal/js/view/form/element/powered-by</item>
+                                                                    <item name="displayArea" xsi:type="string">paypal-fastlane-email-watermark</item>
+                                                                    <item name="id" xsi:type="string">paypal-fastlane-email-watermark</item>
+                                                                </item>
+                                                            </item>
+                                                        </item>
                                                         <item name="renders" xsi:type="array">
                                                             <item name="children" xsi:type="array">
                                                                 <item name="payment_services" xsi:type="array">

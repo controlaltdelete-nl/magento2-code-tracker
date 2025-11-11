@@ -8,14 +8,16 @@ define([
     'underscore',
     'jquery',
     'mageUtils',
-    'Magento_PaymentServicesPaypal/js/view/payment/paypal-abstract',
     'scriptLoader',
     'Magento_PaymentServicesPaypal/js/view/payment/methods/smart-buttons',
     'mage/translate',
     'Magento_Customer/js/customer-data',
+    'Magento_PaymentServicesPaypal/js/helpers/remove-paypal-url-token',
+    'Magento_PaymentServicesPaypal/js/model/app-switch-data',
     'Magento_PaymentServicesPaypal/js/view/errors/response-error',
     'jquery/jquery-storageapi'
-], function (_, $, utils, Component, loadSdkScript, SmartButtons, $t, customerData, ResponseError) {
+], function (_, $, utils, loadSdkScript, Component, $t, customerData,
+    removePayPalUrlToken, appSwitchDataModel, ResponseError) {
     'use strict';
 
     var refreshCustomerData = function (url) {
@@ -24,10 +26,10 @@ define([
             {},
             {
                 type: 'POST',
-                url: url,
+                url: url
             }
         );
-    }
+    };
 
     return Component.extend({
         defaults: {
@@ -45,59 +47,38 @@ define([
          * @inheritdoc
          */
         initialize: function (config, element) {
-            _.bindAll(this, 'renderButtons', 'initSmartButtons', 'onClick', 'catchError', 'beforeCreateOrder',
+            _.bindAll(this, 'renderButtons', 'onClick', 'onError', 'beforeCreateOrder',
                 'afterCreateOrder', 'beforeOnAuthorize', 'onCancel');
             config.uid = utils.uniqueid();
             this._super();
             this.element = element;
             this.element.id = this.buttonsContainerId;
-            this.getSdkParams()
-                .then(this.initSmartButtons)
-                .then(this.renderButtons)
-                .catch(function (e) {
-                    console.log(e);
+            this.sdkLoaded = this.getSdkParams().then(() => {
+                return loadSdkScript(this.sdkParams, this.sdkNamespace).then((sdkScript) => {
+                    this.paypal = sdkScript;
                 });
+            });
+            this.renderButtons();
 
             return this;
-        },
-
-        /**
-         * Create instance of smart buttons.
-         */
-        initSmartButtons: function () {
-            this.buttons = new SmartButtons({
-                sdkNamespace: this.sdkNamespace,
-                scriptParams: this.sdkParams,
-                styles: this.styles,
-                createOrderUrl: this.createOrderUrl,
-                placeOrderUrl: this.placeOrderUrl,
-                authorizeOrderUrl: this.authorizeOrderUrl,
-                completeOrderUrl: this.completeOrderUrl,
-                onClick: this.onClick,
-                setQuoteAsInactiveUrl: this.setQuoteAsInactiveUrl,
-                beforeCreateOrder: this.beforeCreateOrder,
-                afterCreateOrder: this.afterCreateOrder,
-                catchCreateOrder: this.catchError,
-                finallyCreateOrder: this.showLoader.bind(this, false),
-                beforeOnAuthorize: this.beforeOnAuthorize,
-                afterOnAuthorize: this.afterOnAuthorize,
-                catchOnAuthorize: this.catchError,
-                finallyOnAuthorize: this.showLoader.bind(this, false),
-                onError: this.catchError,
-                onCancel: this.onCancel,
-                location: this.pageType,
-            });
         },
 
         /**
          * Render buttons
          */
         renderButtons: function () {
-            this.buttons.sdkLoaded.then(function () {
-                try {
-                    this.buttons && this.buttons.render('#' + this.buttonsContainerId);
-                } catch (e) {
-                    console.log(e);
+            if (!this.sdkLoaded) {
+                return;
+            }
+
+            this.sdkLoaded.then(function () {
+                let containerSelector = '#' + this.buttonsContainerId;
+
+                if ($(containerSelector).length > 0) {
+                    this.setup(containerSelector);
+                    this.render();
+                } else {
+                    console.warn('PayPal button container not found:', containerSelector);
                 }
             }.bind(this)).catch(function () {
                 console.log('Error: Failed to load PayPal SDK script!');
@@ -110,9 +91,27 @@ define([
          * @param {Boolean} show
          */
         showLoader: function (show) {
-            var event = show ? 'processStart' : 'processStop';
+            let event = show ? 'processStart' : 'processStop';
 
             $('body').trigger(event);
+        },
+
+        /**
+         * Add error handing to catch errors with authorizing the order.
+         *
+         * @param {*} error
+         */
+        catchOnAuthorize: function (error) {
+            this.onError(error);
+        },
+
+        /**
+         * Add error handling to catch errors on creating the order.
+         *
+         * @param {*} error
+         */
+        catchCreateOrder: function (error) {
+            this.onError(error);
         },
 
         /**
@@ -120,8 +119,12 @@ define([
          *
          * @param {*} error
          */
-        catchError: function (error) {
-            var message = error instanceof ResponseError ? error.message : this.paymentActionError;
+        onError: function (error) {
+            removePayPalUrlToken();
+
+            this.render(this.element);
+
+            let message = error instanceof ResponseError ? error.message : this.paymentActionError;
 
             this.showLoader(false);
 
@@ -150,22 +153,24 @@ define([
         },
 
         /**
-         * Calls when user click paypal button
+         * Calls when user click PayPal button
          *
          * @param {Object} data
          * @param {Promise} actions
          * @return {Promise}
          */
         onClick: function (data, actions) {
-            var $form = $(this.productFormSelector);
+            let productForm = $(this.productFormSelector);
 
-            if ($form.data('mageValidation')) {
-                this.formInvalid = !$form.validation('isValid');
+            if (productForm.data('mageValidation')) {
+                this.formInvalid = !productForm.validation('isValid');
             }
 
             if (this.formInvalid) {
                 return actions.reject();
             }
+
+            appSwitchDataModel.setData('pageType', this.pageType);
 
             return actions.resolve();
         },
@@ -248,6 +253,10 @@ define([
          * Set the quote inactive on cancel
          */
         onCancel: function () {
+            removePayPalUrlToken();
+
+            this.render(this.element);
+
             this.setQuoteInactive()
                 .always(() => {
                     this.showLoader(false);

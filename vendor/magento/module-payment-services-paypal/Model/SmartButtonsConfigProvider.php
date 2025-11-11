@@ -1,21 +1,33 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * ADOBE CONFIDENTIAL
+ *
+ * Copyright 2021 Adobe
+ * All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of Adobe and its suppliers, if any. The intellectual
+ * and technical concepts contained herein are proprietary to Adobe
+ * and its suppliers and are protected by all applicable intellectual
+ * property laws, including trade secret and copyright laws.
+ * Dissemination of this information or reproduction of this material
+ * is strictly forbidden unless prior written permission is obtained
+ * from Adobe.
  */
+
 declare(strict_types=1);
 namespace Magento\PaymentServicesPaypal\Model;
 
 use Magento\Checkout\Model\ConfigProviderInterface;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\PaymentServicesPaypal\Model\SdkService\PaymentOptionsBuilder;
-use Magento\PaymentServicesPaypal\Model\SdkService\PaymentOptionsBuilderFactory;
 use Magento\Framework\UrlInterface;
 use Magento\PaymentServicesBase\Model\Config as BaseConfig;
 
 class SmartButtonsConfigProvider implements ConfigProviderInterface
 {
     public const CODE = Config::PAYMENTS_SERVICES_PREFIX . 'smart_buttons';
-
     private const LOCATION = 'checkout_smart_buttons';
 
     /**
@@ -57,9 +69,12 @@ class SmartButtonsConfigProvider implements ConfigProviderInterface
     }
 
     /**
-     * @inheritdoc
+     * Get checkout configuration
+     *
+     * @throws NoSuchEntityException
+     * @throws LocalizedException
      */
-    public function getConfig()
+    public function getConfig(): array
     {
         $config = $this->configProvider->getConfig();
         if (!$this->baseConfig->isConfigured() || !$this->config->isLocationEnabled('checkout')) {
@@ -79,11 +94,16 @@ class SmartButtonsConfigProvider implements ConfigProviderInterface
         $config['payment'][self::CODE]['buttonStyles'] = $this->config->getButtonConfiguration();
         $config['payment'][self::CODE]['paymentTypeIconUrl'] =
             $this->config->getViewFileUrl('Magento_PaymentServicesPaypal::images/paypal_vertical.png');
+        $config['payment'][self::CODE]['appSwitchWhenAvailable'] = $this->config->getAppSwitch();
+
         return $config;
     }
 
     /**
-     * @inheritdoc
+     * Get payment options
+     *
+     * @return PaymentOptionsBuilder
+     * @throws NoSuchEntityException
      */
     private function getPaymentOptions(): PaymentOptionsBuilder
     {
@@ -94,6 +114,7 @@ class SmartButtonsConfigProvider implements ConfigProviderInterface
         $paymentOptionsBuilder->setIsApplePayEnabled(false);
         $paymentOptionsBuilder->setIsPayPalCardEnabled($this->config->isFundingSourceEnabledByName('card'));
         $paymentOptionsBuilder->setIsPaylaterMessageEnabled($this->config->canDisplayPayLaterMessage());
+
         return $paymentOptionsBuilder;
     }
 }
