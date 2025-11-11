@@ -14,14 +14,31 @@
  * is strictly forbidden unless prior written permission is obtained
  * from Adobe.
  */
+
 declare(strict_types=1);
 
-?>
+namespace Magento\PaymentServicesPaypal\Model\Adminhtml\Source;
 
-<script type="text/x-magento-init">
+use Magento\Framework\Data\OptionSourceInterface;
+
+class Theme implements OptionSourceInterface
 {
-    "*": {
-        "Magento_PaymentServicesPaypal/js/fastlane-styling": {}
+    /**
+     * Fastlane theme options
+     *
+     * @return array
+     */
+    public function toOptionArray() : array
+    {
+        return [
+            [
+                'value' => 'light',
+                'label' => __('Light'),
+            ],
+            [
+                'value' => 'dark',
+                'label' => __('Dark'),
+            ],
+        ];
     }
 }
-</script>
