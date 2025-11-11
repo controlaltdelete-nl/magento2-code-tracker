@@ -1,7 +1,18 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * ADOBE CONFIDENTIAL
+ *
+ * Copyright 2023 Adobe
+ * All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of Adobe and its suppliers, if any. The intellectual
+ * and technical concepts contained herein are proprietary to Adobe
+ * and its suppliers and are protected by all applicable intellectual
+ * property laws, including trade secret and copyright laws.
+ * Dissemination of this information or reproduction of this material
+ * is strictly forbidden unless prior written permission is obtained
+ * from Adobe.
  */
 
 declare(strict_types=1);
@@ -10,6 +21,7 @@ namespace Magento\PaymentServicesPaypal\Model\Api;
 
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\PaymentServicesPaypal\Api\PaymentSdkManagementInterface;
+use Magento\PaymentServicesPaypal\Model\Adminhtml\Source\ThreeDS;
 use Magento\PaymentServicesPaypal\Model\ApplePayConfigProvider;
 use Magento\PaymentServicesPaypal\Model\Config;
 use Magento\PaymentServicesPaypal\Model\FastlaneConfigProvider;
@@ -20,6 +32,9 @@ use Magento\PaymentServicesPaypal\Model\SmartButtonsConfigProvider;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\PaymentServicesPaypal\Model\SdkService\PaymentOptionsBuilderFactory;
 
+/**
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ */
 class PaymentSdkManagement implements PaymentSdkManagementInterface
 {
     // TODO: Convert to di
@@ -165,7 +180,7 @@ class PaymentSdkManagement implements PaymentSdkManagementInterface
     }
 
     /**
-     * Get script params for paypal smart buttons sdk.
+     * Get script params for PayPal smart buttons sdk.
      *
      * @param string $cacheKey
      * @param string $location
@@ -209,7 +224,7 @@ class PaymentSdkManagement implements PaymentSdkManagementInterface
     }
 
     /**
-     * Get payment options for speicific payment code
+     * Get payment options for specific payment code
      *
      * @param string $location
      * @param string $code
@@ -238,7 +253,7 @@ class PaymentSdkManagement implements PaymentSdkManagementInterface
     }
 
     /**
-     * Get script option for paypal smart buttons sdk.
+     * Get script option for PayPal smart buttons sdk.
      *
      * @param string $location
      * @param int $store
@@ -273,6 +288,7 @@ class PaymentSdkManagement implements PaymentSdkManagementInterface
      * @param string $location
      * @param int $store
      * @return array
+     * @throws NoSuchEntityException
      */
     private function getApplePayOptions(string $location, int $store): array
     {
@@ -295,6 +311,7 @@ class PaymentSdkManagement implements PaymentSdkManagementInterface
      * @param string $location
      * @param int $store
      * @return array
+     * @throws NoSuchEntityException
      */
     private function getGooglePayOptions(string $location, int $store): array
     {
@@ -355,6 +372,12 @@ class PaymentSdkManagement implements PaymentSdkManagementInterface
 
         $paymentOptionsBuilder = $this->paymentOptionsBuilderFactory->create();
         $paymentOptionsBuilder->setIsFastlaneEnabled(true);
+
+        $fastlaneThreeDs = $this->config->getFastlaneThreeDS($store);
+        $paymentOptionsBuilder->setIsFastlaneThreeDSEnabled(
+            $fastlaneThreeDs === ThreeDS::ALWAYS || $fastlaneThreeDs === ThreeDS::WHEN_REQUIRED
+        );
+
         $paymentOptionsBuilder->setAreButtonsEnabled(false);
         $paymentOptionsBuilder->setIsPayPalCreditEnabled(false);
         $paymentOptionsBuilder->setIsVenmoEnabled(false);

@@ -1,8 +1,9 @@
 <?php
+
 /**
  * ADOBE CONFIDENTIAL
  *
- * Copyright 2023 Adobe
+ * Copyright 2025 Adobe
  * All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
@@ -19,16 +20,23 @@ declare(strict_types=1);
 
 namespace Magento\PaymentServicesPaypal\Api;
 
-interface PaymentSdkManagementInterface
+use Magento\Quote\Model\Quote\Address;
+
+interface PhoneNumberServiceInterface
 {
     /**
-     * Get payment sdk params.
+     * Get country ISD calling code
      *
-     * @param string $location sdk location.
-     * @param int|null $store store id.
-     * @param string|null $methodCode payment method code.
-     * @return array Payment token search result interface.
-     * @since 100.1.0
+     * @param string $countryCode
+     * @return int
      */
-    public function getParams(string $location, ?int $store = null, ?string $methodCode = null): array;
+    public function getCountryCodeForRegion(string $countryCode): int;
+
+    /**
+     * Format phone number
+     *
+     * @param Address $address
+     * @return string
+     */
+    public function formatPhoneNumber(Address $address): string;
 }

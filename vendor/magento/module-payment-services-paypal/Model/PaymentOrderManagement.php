@@ -22,6 +22,7 @@ namespace Magento\PaymentServicesPaypal\Model;
 
 use Magento\Framework\Exception\InvalidArgumentException;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\PaymentServicesPaypal\Api\Data\PaymentOrderInterface;
 use Magento\PaymentServicesPaypal\Model\SmartButtons\Checkout;
 use Magento\PaymentServicesPaypal\Model\SmartButtons\Checkout\AddressConverter;
@@ -38,6 +39,8 @@ use Magento\PaymentServicesPaypal\Api\Data\PaymentCardDetailsInterfaceFactory;
 use Magento\PaymentServicesPaypal\Api\Data\PaymentCardBinDetailsInterface;
 use Magento\PaymentServicesPaypal\Api\Data\PaymentCardBinDetailsInterfaceFactory;
 use Magento\PaymentServicesBase\Model\Config as BaseConfig;
+use Magento\Quote\Api\Data\CartInterface;
+use Magento\Quote\Model\Quote;
 
 /**
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
@@ -204,15 +207,10 @@ class PaymentOrderManagement implements PaymentOrderManagementInterface
         ];
 
         // Server side shipping callback for PayPal & Venmo
-        if (in_array($paymentSource, Checkout::SSSC_ALLOWED_PAYMENT_SOURCE)) {
-            $shippingPreference = $this->orderHelper->getShippingPreference($quote);
+        $data = $this->addShippingCallbackRequestData($paymentSource, $quote, $data);
 
-            $data['user_action'] = $this->orderHelper->getUserAction();
-            $data['shipping_preference'] = $shippingPreference;
-            if ($shippingPreference === 'GET_FROM_FILE') {
-                $data['order_update_callback_config'] = $this->orderHelper->getOrderUpdateCallbackConfig($quote);
-            }
-        }
+        // BXO for PayPal
+        $data = $this->addBxoRequestDataForPayPal($paymentSource, (int)$quote->getStoreId(), $data);
 
         $orderServiceResponse = $this->orderService->create($quote->getStore(), $data);
 
@@ -241,6 +239,63 @@ class PaymentOrderManagement implements PaymentOrderManagementInterface
             }
             throw new LocalizedException(__($message));
         }
+    }
+
+    /**
+     * Server side shipping callback request data for PayPal & Venmo
+     *
+     * @param string|null $paymentSource
+     * @param CartInterface|Quote $quote
+     * @param array $data
+     * @return array
+     */
+    private function addShippingCallbackRequestData(
+        ?string $paymentSource,
+        CartInterface|Quote $quote,
+        array $data
+    ): array {
+        if (in_array($paymentSource, Checkout::SSSC_ALLOWED_PAYMENT_SOURCE)) {
+            $shippingPreference = $this->orderHelper->getShippingPreference($quote);
+
+            $data['user_action'] = $this->orderHelper->getUserAction();
+            $data['shipping_preference'] = $shippingPreference;
+            if ($shippingPreference === 'GET_FROM_FILE') {
+                $data['order_update_callback_config'] = $this->orderHelper->getOrderUpdateCallbackConfig($quote);
+            }
+        }
+
+        return $data;
+    }
+
+    /**
+     * Add BXO (App Switch and Contact Module) request data
+     *
+     * @param string|null $paymentSource
+     * @param int $storeId
+     * @param array $data
+     * @return array
+     * @throws NoSuchEntityException
+     */
+    private function addBxoRequestDataForPayPal(
+        ?string $paymentSource,
+        int $storeId,
+        array $data
+    ): array {
+        if (in_array($paymentSource, Checkout::BXO_ALLOWED_PAYMENT_SOURCE)) {
+            // App Switch
+            if ($this->orderHelper->isAppSwitchEnabled($storeId)) {
+                $data['return_url'] = $this->orderHelper->getCurrentPageUrl();
+                $data['cancel_url'] = $this->orderHelper->getCurrentPageUrl();
+            }
+
+            // Contact Preference
+            $data['contact_preference'] = Checkout::NO_CONTACT_INFO;
+            if ($this->orderHelper->isContactPreferenceEnabled($storeId)) {
+                $data['contact_preference'] = Checkout::UPDATE_CONTACT_INFO;
+            }
+        }
+
+        return $data;
     }
 
     /**
