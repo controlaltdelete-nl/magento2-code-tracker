@@ -2,7 +2,7 @@
 /**
  * ADOBE CONFIDENTIAL
  *
- * Copyright 2023 Adobe
+ * Copyright 2025 Adobe
  * All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
@@ -14,21 +14,24 @@
  * is strictly forbidden unless prior written permission is obtained
  * from Adobe.
  */
+// @codingStandardsIgnoreFile
 
-declare(strict_types=1);
+use Magento\PaymentServicesPaypal\Block\Adminhtml\Form\Reset;
+use Magento\Framework\Escaper;
 
-namespace Magento\PaymentServicesPaypal\Api;
+/** @var Escaper $escaper */
+/** @var Reset $block */
 
-interface PaymentSdkManagementInterface
+?>
+
+<button class="action primary">
+    <?= $escaper->escapeHtml(__('Reset')); ?>
+</button>
+
+<script type="text/x-magento-init">
 {
-    /**
-     * Get payment sdk params.
-     *
-     * @param string $location sdk location.
-     * @param int|null $store store id.
-     * @param string|null $methodCode payment method code.
-     * @return array Payment token search result interface.
-     * @since 100.1.0
-     */
-    public function getParams(string $location, ?int $store = null, ?string $methodCode = null): array;
+    "*": {
+        "Magento_PaymentServicesPaypal/js/fastlane-styling": {}
+    }
 }
+</script>
