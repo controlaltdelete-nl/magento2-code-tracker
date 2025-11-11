@@ -1,3 +1,19 @@
+/**
+ * ADOBE CONFIDENTIAL
+ *
+ * Copyright 2025 Adobe
+ * All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of Adobe and its suppliers, if any. The intellectual
+ * and technical concepts contained herein are proprietary to Adobe
+ * and its suppliers and are protected by all applicable intellectual
+ * property laws, including trade secret and copyright laws.
+ * Dissemination of this information or reproduction of this material
+ * is strictly forbidden unless prior written permission is obtained
+ * from Adobe.
+ */
+
 define([
     'jquery',
     'knockout',
@@ -32,6 +48,8 @@ define([
         profileData: ko.observable(null),
         email: null,
         sdkNamespace: 'paypalFastlane',
+        liabilityShift: ko.observable(null),
+        authenticationState: ko.observable(null),
 
         /**
          * Creates the Fastlane instance.
@@ -48,7 +66,6 @@ define([
                     paths: {
                         braintree: `https://js.braintreegateway.com/web/${braintreeVersion}/js`,
                         fastlane: 'https://www.paypalobjects.com/connect-boba',
-                        'fastlane/axo.min': 'https://www.paypalobjects.com/connect-boba/axo',
                     },
                     shim: {
                         'fastlane/axo': {
@@ -93,6 +110,7 @@ define([
 
         getStyles: function () {
             return {
+                theme: window.checkoutConfig.payment[this.getCode()].styling.theme,
                 root: {
                     backgroundColor: window.checkoutConfig.payment[this.getCode()].styling.rootBackgroundColor,
                     errorColor: window.checkoutConfig.payment[this.getCode()].styling.rootErrorColor,
@@ -351,7 +369,7 @@ define([
         },
 
         /**
-         * Handles all of the data from Fastlane and populating that into Adobe Commerce checkout models.
+         * Handles all the data from Fastlane and populating that into Adobe Commerce checkout models.
          *
          * @param {Object} profileData - The complete profile data as gathered from Fastlane.
          * @param {Object} [profileData.card] - Optional card data object.
@@ -468,6 +486,44 @@ define([
             }
 
             return this.fastlanePaymentComponent.getPaymentToken();
+        },
+
+        /**
+         * Validate the token with 3DS.
+         *
+         * @param {string} nonce
+         */
+        validate3DS: async function (nonce) {
+            const totals = quote.totals();
+
+            const payload = {
+                amount: totals['base_grand_total'].toFixed(2),
+                currency: window.checkoutConfig.quoteData.base_currency_code,
+                nonce,
+                threeDSRequested: true,
+                transactionContext: {
+                    experience_context: {
+                        brand_name: "",
+                        locale: window.LOCALE
+                    }
+                }
+            }
+
+            const isThreeDomainSecureEligible = await window[this.sdkNamespace].ThreeDomainSecureClient.isEligible(payload);
+
+            if (isThreeDomainSecureEligible) {
+                const { liabilityShift, authenticationState, nonce } = await window[this.sdkNamespace].ThreeDomainSecureClient.show();
+
+                this.liabilityShift(liabilityShift);
+                this.authenticationState(authenticationState);
+                if (authenticationState === "succeeded") {
+                    return nonce;
+                } else {
+                    throw new Error('Authentication has been failed or cancelled');
+                }
+            }
+
+            return nonce;
         },
 
         /**

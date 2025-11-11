@@ -12,6 +12,7 @@ use Magento\Framework\App\Action\HttpGetActionInterface;
 use Magento\Framework\App\Action\HttpPatchActionInterface;
 use Magento\Framework\App\CacheInterface;
 use Magento\Framework\App\Cache\Type\Config as CacheConfig;
+use Magento\Framework\Exception\InputException;
 use Magento\PageCache\Model\Cache\Type as PageCacheConfig;
 use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
@@ -40,6 +41,13 @@ class Index extends AbstractProxyController implements
     private const PAGE_CACHE_PARAM_TYPE = 'page';
     private const ALL_CACHE_PARAM_TYPE = 'all';
     private const IS_DEFAULT_SUFFIX = '/isDefault';
+    private const ALLOWED_SCOPE_TYPES = [
+        null,
+        ScopeConfigInterface::SCOPE_TYPE_DEFAULT,
+        ScopeInterface::SCOPE_WEBSITES,
+        ScopeInterface::SCOPE_GROUPS,
+        ScopeInterface::SCOPE_STORES
+    ];
 
     /**
      * @var configPaths
@@ -146,6 +154,10 @@ class Index extends AbstractProxyController implements
         }
         if ($method === 'PATCH') {
             try {
+
+                $this->validateScope($scope);
+                $this->validateScopeCode($scope, $scopeCode);
+
                 $config = $this->serializer->unserialize($request->getContent());
                 if ($version === 'v1') {
                     $this->saveConfig($config, $service, $scope, $scopeCode);
@@ -157,7 +169,11 @@ class Index extends AbstractProxyController implements
                     $this->handleCacheClear($clearCache);
                 }
                 $this->handleCustomCacheClear();
-            } catch (Exception $e) {
+            } catch (InputException $e) {
+                return $response->setHttpResponseCode(400)
+                    ->setData('Failed to save configuration, ' . $e->getMessage());
+            }
+            catch (Exception $e) {
                 return $response->setHttpResponseCode(500)
                     ->setData('Failed to save configuration, ' . $e->getMessage());
             }
@@ -363,7 +379,6 @@ class Index extends AbstractProxyController implements
         } else {
             $scopeId = $this->storeManager->getStore($scopeCode)->getId();
         }
-
         return $scopeId;
     }
 
@@ -409,5 +424,31 @@ class Index extends AbstractProxyController implements
     private function handleCustomCacheClear(): void
     {
         $this->cache->clean([SdkService::CACHE_TYPE_TAG]);
+    }
+
+    /**
+     * @param string|null $scope
+     * @return void
+     * @throws InputException
+     */
+    public function validateScope(?string $scope): void
+    {
+        if (!in_array($scope, self::ALLOWED_SCOPE_TYPES, true)) {
+            throw new InputException(__('Invalid scope provided'));
+        }
+    }
+
+    /**
+     * @param string|null $scope
+     * @param string|null $scopeCode
+     * @return void
+     * @throws InputException
+     */
+    public function validateScopeCode(?string $scope, ?string $scopeCode): void
+    {
+        $allScopeCodes = $this->getAllScopeCodes($scope);
+        if ($scopeCode !== null && !in_array($scopeCode, $allScopeCodes, true)) {
+            throw new InputException(__('Invalid scope code provided'));
+        }
     }
 }

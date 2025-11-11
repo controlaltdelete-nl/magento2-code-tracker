@@ -1,7 +1,18 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * ADOBE CONFIDENTIAL
+ *
+ * Copyright 2021 Adobe
+ * All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of Adobe and its suppliers, if any. The intellectual
+ * and technical concepts contained herein are proprietary to Adobe
+ * and its suppliers and are protected by all applicable intellectual
+ * property laws, including trade secret and copyright laws.
+ * Dissemination of this information or reproduction of this material
+ * is strictly forbidden unless prior written permission is obtained
+ * from Adobe.
  */
 declare(strict_types=1);
 
@@ -26,6 +37,7 @@ class PaymentOptionsBuilder extends DataObject
     private const IS_PAYLATER_MESSAGE_ENABLED = 'paylater_message';
     private const IS_FASTLANE_ENABLED = 'fastlane';
     private const DOMAINS = 'domains';
+    private const IS_FASTLANE_3DS_ENABLED = 'three_ds';
 
     /**
      * Set is smart buttons enabled.
@@ -164,11 +176,25 @@ class PaymentOptionsBuilder extends DataObject
     }
 
     /**
+     * Set fastlane 3DS enabled then PayPal should render 'three-domain-secure' parameter in SDK params
+     *
+     * If it's enabled then 'three-domain-secure' will be
+     * Added in Sdk params as components for the fastlane
+     *
+     * @param bool $fastlaneThreeDS
+     * @return PaymentOptionsBuilder
+     */
+    public function setIsFastlaneThreeDSEnabled(bool $fastlaneThreeDS): PaymentOptionsBuilder
+    {
+        return $this->setData(self::IS_FASTLANE_3DS_ENABLED, $fastlaneThreeDS);
+    }
+
+    /**
      * Build result.
      *
      * @return array
      */
-    public function build()
+    public function build(): array
     {
         $result = [
             self::IS_CREDIT_CARD_ENABLED =>
@@ -180,7 +206,11 @@ class PaymentOptionsBuilder extends DataObject
             self::IS_PAYLATER_MESSAGE_ENABLED => $this->getData(self::IS_PAYLATER_MESSAGE_ENABLED),
             self::IS_GOOGLE_PAY_ENABLED => $this->getData(self::IS_GOOGLE_PAY_ENABLED),
             self::IS_APPLE_PAY_ENABLED => $this->getData(self::IS_APPLE_PAY_ENABLED),
-            self::IS_FASTLANE_ENABLED => $this->getData(self::IS_FASTLANE_ENABLED),
+            self::IS_FASTLANE_ENABLED => $this->getData(self::IS_FASTLANE_ENABLED)
+                ? [
+                    'enabled' => $this->getData(self::IS_FASTLANE_ENABLED),
+                    'three_ds' => $this->getData(self::IS_FASTLANE_3DS_ENABLED)
+                ] : null,
         ];
         if ($this->getData(self::ARE_BUTTONS_ENABLED)) {
             $result[self::BUTTONS] = [
@@ -192,6 +222,7 @@ class PaymentOptionsBuilder extends DataObject
         if ($result[self::IS_FASTLANE_ENABLED] && $this->getData(self::DOMAINS)) {
             $result[self::DOMAINS] = $this->getData(self::DOMAINS);
         }
+
         return $result;
     }
 }
