@@ -1,8 +1,19 @@
 <?xml version="1.0"?>
 <!--
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * ADOBE CONFIDENTIAL
+ *
+ * Copyright 2020 Adobe
+ * All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of Adobe and its suppliers, if any. The intellectual
+ * and technical concepts contained herein are proprietary to Adobe
+ * and its suppliers and are protected by all applicable intellectual
+ * property laws, including trade secret and copyright laws.
+ * Dissemination of this information or reproduction of this material
+ * is strictly forbidden unless prior written permission is obtained
+ * from Adobe.
  */
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
@@ -12,7 +23,7 @@
                 <legacy_admin_enabled>1</legacy_admin_enabled>
                 <soft_descriptor/>
                 <async_status_updates>0</async_status_updates>
-                <sdk_url>https://payments-sdk.live.commerce-payment-services.com/v0/3/PaymentSDK.js</sdk_url>
+                <sdk_url>https://payments-sdk.live.commerce-payment-services.com/v0/4/PaymentSDK.js</sdk_url>
             </payment_services>
             <payment_services_paypal_hosted_fields>
                 <payment_action>authorize</payment_action>
@@ -78,6 +89,8 @@
                 <display_buttons_minicart>1</display_buttons_minicart>
                 <display_buttons_cart>1</display_buttons_cart>
                 <display_buttons_checkout>1</display_buttons_checkout>
+                <app_switch>0</app_switch>
+                <contact_preference>0</contact_preference>
                 <funding_venmo>1</funding_venmo>
                 <funding_paypal_credit>1</funding_paypal_credit>
                 <funding_card>0</funding_card>
@@ -154,6 +167,7 @@
                 <merchant_gateway_key backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
                 <enabled>0</enabled>
                 <title>Fastlane</title>
+                <three_ds>0</three_ds>
                 <order_status>pending_payment</order_status>
                 <debug>1</debug>
                 <currency>USD</currency>
@@ -169,7 +183,7 @@
                 <can_use_checkout>1</can_use_checkout>
                 <is_gateway>1</is_gateway>
                 <sort_order>30</sort_order>
-                <paymentInfoKeys>cc_type,cc_last_4,cc_exp_month/cc_exp_year,paypal_order_id,paypal_fastlane_profile</paymentInfoKeys>
+                <paymentInfoKeys>cc_type,cc_last_4,cc_exp_month/cc_exp_year,paypal_order_id,paypal_fastlane_profile,liability_shift,authentication_state</paymentInfoKeys>
                 <display_on_checkout>1</display_on_checkout>
                 <can_review_payment>0</can_review_payment>
             </payment_services_paypal_fastlane>

@@ -1,8 +1,19 @@
 <?xml version="1.0"?>
 <!--
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * ADOBE CONFIDENTIAL
+ *
+ * Copyright 2020 Adobe
+ * All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of Adobe and its suppliers, if any. The intellectual
+ * and technical concepts contained herein are proprietary to Adobe
+ * and its suppliers and are protected by all applicable intellectual
+ * property laws, including trade secret and copyright laws.
+ * Dissemination of this information or reproduction of this material
+ * is strictly forbidden unless prior written permission is obtained
+ * from Adobe.
  */
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
@@ -36,7 +47,10 @@
     <preference for="Magento\PaymentServicesPaypal\Api\Data\VaultCardDetailsInterface" type="Magento\PaymentServicesPaypal\Model\Api\Data\VaultCardDetails" />
     <preference for="Magento\PaymentServicesPaypal\Api\Data\VaultPaymentSourceDetailsInterface" type="Magento\PaymentServicesPaypal\Model\Api\Data\VaultPaymentSourceDetails" />
     <preference for="Magento\PaymentServicesPaypal\Api\ShippingCallbackManagementInterface" type="Magento\PaymentServicesPaypal\Model\Api\ShippingCallbackManagement" />
-    <preference for="Magento\PaymentServicesPaypal\Api\CompleteOrderInterface" type="Magento\PaymentServicesPaypal\Model\Api\CompleteOrder" />
+    <preference for="Magento\PaymentServicesPaypal\Api\CompleteOrderInterface"
+                type="Magento\PaymentServicesPaypal\Model\Api\CompleteOrder" />
+    <preference for="Magento\PaymentServicesPaypal\Api\PhoneNumberServiceInterface"
+                type="Magento\PaymentServicesPaypal\Model\Api\PhoneNumberService" />
 
     <type name="Magento\PaymentServicesPaypal\Plugin\OrderUpdate">
         <arguments>

@@ -165,6 +165,8 @@ PayLater,PayLater
 "payments_order_id","Payment Order ID"
 "paypal_order_id","Payment Provider Reference"
 "paypal_fastlane_profile","Fastlane Profile"
+"liability_shift","Liability Shift"
+"authentication_state","Authentication State"
 "Show buttons on product detail page","Show buttons on product detail page"
 "Please finish onboarding by using your Adobe generated scope onboarding link.","Please finish onboarding by using your Adobe generated scope onboarding link."
 "There is an issue with your PayPal account. Please reach out to Adobe sales for assistance.","There is an issue with your PayPal account. Please reach out to Adobe sales for assistance."

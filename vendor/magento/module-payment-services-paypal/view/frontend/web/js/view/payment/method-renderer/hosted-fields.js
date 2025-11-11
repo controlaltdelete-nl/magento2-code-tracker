@@ -306,7 +306,6 @@ define([
                     onValidityChange: this.onValidityChange.bind(this),
                     onCardTypeChange: this.onCardTypeChange.bind(this),
                     onError: this.onError.bind(this),
-                    getShouldSetPaymentMethodOnCard: () => false,
                 });
             }.bind(this))
                 .catch((e) => {

@@ -1,7 +1,6 @@
 <?php
-/*************************************************************************
+/**
  * ADOBE CONFIDENTIAL
- * ___________________
  *
  * Copyright 2025 Adobe
  * All Rights Reserved.
@@ -14,7 +13,8 @@
  * Dissemination of this information or reproduction of this material
  * is strictly forbidden unless prior written permission is obtained
  * from Adobe.
- **************************************************************************/
+ */
+
 declare(strict_types=1);
 
 namespace Magento\PaymentServicesPaypal\Model\Api\Data;
@@ -36,5 +36,20 @@ class PaymentConfigFastlane extends PaymentConfigItem implements PaymentConfigFa
     public function setPaymentSource(string $paymentSource): PaymentConfigFastlane
     {
         return $this->setData(self::PAYMENT_SOURCE, $paymentSource);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getFastlaneThreeDS(): string
+    {
+        return $this->getData(self::FASTLANE_THREE_DS);
+    }
+    /**
+     * @inheritdoc
+     */
+    public function setFastlaneThreeDS(string $fastlaneThreeDs): PaymentConfigFastlane
+    {
+        return $this->setData(self::FASTLANE_THREE_DS, $fastlaneThreeDs);
     }
 }

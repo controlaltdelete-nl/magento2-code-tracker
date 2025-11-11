@@ -8,13 +8,13 @@ define([
     'underscore',
     'jquery',
     'mageUtils',
-    'Magento_PaymentServicesPaypal/js/view/payment/paypal-abstract',
     'scriptLoader',
+    'Magento_PaymentServicesPaypal/js/helpers/remove-paypal-url-token',
     'Magento_PaymentServicesPaypal/js/view/payment/methods/smart-buttons',
     'mage/translate',
     'Magento_Customer/js/customer-data',
     'Magento_PaymentServicesPaypal/js/view/errors/response-error'
-], function (_, $, utils, Component, loadSdkScript, SmartButtons, $t, customerData, ResponseError) {
+], function (_, $, utils, loadSdkScript, removePayPalUrlToken, Component, $t, customerData, ResponseError) {
     'use strict';
 
     var refreshCustomerData = function (url) {
@@ -23,10 +23,10 @@ define([
             {},
             {
                 type: 'POST',
-                url: url,
+                url: url
             }
         );
-    }
+    };
 
     return Component.extend({
         defaults: {
@@ -41,60 +41,36 @@ define([
          * @inheritdoc
          */
         initialize: function (config, element) {
-            _.bindAll(this, 'renderButtons', 'initSmartButtons', 'catchError', 'beforeCreateOrder', 'afterCreateOrder',
+            _.bindAll(this, 'renderButtons', 'onError', 'beforeCreateOrder', 'afterCreateOrder',
                 'beforeOnAuthorize', 'onCancel');
             config.uid = utils.uniqueid();
             this._super();
             this.element = element;
             this.element.id = this.buttonsContainerId;
-            this.getSdkParams()
-                .then(this.initSmartButtons)
-                .then(this.renderButtons)
-                .catch(function (e) {
-                    console.log(e);
+            this.sdkLoaded = this.getSdkParams().then(() => {
+                return loadSdkScript(this.sdkParams, this.sdkNamespace).then((sdkScript) => {
+                    this.paypal = sdkScript;
                 });
+            });
+            this.renderButtons();
 
             return this;
-        },
-
-        /**
-         * Create instance of smart buttons.
-         */
-        initSmartButtons: function () {
-            this.buttons = new SmartButtons({
-                sdkNamespace: this.sdkNamespace,
-                scriptParams: this.sdkParams,
-                styles: this.styles,
-                createOrderUrl: this.createOrderUrl,
-                placeOrderUrl: this.placeOrderUrl,
-                authorizeOrderUrl: this.authorizeOrderUrl,
-                completeOrderUrl: this.completeOrderUrl,
-                beforeCreateOrder: this.beforeCreateOrder,
-                afterCreateOrder: this.afterCreateOrder,
-                catchCreateOrder: this.catchError,
-                finallyCreateOrder: this.showLoader.bind(this, false),
-                beforeOnAuthorize: this.beforeOnAuthorize,
-                afterOnAuthorize: this.afterOnAuthorize,
-                catchOnAuthorize: this.catchError,
-                finallyOnAuthorize: this.showLoader.bind(this, false),
-                onError: this.catchError,
-                onCancel: this.onCancel,
-                location: this.pageType,
-            });
         },
 
         /**
          * Render buttons
          */
         renderButtons: function () {
-            if (!this.buttons || !this.buttons.sdkLoaded) {
+            if (!this.sdkLoaded) {
                 return;
             }
 
-            this.buttons.sdkLoaded.then(function () {
-                var containerSelector = '#' + this.buttonsContainerId;
+            this.sdkLoaded.then(function () {
+                let containerSelector = '#' + this.buttonsContainerId;
+
                 if ($(containerSelector).length > 0) {
-                    this.buttons.render(containerSelector);
+                    this.setup(containerSelector);
+                    this.render();
                 } else {
                     console.warn('PayPal button container not found:', containerSelector);
                 }
@@ -109,9 +85,18 @@ define([
          * @param {Boolean} show
          */
         showLoader: function (show) {
-            var event = show ? 'processStart' : 'processStop';
+            let event = show ? 'processStart' : 'processStop';
 
             $('body').trigger(event);
+        },
+
+        /**
+         * Add error handling to catch errors on creating the order.
+         *
+         * @param {*} error
+         */
+        catchCreateOrder: function (error) {
+            this.onError(error);
         },
 
         /**
@@ -119,8 +104,8 @@ define([
          *
          * @param {*} error
          */
-        catchError: function (error) {
-            var message = error instanceof ResponseError ? error.message : this.paymentActionError;
+        onError: function (error) {
+            let message = error instanceof ResponseError ? error.message : this.paymentActionError;
 
             this.showLoader(false);
 
@@ -195,8 +180,10 @@ define([
          * @param {Object} actions
          */
         onCancel: function (data, actions) {
+            removePayPalUrlToken();
+
             customerData.invalidate(['cart']);
-            actions.redirect(this.cancelUrl);
+            window.location.replace(this.cancelUrl);
         }
     });
 });

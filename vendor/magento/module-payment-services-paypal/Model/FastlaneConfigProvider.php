@@ -1,7 +1,6 @@
 <?php
-/*************************************************************************
+/**
  * ADOBE CONFIDENTIAL
- * ___________________
  *
  * Copyright 2025 Adobe
  * All Rights Reserved.
@@ -14,13 +13,15 @@
  * Dissemination of this information or reproduction of this material
  * is strictly forbidden unless prior written permission is obtained
  * from Adobe.
- **************************************************************************/
+ */
+
 declare(strict_types=1);
 
 namespace Magento\PaymentServicesPaypal\Model;
 
 use Magento\Checkout\Model\ConfigProviderInterface;
-use Magento\PaymentServicesPaypal\Model\SdkService\PaymentOptionsBuilderFactory;
+use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\PaymentServicesPaypal\Model\Adminhtml\Source\ThreeDS;
 use Magento\PaymentServicesPaypal\Model\SdkService\PaymentOptionsBuilder;
 use Magento\Framework\UrlInterface;
 use Magento\PaymentServicesBase\Model\Config as BaseConfig;
@@ -30,35 +31,8 @@ use Laminas\Uri\Uri;
 class FastlaneConfigProvider implements ConfigProviderInterface
 {
     public const CODE = Config::PAYMENTS_SERVICES_PREFIX . 'fastlane';
-
     private const LOCATION = 'checkout_fastlane';
-
     public const PAYMENT_SOURCE = 'fastlane';
-
-    /**
-     * @var Config
-     */
-    private Config $config;
-
-    /**
-     * @var BaseConfig
-     */
-    private $baseConfig;
-
-    /**
-     * @var ConfigProvider
-     */
-    private ConfigProvider $configProvider;
-
-    /**
-     * @var StoreManagerInterface
-     */
-    private StoreManagerInterface $storeManager;
-
-    /**
-     * Uri
-     */
-    private Uri $uri;
 
     /**
      * @param Config $config
@@ -69,30 +43,19 @@ class FastlaneConfigProvider implements ConfigProviderInterface
      * @param Uri $uri
      */
     public function __construct(
-        Config $config,
-        UrlInterface $url,
-        BaseConfig $baseConfig,
-        ConfigProvider $configProvider,
-        StoreManagerInterface $storeManager,
-        Uri $uri
+        private readonly Config $config,
+        private readonly UrlInterface $url,
+        private readonly BaseConfig $baseConfig,
+        private readonly ConfigProvider $configProvider,
+        private readonly StoreManagerInterface $storeManager,
+        private readonly Uri $uri
     ) {
-        $this->baseConfig = $baseConfig;
-        $this->config = $config;
-        $this->url = $url;
-        $this->configProvider = $configProvider;
-        $this->storeManager = $storeManager;
-        $this->uri = $uri;
     }
-
-    /**
-     * @var UrlInterface
-     */
-    private UrlInterface $url;
 
     /**
      * @inheritdoc
      */
-    public function getConfig()
+    public function getConfig(): array
     {
         $config = $this->configProvider->getConfig();
         if (!$this->baseConfig->isConfigured() || !$this->config->isFastlaneEnabled()) {
@@ -109,6 +72,7 @@ class FastlaneConfigProvider implements ConfigProviderInterface
         $config['payment'][self::CODE]['paymentSource'] = self::PAYMENT_SOURCE;
         $config['payment'][self::CODE]['messaging'] = $this->config->isFastlaneMessagingEnabled();
         $config['payment'][self::CODE]['styling'] = $this->config->getFastlaneStyles();
+        $config['payment'][self::CODE]['threeDS'] = $this->isThreeDSecureEnabled();
         $config['payment'][self::CODE]['createOrderUrl'] = $this->url->getUrl('paymentservicespaypal/order/create');
         $config['payment'][self::CODE]['paymentTypeIconUrl'] =
             $this->config->getViewFileUrl('Magento_PaymentServicesPaypal::images/cc_icon.png');
@@ -117,12 +81,15 @@ class FastlaneConfigProvider implements ConfigProviderInterface
     }
 
     /**
-     * @inheritdoc
+     * Get payment options
+     *
+     * @throws NoSuchEntityException
      */
     private function getPaymentOptions(): PaymentOptionsBuilder
     {
         $paymentOptionsBuilder = $this->configProvider->getPaymentOptions();
         $paymentOptionsBuilder->setIsFastlaneEnabled(true);
+        $paymentOptionsBuilder->setIsFastlaneThreeDSEnabled($this->isThreeDSecureEnabled());
 
         $rootDomain = $this->getStoreRootDomain();
         if (!empty($rootDomain)) {
@@ -140,6 +107,7 @@ class FastlaneConfigProvider implements ConfigProviderInterface
      * and protocol
      *
      * @return string
+     * @throws NoSuchEntityException
      */
     private function getStoreRootDomain(): string
     {
@@ -158,5 +126,18 @@ class FastlaneConfigProvider implements ConfigProviderInterface
         }
 
         return $host;
+    }
+
+    /**
+     * Is 3D Secure enabled?
+     *
+     * @return bool
+     * @throws NoSuchEntityException
+     */
+    private function isThreeDSecureEnabled(): bool
+    {
+        $threeDsMode = $this->config->getFastlaneThreeDS();
+
+        return $threeDsMode === ThreeDS::ALWAYS || $threeDsMode === ThreeDS::WHEN_REQUIRED;
     }
 }
