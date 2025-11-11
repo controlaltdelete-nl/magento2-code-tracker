@@ -1,8 +1,20 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * ADOBE CONFIDENTIAL
+ *
+ * Copyright 2020 Adobe
+ * All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of Adobe and its suppliers, if any. The intellectual
+ * and technical concepts contained herein are proprietary to Adobe
+ * and its suppliers and are protected by all applicable intellectual
+ * property laws, including trade secret and copyright laws.
+ * Dissemination of this information or reproduction of this material
+ * is strictly forbidden unless prior written permission is obtained
+ * from Adobe.
  */
+
 declare(strict_types=1);
 
 namespace Magento\PaymentServicesPaypal\Observer;
@@ -20,33 +32,25 @@ class SaveAdditionalData extends AbstractDataAssignObserver
     private const PAYPAL_FASTLANE_TOKEN = 'paypal_fastlane_token';
 
     /**
-     * @var Config
-     */
-    private $config;
-
-    /**
-     * @var EncryptorInterface
-     */
-    private EncryptorInterface $encryptor;
-
-    /**
      * @var string[]
      */
     private $additionalInformationList = [
         'payments_order_id',
         'paypal_order_id',
         'payment_source',
-        'paypal_fastlane_profile'
+        'paypal_fastlane_profile',
+        'liability_shift',
+        'authentication_state'
     ];
 
     /**
      * @param Config $config
      * @param EncryptorInterface $encryptor
      */
-    public function __construct(Config $config, EncryptorInterface $encryptor)
-    {
-        $this->encryptor = $encryptor;
-        $this->config = $config;
+    public function __construct(
+        private readonly Config $config,
+        private readonly EncryptorInterface $encryptor
+    ) {
     }
 
     /**
@@ -55,7 +59,7 @@ class SaveAdditionalData extends AbstractDataAssignObserver
      * @param Observer $observer
      * @return void
      */
-    public function execute(Observer $observer)
+    public function execute(Observer $observer): void
     {
         $data = $this->readDataArgument($observer);
         $additionalData = $data->getData(PaymentInterface::KEY_ADDITIONAL_DATA);
@@ -81,14 +85,16 @@ class SaveAdditionalData extends AbstractDataAssignObserver
     }
 
     /**
-     * Encrypt and save Paypal Fastlane token to payment info.
+     * Encrypt and save PayPal Fastlane token to payment info.
      *
      * @param array $additionalData
      * @param InfoInterface $paymentInfo
      * @return void
      */
-    private function savePaypalFastlaneToken(array $additionalData, InfoInterface $paymentInfo):void
-    {
+    private function savePaypalFastlaneToken(
+        array $additionalData,
+        InfoInterface $paymentInfo
+    ): void {
         if (!empty($additionalData[self::PAYPAL_FASTLANE_TOKEN])) {
             $paymentInfo->setAdditionalInformation(
                 self::PAYPAL_FASTLANE_TOKEN,

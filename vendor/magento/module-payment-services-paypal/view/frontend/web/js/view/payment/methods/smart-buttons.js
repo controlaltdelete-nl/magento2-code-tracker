@@ -9,8 +9,11 @@ define([
     'underscore',
     'uiComponent',
     'scriptLoader',
-    'Magento_Customer/js/customer-data'
-], function ($, _, Component, loadSdkScript, customerData) {
+    'Magento_Customer/js/customer-data',
+    'Magento_PaymentServicesPaypal/js/helpers/remove-paypal-url-token',
+    'Magento_PaymentServicesPaypal/js/model/app-switch-data',
+    'Magento_PaymentServicesPaypal/js/view/payment/actions/get-sdk-params'
+], function ($, _, Component, loadSdkScript, customerData, removePayPalUrlToken, appSwitchDataModel, getSdkParams) {
     'use strict';
 
     /**
@@ -58,6 +61,7 @@ define([
             return response.json();
         }).then((response)  => {
             const parsed = JSON.parse(response);
+
             if (!parsed.success) {
                 throw new Error($t('We’re unable to take that order right now.'));
             }
@@ -69,6 +73,9 @@ define([
 
     return Component.extend({
         defaults: {
+            sdkParamsKey: 'paypal',
+            sdkParams: [],
+            cacheTtl: 30000,
             sdkNamespace: 'paypal',
             paypal: null,
             paymentSource: '',
@@ -84,18 +91,34 @@ define([
                 }
             },
             element: null,
-            instance: null
+            instance: null,
+            hasReturned: false
         },
 
         /** @inheritdoc */
         initialize: function () {
-            _.bindAll(this, 'createOrder', 'onApprove', 'onError', 'onCancel');
+            _.bindAll(this, 'createOrder', 'onApprove', 'onError', 'onCancel', 'onClick');
             this._super();
-            this.sdkLoaded = loadSdkScript(this.scriptParams, this.sdkNamespace).then(function (sdkScript) {
-                this.paypal = sdkScript;
-            }.bind(this));
+
+            if (this.scriptParams?.length) {
+                this.sdkLoaded = loadSdkScript(this.scriptParams, this.sdkNamespace).then(function (sdkScript) {
+                    this.paypal = sdkScript;
+                }.bind(this));
+            }
 
             return this;
+        },
+
+        /**
+         * Get sdk params
+         *
+         * @return {Promise<Object>}
+         */
+        getSdkParams: function () {
+            return getSdkParams(this.cacheTtl)
+                .then(function (sdkParams) {
+                    this.sdkParams = sdkParams[this.sdkParamsKey];
+                }.bind(this));
         },
 
         /**
@@ -106,7 +129,7 @@ define([
          * @returns {(*&{color: string})|*}
          */
         mapButtonColorForApplePay: function (buttonStyles) {
-            var buttonColor = buttonStyles.color;
+            let buttonColor = buttonStyles.color;
 
             if (buttonColor === 'black' || buttonColor === 'white') {
                 return buttonStyles;
@@ -118,13 +141,13 @@ define([
         },
 
         /**
-         * Render Smart Buttons.
+         * Set up the smart buttons.
          *
          * @param {HTMLElement} element
-         * @return {*}
+         * @returns {*}
          */
-        render: function (element) {
-            var buttonsConfig;
+        setup: function (element) {
+            let buttonsConfig;
 
             if (typeof this.paypal === 'undefined' || !this.paypal.Buttons) {
                 return null;
@@ -135,6 +158,7 @@ define([
             }
 
             buttonsConfig = {
+                appSwitchWhenAvailable: this.appSwitchWhenAvailable,
                 element: this.element,
                 paymentRequest: this.paymentRequest,
                 style: this.styles,
@@ -157,9 +181,23 @@ define([
             }
 
             this.instance = this.paypal.Buttons(buttonsConfig);
+        },
 
+        /**
+         * Render Smart Buttons.
+         *
+         * @return {*}
+         */
+        render: function () {
             if (this.instance.isEligible()) {
-                this.instance.render(this.element);
+                if (this.instance.hasReturned() && appSwitchDataModel.getData('pageType') === this.pageType) {
+                    this.hasReturned = true;
+                    this.instance.resume();
+                } else {
+                    $(this.element).html('');
+                    this.setup(this.element);
+                    this.instance.render(this.element);
+                }
             }
 
             return this.instance;
@@ -175,6 +213,7 @@ define([
          * Calls when user click PayPal button.
          */
         onClick: function () {
+            appSwitchDataModel.setData('pageType', this.pageType);
         },
 
         /**
@@ -196,7 +235,7 @@ define([
 
             // add location to the order create request
             let orderData = new FormData();
-            orderData.append('location', this.location);
+            orderData.append('location', this.location || this.pageType);
 
             return this.beforeCreateOrder()
                 .then(performCreateOrder.bind(this, this.createOrderUrl, data, orderData))
@@ -277,18 +316,28 @@ define([
          */
         onShippingChange: undefined,
 
+        handleError: function () {
+            removePayPalUrlToken();
+
+            this.render(this.element);
+        },
+
         /**
          * Calls when error happened on PayPal side.
          *
          * @param {Error} error
          */
         onError: function (error) {
-            console.log('Error: ', error.message);
+            console.log('Error: ', error?.message || this.paymentActionError);
+
+            this.handleError();
         },
 
         /**
          * Calls when user canceled payment.
          */
-        onCancel: function () {}
+        onCancel: function (error) {
+            this.onError(error);
+        }
     });
 });

@@ -1,6 +1,17 @@
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * ADOBE CONFIDENTIAL
+ *
+ * Copyright 2025 Adobe
+ * All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of Adobe and its suppliers, if any. The intellectual
+ * and technical concepts contained herein are proprietary to Adobe
+ * and its suppliers and are protected by all applicable intellectual
+ * property laws, including trade secret and copyright laws.
+ * Dissemination of this information or reproduction of this material
+ * is strictly forbidden unless prior written permission is obtained
+ * from Adobe.
  */
 
 /* eslint-disable no-undef */
@@ -41,7 +52,7 @@ define([
             location: window.checkoutConfig.payment['payment_services_paypal_fastlane'].location,
             paymentSource: window.checkoutConfig.payment['payment_services_paypal_fastlane'].paymentSource,
             requiresCardDetails: window.checkoutConfig.payment['payment_services_paypal_hosted_fields'].requiresCardDetails,
-            threeDSMode: window.checkoutConfig.payment['payment_services_paypal_hosted_fields'].threeDS,
+            threeDSMode: window.checkoutConfig.payment['payment_services_paypal_fastlane'].threeDS,
             getOrderDetailsUrl: window.checkoutConfig.payment['payment_services_paypal_hosted_fields'].getOrderDetailsUrl,
             paymentsOrderId: null,
             paypalOrderId: null,
@@ -71,7 +82,9 @@ define([
             // Get the token from Fastlane
             // Submit payment
             try {
-                const { id, paymentSource: { card: { billingAddress, name } } } = await fastlaneModel.getPaymentToken(),
+                loader.startLoader();
+
+                let { id, paymentSource: { card: { billingAddress, name } } } = await fastlaneModel.getPaymentToken(),
                     [firstname, ...lastname] = name.split(' '),
                     mappedAddress = mapAddressToMagento({ address: billingAddress }),
                     shippingAddress = quote.shippingAddress();
@@ -88,6 +101,10 @@ define([
                 quote.billingAddress({...mappedAddress, street: Object.values(mappedAddress.street)});
 
                 if (this.isBillingAddressValid()) {
+                    if (this.threeDSMode) {
+                        id = await fastlaneModel.validate3DS(id);
+                    }
+
                     this.fastlaneToken = id;
                     this.placeOrder();
                 } else {
@@ -101,6 +118,8 @@ define([
                 messageList.addErrorMessage({
                     message: $t('Cannot validate payment.')
                 });
+            } finally {
+                loader.stopLoader();
             }
         },
 
@@ -144,24 +163,6 @@ define([
             });
         },
 
-        /**
-         * Check the 3DS configuration and if the payment has passed validation.
-         *
-         * @param {Object} data
-         * @returns {Promise|Error}
-         */
-        checkThreeDs: function (data) {
-            if (!this.threeDSMode) {
-                return Promise.resolve(data);
-            }
-
-            if (data.liabilityShift === 'POSSIBLE' || data.liabilityShift === undefined) {
-                return Promise.resolve(data);
-            } else {
-                throw new Error('User failed 3DS validation.');
-            }
-        },
-
         /** @inheritdoc */
         getData: function () {
             var data = this._super();
@@ -169,7 +170,9 @@ define([
             data['additional_data'] = {
                 paypal_fastlane_profile: fastlaneModel.profileData() ? 'Yes' : 'No',
                 payment_source: this.paymentSource,
-                paypal_fastlane_token: this.fastlaneToken
+                paypal_fastlane_token: this.fastlaneToken,
+                liability_shift: fastlaneModel.liabilityShift() ?? 'false',
+                authentication_state: fastlaneModel.authenticationState() ?? 'Cancelled',
             };
 
             return data;

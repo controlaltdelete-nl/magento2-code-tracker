@@ -1,8 +1,20 @@
 <?php
 /**
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
+ * ADOBE CONFIDENTIAL
+ *
+ * Copyright 2021 Adobe
+ * All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of Adobe and its suppliers, if any. The intellectual
+ * and technical concepts contained herein are proprietary to Adobe
+ * and its suppliers and are protected by all applicable intellectual
+ * property laws, including trade secret and copyright laws.
+ * Dissemination of this information or reproduction of this material
+ * is strictly forbidden unless prior written permission is obtained
+ * from Adobe.
  */
+
 declare(strict_types=1);
 namespace Magento\PaymentServicesPaypal\Model;
 
@@ -11,6 +23,7 @@ use Magento\PaymentServicesBase\Model\ScopeHeadersBuilder;
 use Magento\PaymentServicesBase\Model\ServiceClientInterface;
 use Magento\Framework\App\Request\Http;
 use Magento\PaymentServicesBase\Model\HttpException;
+use Magento\PaymentServicesPaypal\Api\PhoneNumberServiceInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Address as Address;
 use Magento\PaymentServicesBase\Model\Config as BaseConfig;
@@ -23,57 +36,23 @@ use Psr\Log\LoggerInterface;
 class OrderService
 {
     /**
-     * @var ServiceClientInterface
-     */
-    private ServiceClientInterface $httpClient;
-
-    /**
-     * @var ScopeHeadersBuilder
-     */
-    private ScopeHeadersBuilder $scopeHeaderBuilder;
-
-    /**
-     * @var Config
-     */
-    private Config $config;
-
-    /**
-     * @var BaseConfig
-     */
-    private BaseConfig $baseConfig;
-
-    /**
-     * @var PaypalOrderRequestBuilder
-     */
-    private PaypalOrderRequestBuilder $paypalOrderRequestBuilder;
-
-    /**
-     * @var LoggerInterface
-     */
-    private LoggerInterface $logger;
-
-    /**
      * @param ServiceClientInterface $httpClient
      * @param ScopeHeadersBuilder $scopeHeaderBuilder
      * @param Config $config
      * @param BaseConfig $baseConfig
      * @param PaypalOrderRequestBuilder $paypalOrderRequestBuilder
      * @param LoggerInterface $logger
+     * @param PhoneNumberServiceInterface $phoneNumberService
      */
     public function __construct(
-        ServiceClientInterface $httpClient,
-        ScopeHeadersBuilder $scopeHeaderBuilder,
-        Config $config,
-        BaseConfig $baseConfig,
-        PaypalOrderRequestBuilder $paypalOrderRequestBuilder,
-        LoggerInterface $logger
+        private readonly ServiceClientInterface $httpClient,
+        private readonly ScopeHeadersBuilder $scopeHeaderBuilder,
+        private readonly Config $config,
+        private readonly BaseConfig $baseConfig,
+        private readonly PaypalOrderRequestBuilder $paypalOrderRequestBuilder,
+        private readonly LoggerInterface $logger,
+        private readonly PhoneNumberServiceInterface $phoneNumberService
     ) {
-        $this->httpClient = $httpClient;
-        $this->scopeHeaderBuilder = $scopeHeaderBuilder;
-        $this->config = $config;
-        $this->baseConfig = $baseConfig;
-        $this->paypalOrderRequestBuilder = $paypalOrderRequestBuilder;
-        $this->logger = $logger;
     }
 
     /**
@@ -191,7 +170,7 @@ class OrderService
     }
 
     /**
-     * Add tracking information for a Paypal Order
+     * Add tracking information for a PayPal Order
      *
      * @param StoreInterface $store
      * @param string $orderId
@@ -298,7 +277,8 @@ class OrderService
         if ($address->getCountry() === null) {
             return null;
         }
-        return [
+
+        $addressData = [
             'full_name' => $address->getFirstname() . ' ' . $address->getLastname(),
             'address_line_1' => $address->getStreet()[0],
             'address_line_2' => $address->getStreet()[1] ?? null,
@@ -307,6 +287,22 @@ class OrderService
             'postal_code' => $address->getPostcode(),
             'country_code' => $address->getCountry()
         ];
+
+        // If address type is SHIPPING then only add 'email' and 'phone number' in the request.
+        if ($address->getAddressType() === Address::ADDRESS_TYPE_SHIPPING) {
+            $addressData['email'] = $address->getEmail();
+
+            // Add phone number if it is set
+            $phoneNumber = $this->phoneNumberService->formatPhoneNumber($address);
+            if ($phoneNumber) {
+                $addressData['phone_number'] = [
+                    'country_code' => $this->phoneNumberService->getCountryCodeForRegion($address->getCountryId()),
+                    'national_number' => $phoneNumber
+                ];
+            }
+        }
+
+        return $addressData;
     }
 
     /**
